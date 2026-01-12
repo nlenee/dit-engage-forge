@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, Send, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,8 @@ interface EmailDialogProps {
   letterId: string;
   recipientEmail: string;
   recipientName: string;
-  pdfBase64: string;
+  pdfBase64?: string;
+  generatePdf?: () => Promise<string>;
   onEmailSent?: () => void;
 }
 
@@ -41,17 +42,55 @@ const EmailDialog = ({
   letterId,
   recipientEmail,
   recipientName,
-  pdfBase64,
+  pdfBase64: initialPdfBase64,
+  generatePdf,
   onEmailSent,
 }: EmailDialogProps) => {
   const { toast } = useToast();
   const [isSending, setIsSending] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [pdfBase64, setPdfBase64] = useState(initialPdfBase64 || "");
   const [formData, setFormData] = useState({
     to: recipientEmail,
     subject: `Letter of Engagement - ${recipientName}`,
     message: `We are pleased to inform you of your engagement with the Divine Intelligence Team (DIT). Please find your official Letter of Engagement attached to this email.`,
   });
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      to: recipientEmail,
+      subject: `Letter of Engagement - ${recipientName}`,
+    }));
+  }, [recipientEmail, recipientName]);
+
+  useEffect(() => {
+    if (initialPdfBase64) {
+      setPdfBase64(initialPdfBase64);
+    }
+  }, [initialPdfBase64]);
+
+  const handlePrepareAndSend = async () => {
+    if (!pdfBase64 && generatePdf) {
+      setIsGeneratingPdf(true);
+      try {
+        const generatedPdf = await generatePdf();
+        setPdfBase64(generatedPdf);
+        setShowConfirm(true);
+      } catch (error: any) {
+        toast({
+          title: "Failed to generate PDF",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsGeneratingPdf(false);
+      }
+    } else {
+      setShowConfirm(true);
+    }
+  };
 
   const handleSendEmail = async () => {
     setIsSending(true);
@@ -158,10 +197,15 @@ const EmailDialog = ({
               Cancel
             </Button>
             <Button
-              onClick={() => setShowConfirm(true)}
-              disabled={isSending || !formData.to || !formData.subject}
+              onClick={handlePrepareAndSend}
+              disabled={isSending || isGeneratingPdf || !formData.to || !formData.subject}
             >
-              {isSending ? (
+              {isGeneratingPdf ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Preparing PDF...
+                </>
+              ) : isSending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Sending...
