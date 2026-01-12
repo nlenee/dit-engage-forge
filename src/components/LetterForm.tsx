@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import AIEnhanceButton from "@/components/AIEnhanceButton";
 import { LetterFormData, Signatory, defaultLetterContent } from "@/types/letter";
 import { getAllCountries, getStatesByCountry } from "@/data/countries";
 import { getStoredOffices, saveOffice } from "@/data/offices";
@@ -75,6 +76,10 @@ const LetterForm = ({ data, onChange }: LetterFormProps) => {
       setNewOffice("");
       setShowNewOffice(false);
     }
+  };
+
+  const handleEnhancedContent = (enhancedText: string) => {
+    handleChange("letterContent", enhancedText);
   };
 
   return (
@@ -248,7 +253,13 @@ const LetterForm = ({ data, onChange }: LetterFormProps) => {
         </h3>
         
         <div className="space-y-2">
-          <Label htmlFor="letterContent">Body of Letter</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="letterContent">Body of Letter</Label>
+            <AIEnhanceButton
+              text={data.letterContent}
+              onEnhance={handleEnhancedContent}
+            />
+          </div>
           <p className="text-xs text-muted-foreground mb-2">
             Use [POSITION] as a placeholder for the office/position. It will be automatically replaced.
           </p>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
   FileText,
@@ -14,6 +14,8 @@ import {
   MoreVertical,
   Trash2,
   Eye,
+  Edit,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,31 +26,39 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Header from "@/components/Header";
-import { LetterData } from "@/types/letter";
+import { useLetters } from "@/hooks/useLetters";
 import { getCountryName, getStateName } from "@/data/countries";
 import ditLogo from "@/assets/dit-logo.jpg";
 
 const Dashboard = () => {
-  const [letters, setLetters] = useState<LetterData[]>([]);
+  const navigate = useNavigate();
+  const { letters, isLoading, deleteLetter } = useLetters();
   const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    const savedLetters = JSON.parse(localStorage.getItem("dit_letters") || "[]");
-    setLetters(savedLetters);
-  }, []);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const filteredLetters = letters.filter(
     (letter) =>
-      letter.recipientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      letter.recipient_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       letter.office?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      letter.recipientEmail?.toLowerCase().includes(searchQuery.toLowerCase())
+      letter.recipient_email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDelete = (id: string) => {
-    const updatedLetters = letters.filter((letter) => letter.id !== id);
-    setLetters(updatedLetters);
-    localStorage.setItem("dit_letters", JSON.stringify(updatedLetters));
+  const handleDelete = async () => {
+    if (deleteId) {
+      await deleteLetter.mutateAsync(deleteId);
+      setDeleteId(null);
+    }
   };
 
   const stats = {
@@ -145,7 +155,12 @@ const Dashboard = () => {
             Recent Letters
           </h2>
 
-          {filteredLetters.length === 0 ? (
+          {isLoading ? (
+            <div className="bg-card rounded-xl p-12 text-center border border-border/50 shadow-soft">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading letters...</p>
+            </div>
+          ) : filteredLetters.length === 0 ? (
             <div className="bg-card rounded-xl p-12 text-center border border-border/50 shadow-soft">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
@@ -173,7 +188,7 @@ const Dashboard = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-foreground">
-                          {letter.recipientName}
+                          {letter.recipient_name}
                         </h3>
                         <Badge className={getStatusColor(letter.status)}>
                           {letter.status || "draft"}
@@ -187,11 +202,12 @@ const Dashboard = () => {
                         </span>
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3.5 w-3.5" />
-                          {getStateName(letter.country, letter.state)}, {getCountryName(letter.country)}
+                          {letter.state && `${getStateName(letter.country, letter.state)}, `}
+                          {getCountryName(letter.country)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5" />
-                          {letter.createdAt && format(new Date(letter.createdAt), "MMM d, yyyy")}
+                          {format(new Date(letter.created_at), "MMM d, yyyy")}
                         </span>
                       </div>
                     </div>
@@ -204,17 +220,23 @@ const Dashboard = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="flex items-center gap-2">
+                          <DropdownMenuItem 
+                            className="flex items-center gap-2"
+                            onClick={() => navigate(`/edit/${letter.id}`)}
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="flex items-center gap-2"
+                            onClick={() => navigate(`/edit/${letter.id}`)}
+                          >
                             <Eye className="h-4 w-4" />
                             View
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center gap-2">
-                            <Download className="h-4 w-4" />
-                            Download
-                          </DropdownMenuItem>
                           <DropdownMenuItem
                             className="flex items-center gap-2 text-destructive"
-                            onClick={() => letter.id && handleDelete(letter.id)}
+                            onClick={() => setDeleteId(letter.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                             Delete
@@ -229,6 +251,26 @@ const Dashboard = () => {
           )}
         </div>
       </main>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Letter</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this letter? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

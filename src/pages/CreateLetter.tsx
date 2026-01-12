@@ -1,22 +1,33 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Download, Eye, EyeOff, Mail, Save, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Download, Eye, EyeOff, Mail, Save, Sparkles, History, Loader2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import LetterForm from "@/components/LetterForm";
 import LetterPreview from "@/components/LetterPreview";
-import { LetterFormData, defaultLetterContent } from "@/types/letter";
+import TemplateSelector from "@/components/TemplateSelector";
+import EmailDialog from "@/components/EmailDialog";
+import VersionHistory from "@/components/VersionHistory";
+import { LetterFormData, defaultLetterContent, Signatory } from "@/types/letter";
 import { useToast } from "@/hooks/use-toast";
+import { useLetters, DbLetter } from "@/hooks/useLetters";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 const CreateLetter = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { toast } = useToast();
+  const { createLetter, updateLetter, updateStatus, getLetterVersions } = useLetters();
   const letterRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(!!id);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [currentLetterId, setCurrentLetterId] = useState<string | null>(id || null);
 
   const [formData, setFormData] = useState<LetterFormData>({
     recipientName: "",
@@ -34,6 +45,89 @@ const CreateLetter = () => {
       },
     ],
   });
+
+  // Load existing letter if editing
+  useEffect(() => {
+    const loadLetter = async () => {
+      if (!id) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("letters")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setFormData({
+            recipientName: data.recipient_name,
+            recipientEmail: data.recipient_email,
+            country: data.country,
+            state: data.state || "",
+            office: data.office,
+            dateOfAssignment: new Date(data.date_of_assignment),
+            letterContent: data.letter_content,
+            signatories: (data.signatories as unknown as Signatory[]) || [],
+          });
+          setCurrentLetterId(data.id);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error loading letter",
+          description: error.message,
+          variant: "destructive",
+        });
+        navigate("/");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadLetter();
+  }, [id, navigate, toast]);
+
+  const handleTemplateSelect = (content: string) => {
+    setFormData((prev) => ({ ...prev, letterContent: content }));
+  };
+
+  const handleVersionRestore = (version: LetterFormData) => {
+    setFormData(version);
+  };
+
+  const generatePdfBase64 = async (): Promise<string> => {
+    if (!letterRef.current) throw new Error("Letter preview not available");
+    
+    const canvas = await html2canvas(letterRef.current, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+    const imgX = (pdfWidth - imgWidth * ratio) / 2;
+    const imgY = 0;
+
+    pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+    
+    // Return base64 without the data URL prefix
+    const base64 = pdf.output("datauristring").split(",")[1];
+    return base64;
+  };
 
   const handleDownloadPDF = async () => {
     if (!letterRef.current) return;
@@ -70,15 +164,10 @@ const CreateLetter = () => {
       pdf.addImage(imgData, "PNG", imgX, imgY, imgWidth * ratio, imgHeight * ratio);
       pdf.save(fileName);
 
-      // Save to local storage for dashboard
-      const savedLetters = JSON.parse(localStorage.getItem("dit_letters") || "[]");
-      savedLetters.unshift({
-        id: crypto.randomUUID(),
-        ...formData,
-        createdAt: new Date().toISOString(),
-        status: "downloaded",
-      });
-      localStorage.setItem("dit_letters", JSON.stringify(savedLetters));
+      // Update status to downloaded if we have a letter ID
+      if (currentLetterId) {
+        await updateStatus.mutateAsync({ id: currentLetterId, status: "downloaded" });
+      }
 
       toast({
         title: "PDF Generated Successfully!",
@@ -95,23 +184,35 @@ const CreateLetter = () => {
     }
   };
 
-  const handleSaveDraft = () => {
-    const savedLetters = JSON.parse(localStorage.getItem("dit_letters") || "[]");
-    savedLetters.unshift({
-      id: crypto.randomUUID(),
-      ...formData,
-      createdAt: new Date().toISOString(),
-      status: "draft",
-    });
-    localStorage.setItem("dit_letters", JSON.stringify(savedLetters));
-
-    toast({
-      title: "Draft Saved",
-      description: "Your letter has been saved as a draft.",
-    });
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      if (currentLetterId) {
+        await updateLetter.mutateAsync({ id: currentLetterId, formData });
+      } else {
+        const result = await createLetter.mutateAsync(formData);
+        if (result?.id) {
+          setCurrentLetterId(result.id);
+          navigate(`/edit/${result.id}`, { replace: true });
+        }
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const isFormValid = formData.recipientName && formData.recipientEmail && formData.office;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -120,27 +221,54 @@ const CreateLetter = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
           <h1 className="font-display text-3xl font-bold text-foreground">
-            Create Letter of Engagement
+            {id ? "Edit Letter of Engagement" : "Create Letter of Engagement"}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Fill in the details below to generate an official DIT Letter of Engagement
+            {id
+              ? "Update the letter details and regenerate the PDF"
+              : "Fill in the details below to generate an official DIT Letter of Engagement"}
           </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Form Section */}
           <div className="flex-1 lg:max-w-xl">
+            {/* Template Selector */}
+            <div className="mb-6">
+              <TemplateSelector 
+                onSelectTemplate={handleTemplateSelect} 
+                currentContent={formData.letterContent}
+              />
+            </div>
+
             <LetterForm data={formData} onChange={setFormData} />
+
+            {/* Version History */}
+            {currentLetterId && (
+              <div className="mt-6">
+                <VersionHistory
+                  letterId={currentLetterId}
+                  onRestoreVersion={(formData) => {
+                    setFormData(formData);
+                  }}
+                />
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="mt-6 flex flex-wrap gap-3 animate-fade-in" style={{ animationDelay: "0.5s" }}>
               <Button
-                onClick={handleSaveDraft}
+                onClick={handleSave}
                 variant="outline"
+                disabled={isSaving}
                 className="flex items-center gap-2"
               >
-                <Save className="h-4 w-4" />
-                Save Draft
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {isSaving ? "Saving..." : currentLetterId ? "Update" : "Save Draft"}
               </Button>
 
               <Button
@@ -148,9 +276,25 @@ const CreateLetter = () => {
                 disabled={!isFormValid || isGenerating}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90"
               >
-                <Download className="h-4 w-4" />
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
                 {isGenerating ? "Generating..." : "Download PDF"}
               </Button>
+
+              {currentLetterId && (
+                <Button
+                  variant="outline"
+                  onClick={() => setEmailDialogOpen(true)}
+                  disabled={!isFormValid}
+                  className="flex items-center gap-2"
+                >
+                  <Mail className="h-4 w-4" />
+                  Send Email
+                </Button>
+              )}
 
               <Button
                 variant="outline"
@@ -188,6 +332,17 @@ const CreateLetter = () => {
           </div>
         </div>
       </main>
+
+      {currentLetterId && (
+        <EmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          letterId={currentLetterId}
+          recipientEmail={formData.recipientEmail}
+          recipientName={formData.recipientName}
+          generatePdf={generatePdfBase64}
+        />
+      )}
     </div>
   );
 };
