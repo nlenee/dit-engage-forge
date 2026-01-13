@@ -16,27 +16,42 @@ export type Database = {
     Tables: {
       email_logs: {
         Row: {
+          bounce_reason: string | null
+          bounced_at: string | null
+          delivery_status: string | null
           id: string
           letter_id: string | null
+          opened_at: string | null
           recipient_email: string
+          resend_email_id: string | null
           sent_at: string
           sent_by: string | null
           status: string
           subject: string
         }
         Insert: {
+          bounce_reason?: string | null
+          bounced_at?: string | null
+          delivery_status?: string | null
           id?: string
           letter_id?: string | null
+          opened_at?: string | null
           recipient_email: string
+          resend_email_id?: string | null
           sent_at?: string
           sent_by?: string | null
           status?: string
           subject: string
         }
         Update: {
+          bounce_reason?: string | null
+          bounced_at?: string | null
+          delivery_status?: string | null
           id?: string
           letter_id?: string | null
+          opened_at?: string | null
           recipient_email?: string
+          resend_email_id?: string | null
           sent_at?: string
           sent_by?: string | null
           status?: string
@@ -225,6 +240,36 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_signatures: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          signature_url: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          signature_url: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          signature_url?: string
+          title?: string
           updated_at?: string
           user_id?: string
         }

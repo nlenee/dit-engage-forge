@@ -19,6 +19,7 @@ const Header = () => {
   const navItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
     { path: "/create", label: "New Letter", icon: Plus },
+    ...(isAdmin ? [{ path: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
