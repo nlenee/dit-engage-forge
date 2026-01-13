@@ -13,6 +13,8 @@ import {
   Eye,
   AlertTriangle,
   Loader2,
+  UserPlus,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,14 +52,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Header from "@/components/Header";
+import { AdminInviteDialog } from "@/components/AdminInviteDialog";
 import { useAdminData } from "@/hooks/useAdminData";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getCountryName, getStateName } from "@/data/countries";
 
+type AppRole = "admin" | "user" | "super_admin";
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, isSuperAdmin, loading } = useAuth();
   const {
     users,
     usersLoading,
@@ -72,8 +77,9 @@ const AdminDashboard = () => {
   const [roleChangeUser, setRoleChangeUser] = useState<{
     userId: string;
     name: string;
-    newRole: "admin" | "user";
+    newRole: AppRole;
   } | null>(null);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   if (loading) {
     return (
@@ -107,7 +113,7 @@ const AdminDashboard = () => {
 
   const stats = {
     totalUsers: users.length,
-    adminUsers: users.filter((u) => u.role === "admin").length,
+    adminUsers: users.filter((u) => u.role === "admin" || u.role === "super_admin").length,
     totalLetters: allLetters.length,
     sentEmails: emailLogs.filter((e) => e.status === "sent").length,
     deliveredEmails: emailLogs.filter((e) => e.delivery_status === "delivered").length,
@@ -147,6 +153,27 @@ const AdminDashboard = () => {
     );
   };
 
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case "super_admin":
+        return (
+          <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+            <Crown className="h-3 w-3 mr-1" />
+            Super Admin
+          </Badge>
+        );
+      case "admin":
+        return (
+          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+            <Shield className="h-3 w-3 mr-1" />
+            Admin
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">User</Badge>;
+    }
+  };
+
   const handleRoleChange = async () => {
     if (roleChangeUser) {
       await updateUserRole.mutateAsync({
@@ -163,13 +190,27 @@ const AdminDashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Manage users, view all letters, and monitor email delivery.
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+              Admin Dashboard
+              {isSuperAdmin && (
+                <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+                  <Crown className="h-3 w-3 mr-1" />
+                  Super Admin
+                </Badge>
+              )}
+            </h1>
+            <p className="text-muted-foreground">
+              Manage users, view all letters, and monitor email delivery.
+            </p>
+          </div>
+          {isSuperAdmin && (
+            <Button onClick={() => setInviteDialogOpen(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Invite Admin
+            </Button>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -249,24 +290,28 @@ const AdminDashboard = () => {
                           {user.user_id.slice(0, 8)}...
                         </TableCell>
                         <TableCell>
-                          <Select
-                            value={user.role}
-                            onValueChange={(value: "admin" | "user") =>
-                              setRoleChangeUser({
-                                userId: user.user_id,
-                                name: user.full_name || "this user",
-                                newRole: value,
-                              })
-                            }
-                          >
-                            <SelectTrigger className="w-24 h-8">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user">User</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          {isSuperAdmin && user.role !== "super_admin" ? (
+                            <Select
+                              value={user.role}
+                              onValueChange={(value: AppRole) =>
+                                setRoleChangeUser({
+                                  userId: user.user_id,
+                                  name: user.full_name || "this user",
+                                  newRole: value,
+                                })
+                              }
+                            >
+                              <SelectTrigger className="w-28 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            getRoleBadge(user.role)
+                          )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {format(new Date(user.created_at), "MMM d, yyyy")}
@@ -428,6 +473,9 @@ const AdminDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Admin Invite Dialog */}
+      <AdminInviteDialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} />
     </div>
   );
 };

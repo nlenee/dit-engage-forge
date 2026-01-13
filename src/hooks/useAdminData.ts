@@ -9,7 +9,7 @@ export interface UserWithRole {
   full_name: string | null;
   avatar_url: string | null;
   created_at: string;
-  role: "admin" | "user";
+  role: "admin" | "user" | "super_admin";
   email?: string;
 }
 
@@ -98,7 +98,7 @@ export const useAdminData = () => {
       role,
     }: {
       userId: string;
-      role: "admin" | "user";
+      role: "admin" | "user" | "super_admin";
     }) => {
       // First check if role exists
       const { data: existingRole } = await supabase

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Download, Eye, EyeOff, Mail, Save, Sparkles, History, Loader2 } from "lucide-react";
+import { Download, Eye, EyeOff, Mail, Save, Sparkles, Clock, Users, Shield, Loader2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -10,23 +10,34 @@ import LetterPreview from "@/components/LetterPreview";
 import TemplateSelector from "@/components/TemplateSelector";
 import EmailDialog from "@/components/EmailDialog";
 import VersionHistory from "@/components/VersionHistory";
+import { ScheduleEmailDialog } from "@/components/ScheduleEmailDialog";
+import { BulkEmailDialog } from "@/components/BulkEmailDialog";
+import { DigitalSealDialog } from "@/components/DigitalSealDialog";
 import { LetterFormData, defaultLetterContent, Signatory } from "@/types/letter";
 import { useToast } from "@/hooks/use-toast";
-import { useLetters, DbLetter } from "@/hooks/useLetters";
+import { useLetters } from "@/hooks/useLetters";
+import { useDigitalSeals } from "@/hooks/useDigitalSeals";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 const CreateLetter = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
-  const { createLetter, updateLetter, updateStatus, getLetterVersions } = useLetters();
+  const { isAdmin } = useAuth();
+  const { createLetter, updateLetter, updateStatus } = useLetters();
+  const { getSealForLetter } = useDigitalSeals();
   const letterRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!id);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [sealDialogOpen, setSealDialogOpen] = useState(false);
   const [currentLetterId, setCurrentLetterId] = useState<string | null>(id || null);
 
   const [formData, setFormData] = useState<LetterFormData>({
@@ -45,6 +56,8 @@ const CreateLetter = () => {
       },
     ],
   });
+
+  const existingSeal = currentLetterId ? getSealForLetter(currentLetterId) : null;
 
   // Load existing letter if editing
   useEffect(() => {
@@ -255,6 +268,29 @@ const CreateLetter = () => {
               </div>
             )}
 
+            {/* Seal Status */}
+            {currentLetterId && existingSeal && (
+              <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Digital Seal</span>
+                  </div>
+                  <Badge
+                    className={
+                      existingSeal.status === "approved"
+                        ? "bg-green-100 text-green-700"
+                        : existingSeal.status === "rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }
+                  >
+                    {existingSeal.status}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="mt-6 flex flex-wrap gap-3 animate-fade-in" style={{ animationDelay: "0.5s" }}>
               <Button
@@ -285,15 +321,48 @@ const CreateLetter = () => {
               </Button>
 
               {currentLetterId && (
-                <Button
-                  variant="outline"
-                  onClick={() => setEmailDialogOpen(true)}
-                  disabled={!isFormValid}
-                  className="flex items-center gap-2"
-                >
-                  <Mail className="h-4 w-4" />
-                  Send Email
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEmailDialogOpen(true)}
+                    disabled={!isFormValid}
+                    className="flex items-center gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    Send Email
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setScheduleDialogOpen(true)}
+                    disabled={!isFormValid}
+                    className="flex items-center gap-2"
+                  >
+                    <Clock className="h-4 w-4" />
+                    Schedule
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setBulkDialogOpen(true)}
+                    disabled={!isFormValid}
+                    className="flex items-center gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    Bulk Send
+                  </Button>
+
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setSealDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Shield className="h-4 w-4" />
+                      {existingSeal ? "View Seal" : "Request Seal"}
+                    </Button>
+                  )}
+                </>
               )}
 
               <Button
@@ -333,15 +402,41 @@ const CreateLetter = () => {
         </div>
       </main>
 
+      {/* Dialogs */}
       {currentLetterId && (
-        <EmailDialog
-          open={emailDialogOpen}
-          onOpenChange={setEmailDialogOpen}
-          letterId={currentLetterId}
-          recipientEmail={formData.recipientEmail}
-          recipientName={formData.recipientName}
-          generatePdf={generatePdfBase64}
-        />
+        <>
+          <EmailDialog
+            open={emailDialogOpen}
+            onOpenChange={setEmailDialogOpen}
+            letterId={currentLetterId}
+            recipientEmail={formData.recipientEmail}
+            recipientName={formData.recipientName}
+            generatePdf={generatePdfBase64}
+          />
+
+          <ScheduleEmailDialog
+            open={scheduleDialogOpen}
+            onOpenChange={setScheduleDialogOpen}
+            letterId={currentLetterId}
+            recipientEmail={formData.recipientEmail}
+            recipientName={formData.recipientName}
+            generatePdf={generatePdfBase64}
+          />
+
+          <BulkEmailDialog
+            open={bulkDialogOpen}
+            onOpenChange={setBulkDialogOpen}
+            letterId={currentLetterId}
+            generatePdf={generatePdfBase64}
+          />
+
+          <DigitalSealDialog
+            open={sealDialogOpen}
+            onOpenChange={setSealDialogOpen}
+            letterId={currentLetterId}
+            existingSeal={existingSeal}
+          />
+        </>
       )}
     </div>
   );

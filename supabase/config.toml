@@ -1,1 +1,25 @@
 project_id = "ronzkdtrxaxrzjznyckr"
+
+[functions.email-webhook]
+verify_jwt = false
+
+[functions.enhance-text]
+verify_jwt = false
+
+[functions.send-letter-email]
+verify_jwt = false
+
+[functions.send-seal-verification]
+verify_jwt = false
+
+[functions.handle-seal-action]
+verify_jwt = false
+
+[functions.send-admin-invitation]
+verify_jwt = false
+
+[functions.process-bulk-email]
+verify_jwt = false
+
+[functions.process-scheduled-emails]
+verify_jwt = false
