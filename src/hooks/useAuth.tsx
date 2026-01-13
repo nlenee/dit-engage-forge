@@ -2,11 +2,15 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+type AppRole = "admin" | "user" | "super_admin";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  userRole: AppRole | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -18,17 +22,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<AppRole | null>(null);
 
-  const checkAdminRole = async (userId: string) => {
+  const isAdmin = userRole === "admin" || userRole === "super_admin";
+  const isSuperAdmin = userRole === "super_admin";
+
+  const checkUserRole = async (userId: string) => {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .eq("role", "admin")
       .maybeSingle();
     
-    setIsAdmin(!!data);
+    setUserRole((data?.role as AppRole) || "user");
   };
 
   useEffect(() => {
@@ -42,10 +48,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Defer role check with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(() => {
-            checkAdminRole(session.user.id);
+            checkUserRole(session.user.id);
           }, 0);
         } else {
-          setIsAdmin(false);
+          setUserRole(null);
         }
       }
     );
@@ -57,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkUserRole(session.user.id);
       }
     });
 
@@ -88,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isSuperAdmin, userRole, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -14,6 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_invitations: {
+        Row: {
+          accepted_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_at: string
+          invited_by: string | null
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          status?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          status?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      bulk_email_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          failed_count: number
+          id: string
+          letter_id: string | null
+          message: string
+          sent_count: number
+          started_at: string | null
+          status: string
+          subject: string
+          total_recipients: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          id?: string
+          letter_id?: string | null
+          message: string
+          sent_count?: number
+          started_at?: string | null
+          status?: string
+          subject: string
+          total_recipients?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          id?: string
+          letter_id?: string | null
+          message?: string
+          sent_count?: number
+          started_at?: string | null
+          status?: string
+          subject?: string
+          total_recipients?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_email_jobs_letter_id_fkey"
+            columns: ["letter_id"]
+            isOneToOne: false
+            referencedRelation: "letters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bulk_email_recipients: {
+        Row: {
+          error_message: string | null
+          id: string
+          job_id: string
+          recipient_email: string
+          recipient_name: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          job_id: string
+          recipient_email: string
+          recipient_name: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          job_id?: string
+          recipient_email?: string
+          recipient_name?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_email_recipients_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "bulk_email_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      digital_seals: {
+        Row: {
+          approval_token: string | null
+          approved_at: string | null
+          approved_by_email: string | null
+          id: string
+          letter_id: string
+          purpose: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          requested_at: string
+          requested_by: string | null
+          seal_image_url: string | null
+          status: string
+          verification_emails_sent: boolean | null
+        }
+        Insert: {
+          approval_token?: string | null
+          approved_at?: string | null
+          approved_by_email?: string | null
+          id?: string
+          letter_id: string
+          purpose: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          seal_image_url?: string | null
+          status?: string
+          verification_emails_sent?: boolean | null
+        }
+        Update: {
+          approval_token?: string | null
+          approved_at?: string | null
+          approved_by_email?: string | null
+          id?: string
+          letter_id?: string
+          purpose?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          seal_image_url?: string | null
+          status?: string
+          verification_emails_sent?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_seals_letter_id_fkey"
+            columns: ["letter_id"]
+            isOneToOne: false
+            referencedRelation: "letters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           bounce_reason: string | null
@@ -222,6 +402,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
           updated_at: string
@@ -230,6 +411,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           updated_at?: string
@@ -238,6 +420,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           updated_at?: string
@@ -275,6 +458,65 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_emails: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          letter_id: string | null
+          message: string
+          pdf_base64: string | null
+          recipient_email: string
+          recipient_name: string
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          subject: string
+          timezone: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          letter_id?: string | null
+          message: string
+          pdf_base64?: string | null
+          recipient_email: string
+          recipient_name: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          timezone?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          letter_id?: string | null
+          message?: string
+          pdf_base64?: string | null
+          recipient_email?: string
+          recipient_name?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          timezone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_emails_letter_id_fkey"
+            columns: ["letter_id"]
+            isOneToOne: false
+            referencedRelation: "letters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -308,9 +550,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "super_admin"
       letter_status: "draft" | "downloaded" | "sent"
     }
     CompositeTypes: {
@@ -439,7 +682,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "super_admin"],
       letter_status: ["draft", "downloaded", "sent"],
     },
   },

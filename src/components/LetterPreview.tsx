@@ -162,9 +162,9 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span>© DIT 2022</span>
+              <span>© DIT {new Date().getFullYear()}</span>
               <img 
-                src={ditLogo} 
+                src={ditLogo}
                 alt="DIT" 
                 className="h-6 w-6 object-contain rounded opacity-80"
               />
