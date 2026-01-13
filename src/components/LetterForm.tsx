@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Upload, User, MapPin, Briefcase, Calendar, FileText, PenTool } from "lucide-react";
+import { Plus, Trash2, User, MapPin, Briefcase, Calendar, FileText, PenTool } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AIEnhanceButton from "@/components/AIEnhanceButton";
+import SignatureSelector from "@/components/SignatureSelector";
 import { LetterFormData, Signatory, defaultLetterContent } from "@/types/letter";
 import { getAllCountries, getStatesByCountry } from "@/data/countries";
 import { getStoredOffices, saveOffice } from "@/data/offices";
@@ -337,33 +338,11 @@ const LetterForm = ({ data, onChange }: LetterFormProps) => {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label>Signature Upload (PNG/JPG)</Label>
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
-                    <Upload className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {signatory.signatureImage ? "Change signature" : "Upload signature"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg"
-                      className="hidden"
-                      onChange={(e) => handleSignatureUpload(signatory.id, e)}
-                    />
-                  </label>
-                  
-                  {signatory.signatureImage && (
-                    <div className="h-12 border border-border rounded-md p-1 bg-white">
-                      <img
-                        src={signatory.signatureImage}
-                        alt="Signature preview"
-                        className="h-full w-auto object-contain"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
+              <SignatureSelector
+                signatory={signatory}
+                onSelect={(url) => handleSignatoryChange(signatory.id, "signatureImage", url)}
+                onUpload={(e) => handleSignatureUpload(signatory.id, e)}
+              />
             </div>
           ))}
           

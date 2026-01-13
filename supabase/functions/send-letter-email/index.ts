@@ -102,7 +102,7 @@ serve(async (req) => {
 
     const emailData = await emailResponse.json();
 
-    // Log the email in the database
+    // Log the email in the database with Resend email ID for tracking
     if (letterId) {
       await supabase.from("email_logs").insert({
         letter_id: letterId,
@@ -110,6 +110,8 @@ serve(async (req) => {
         subject: subject,
         sent_by: user.id,
         status: "sent",
+        delivery_status: "sent",
+        resend_email_id: emailData.id,
       });
 
       await supabase.from("letters").update({ status: "sent" }).eq("id", letterId);
