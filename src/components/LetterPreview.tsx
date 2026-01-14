@@ -30,9 +30,9 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
       const flushBullets = () => {
         if (currentBullets.length > 0) {
           elements.push(
-            <ul key={`bullets-${elements.length}`} className="list-disc list-outside ml-6 space-y-2 my-4 text-justify">
+            <ul key={`bullets-${elements.length}`} className="list-disc list-outside ml-8 space-y-3 my-6 text-justify">
               {currentBullets.map((bullet, i) => (
-                <li key={i} className="text-sm leading-relaxed pl-1">
+                <li key={i} className="text-sm leading-loose pl-2">
                   {bullet.replace(/^[•\-]\s*/, "")}
                 </li>
               ))}
@@ -44,14 +44,18 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
 
       lines.forEach((line, index) => {
         const trimmedLine = line.trim();
-        if (!trimmedLine) return;
+        if (!trimmedLine) {
+          // Add spacing for empty lines
+          elements.push(<div key={`space-${index}`} className="h-4" />);
+          return;
+        }
 
         if (trimmedLine.startsWith("•") || trimmedLine.startsWith("-")) {
           currentBullets.push(trimmedLine);
         } else {
           flushBullets();
           elements.push(
-            <p key={index} className="text-sm leading-relaxed text-justify my-3">
+            <p key={index} className="text-sm leading-loose text-justify my-4">
               {trimmedLine}
             </p>
           );
