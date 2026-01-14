@@ -15,6 +15,10 @@ import {
   Loader2,
   UserPlus,
   Crown,
+  BarChart3,
+  Cake,
+  Send,
+  FileEdit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +57,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import Header from "@/components/Header";
 import { AdminInviteDialog } from "@/components/AdminInviteDialog";
+import { EmailAnalyticsDashboard } from "@/components/EmailAnalyticsDashboard";
+import { MemberManagement } from "@/components/MemberManagement";
+import { EmailTemplateManager } from "@/components/EmailTemplateManager";
+import { EmailCampaignManager } from "@/components/EmailCampaignManager";
 import { useAdminData } from "@/hooks/useAdminData";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -202,7 +210,7 @@ const AdminDashboard = () => {
               )}
             </h1>
             <p className="text-muted-foreground">
-              Manage users, view all letters, and monitor email delivery.
+              Manage users, members, view all letters, and monitor email delivery.
             </p>
           </div>
           {isSuperAdmin && (
@@ -247,18 +255,34 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
-              Users ({users.length})
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="members" className="gap-2">
+              <Cake className="h-4 w-4" />
+              Members
             </TabsTrigger>
             <TabsTrigger value="letters" className="gap-2">
               <FileText className="h-4 w-4" />
-              Letters ({allLetters.length})
+              Letters
             </TabsTrigger>
             <TabsTrigger value="emails" className="gap-2">
               <Mail className="h-4 w-4" />
-              Email Logs ({emailLogs.length})
+              Email Logs
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="gap-2">
+              <FileEdit className="h-4 w-4" />
+              Templates
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className="gap-2">
+              <Send className="h-4 w-4" />
+              Campaigns
             </TabsTrigger>
           </TabsList>
 
@@ -334,6 +358,11 @@ const AdminDashboard = () => {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* Members Tab */}
+          <TabsContent value="members">
+            <MemberManagement />
           </TabsContent>
 
           {/* Letters Tab */}
@@ -449,6 +478,21 @@ const AdminDashboard = () => {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <EmailAnalyticsDashboard />
+          </TabsContent>
+
+          {/* Templates Tab */}
+          <TabsContent value="templates">
+            <EmailTemplateManager />
+          </TabsContent>
+
+          {/* Campaigns Tab */}
+          <TabsContent value="campaigns">
+            <EmailCampaignManager />
           </TabsContent>
         </Tabs>
       </main>
