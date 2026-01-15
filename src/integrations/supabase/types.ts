@@ -47,6 +47,41 @@ export type Database = {
         }
         Relationships: []
       }
+      birthday_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          notification_type: string
+          scheduled_for: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          notification_type: string
+          scheduled_for: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          notification_type?: string
+          scheduled_for?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "birthday_notifications_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bulk_email_jobs: {
         Row: {
           completed_at: string | null
@@ -490,36 +525,114 @@ export type Database = {
           },
         ]
       }
-      members: {
+      member_invitations: {
         Row: {
-          birthday: string | null
-          created_at: string
+          accepted_at: string | null
           email: string
-          full_name: string
+          expires_at: string
           id: string
-          phone: string | null
-          updated_at: string
-          user_id: string | null
+          invited_at: string
+          invited_by: string | null
+          status: string
+          token: string
         }
         Insert: {
-          birthday?: string | null
-          created_at?: string
+          accepted_at?: string | null
           email: string
-          full_name: string
+          expires_at?: string
           id?: string
-          phone?: string | null
-          updated_at?: string
-          user_id?: string | null
+          invited_at?: string
+          invited_by?: string | null
+          status?: string
+          token?: string
         }
         Update: {
-          birthday?: string | null
-          created_at?: string
+          accepted_at?: string | null
           email?: string
-          full_name?: string
+          expires_at?: string
           id?: string
+          invited_at?: string
+          invited_by?: string | null
+          status?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      members: {
+        Row: {
+          bio: string | null
+          birthday: string | null
+          country: string | null
+          created_at: string
+          email: string
+          email_verification_code: string | null
+          email_verified: boolean | null
+          faction: string | null
+          full_name: string
+          id: string
+          invitation_sent_at: string | null
+          invitation_token: string | null
+          joined_dit_date: string | null
+          locked_by_admin: boolean | null
+          phone: string | null
+          previous_roles: string[] | null
+          registered_at: string | null
+          role_in_dit: string | null
+          state: string | null
+          testimony: string | null
+          updated_at: string
+          user_id: string | null
+          verification_code_expires_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          birthday?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          email_verification_code?: string | null
+          email_verified?: boolean | null
+          faction?: string | null
+          full_name: string
+          id?: string
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          joined_dit_date?: string | null
+          locked_by_admin?: boolean | null
           phone?: string | null
+          previous_roles?: string[] | null
+          registered_at?: string | null
+          role_in_dit?: string | null
+          state?: string | null
+          testimony?: string | null
           updated_at?: string
           user_id?: string | null
+          verification_code_expires_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          birthday?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          email_verification_code?: string | null
+          email_verified?: boolean | null
+          faction?: string | null
+          full_name?: string
+          id?: string
+          invitation_sent_at?: string | null
+          invitation_token?: string | null
+          joined_dit_date?: string | null
+          locked_by_admin?: boolean | null
+          phone?: string | null
+          previous_roles?: string[] | null
+          registered_at?: string | null
+          role_in_dit?: string | null
+          state?: string | null
+          testimony?: string | null
+          updated_at?: string
+          user_id?: string | null
+          verification_code_expires_at?: string | null
         }
         Relationships: []
       }
