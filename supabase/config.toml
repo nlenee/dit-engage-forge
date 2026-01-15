@@ -29,3 +29,15 @@ verify_jwt = false
 
 [functions.send-birthday-emails]
 verify_jwt = false
+
+[functions.send-member-invitation]
+verify_jwt = false
+
+[functions.verify-member-email]
+verify_jwt = false
+
+[functions.send-birthday-notifications]
+verify_jwt = false
+
+[functions.register-member]
+verify_jwt = false

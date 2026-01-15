@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Edit, Trash2, Cake, Mail, Phone, Loader2 } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Cake, Mail, Phone, Loader2, Send, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,12 +32,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useMembers, Member } from "@/hooks/useMembers";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 export const MemberManagement = () => {
   const { members, isLoading, createMember, updateMember, deleteMember, getTodaysBirthdays, getUpcomingBirthdays } = useMembers();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ full_name: "", email: "", phone: "", birthday: "" });
@@ -147,9 +153,64 @@ export const MemberManagement = () => {
         </div>
         <Button onClick={() => handleOpenDialog()}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Member
+          Add Manually
+        </Button>
+        <Button variant="outline" onClick={() => setIsInviteDialogOpen(true)}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Send Invite
         </Button>
       </div>
+
+      {/* Invite Dialog */}
+      <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invite Member</DialogTitle>
+            <DialogDescription>
+              Send a registration invitation link to a new member's email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="invite_email">Email Address *</Label>
+              <Input
+                id="invite_email"
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="member@example.com"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setIsSendingInvite(true);
+                try {
+                  const { error } = await supabase.functions.invoke("send-member-invitation", {
+                    body: { email: inviteEmail },
+                  });
+                  if (error) throw error;
+                  toast({ title: "Invitation Sent", description: `Registration link sent to ${inviteEmail}` });
+                  setIsInviteDialogOpen(false);
+                  setInviteEmail("");
+                } catch (err: any) {
+                  toast({ title: "Failed to Send", description: err.message, variant: "destructive" });
+                } finally {
+                  setIsSendingInvite(false);
+                }
+              }}
+              disabled={!inviteEmail || isSendingInvite}
+            >
+              {isSendingInvite ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+              Send Invitation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Members Table */}
       <Card>

@@ -9,6 +9,8 @@ import CreateLetter from "./pages/CreateLetter";
 import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import MemberRegister from "./pages/MemberRegister";
+import MemberDirectory from "./pages/MemberDirectory";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +98,8 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          <Route path="/register" element={<MemberRegister />} />
+          <Route path="/members" element={<MemberDirectory />} />
           <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
