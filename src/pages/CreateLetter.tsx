@@ -394,7 +394,11 @@ const CreateLetter = () => {
               
               <div className="bg-muted/50 rounded-xl p-4 overflow-auto max-h-[calc(100vh-200px)]">
                 <div className="transform scale-[0.6] origin-top-left" style={{ width: "166.67%" }}>
-                  <LetterPreview ref={letterRef} data={formData} />
+                  <LetterPreview 
+                    ref={letterRef} 
+                    data={formData} 
+                    showSeal={existingSeal?.status === "approved"}
+                  />
                 </div>
               </div>
             </div>
