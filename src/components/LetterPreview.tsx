@@ -32,9 +32,29 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
       const flushBullets = () => {
         if (currentBullets.length > 0) {
           elements.push(
-            <ul key={`bullets-${elements.length}`} className="list-disc list-outside ml-8 space-y-3 my-6 text-justify">
+            <ul 
+              key={`bullets-${elements.length}`} 
+              style={{ 
+                listStyleType: "disc",
+                listStylePosition: "outside",
+                marginLeft: "32px",
+                marginTop: "24px",
+                marginBottom: "24px",
+                textAlign: "justify",
+              }}
+            >
               {currentBullets.map((bullet, i) => (
-                <li key={i} className="text-sm leading-loose pl-2">
+                <li 
+                  key={i} 
+                  style={{ 
+                    fontSize: "14px",
+                    lineHeight: "1.8",
+                    paddingLeft: "8px",
+                    marginBottom: "12px",
+                    letterSpacing: "0.02em",
+                    wordSpacing: "0.1em",
+                  }}
+                >
                   {bullet.replace(/^[•\-]\s*/, "")}
                 </li>
               ))}
@@ -48,7 +68,7 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
         const trimmedLine = line.trim();
         if (!trimmedLine) {
           // Add spacing for empty lines
-          elements.push(<div key={`space-${index}`} className="h-4" />);
+          elements.push(<div key={`space-${index}`} style={{ height: "16px" }} />);
           return;
         }
 
@@ -57,7 +77,18 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
         } else {
           flushBullets();
           elements.push(
-            <p key={index} className="text-sm leading-loose text-justify my-4">
+            <p 
+              key={index} 
+              style={{ 
+                fontSize: "14px",
+                lineHeight: "1.8",
+                textAlign: "justify",
+                marginTop: "16px",
+                marginBottom: "16px",
+                letterSpacing: "0.02em",
+                wordSpacing: "0.1em",
+              }}
+            >
               {trimmedLine}
             </p>
           );
@@ -72,87 +103,102 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
       <div
         ref={ref}
         className="letter-document w-full max-w-[210mm] mx-auto bg-white rounded-lg overflow-hidden"
-        style={{ minHeight: "297mm" }}
+        style={{ 
+          minHeight: "297mm",
+          fontFamily: "'Inter', 'Segoe UI', sans-serif",
+          letterSpacing: "0.01em",
+          wordSpacing: "0.05em",
+        }}
       >
         {/* Header with gradient */}
-        <div className="dit-gradient-header p-6 pb-4">
-          <div className="flex items-start gap-2">
+        <div className="dit-gradient-header" style={{ padding: "24px 24px 16px 24px" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
             <img 
               src={ditLogo} 
               alt="DIT Logo" 
-              className="h-16 w-16 object-contain rounded-md"
+              style={{ height: "64px", width: "64px", objectFit: "contain", borderRadius: "6px" }}
             />
           </div>
         </div>
 
         {/* Letter Content */}
-        <div className="px-10 py-6">
+        <div style={{ padding: "24px 40px" }}>
           {/* Recipient */}
-          <div className="mb-6">
-            <p className="text-sm text-dit-navy font-medium">To:</p>
-            <p className="text-lg font-semibold text-dit-teal">
+          <div style={{ marginBottom: "24px" }}>
+            <p style={{ fontSize: "14px", color: "#1e3a5f", fontWeight: 500, letterSpacing: "0.02em" }}>To:</p>
+            <p style={{ fontSize: "18px", fontWeight: 600, color: "#0d9488", letterSpacing: "0.02em" }}>
               {data.recipientName || "Recipient Name"},
             </p>
           </div>
 
           {/* Location and Date */}
-          <div className="mb-6 text-sm text-dit-teal">
+          <div style={{ marginBottom: "24px", fontSize: "14px", color: "#0d9488", letterSpacing: "0.02em" }}>
             {location && <p>{location}.</p>}
             <p>{formattedDate}.</p>
           </div>
 
           {/* Title */}
-          <h1 className="letter-title text-xl font-bold text-center my-8 tracking-wider">
+          <h1 
+            style={{ 
+              fontSize: "20px",
+              fontWeight: "bold",
+              textAlign: "center",
+              marginTop: "32px",
+              marginBottom: "32px",
+              letterSpacing: "0.15em",
+              wordSpacing: "0.2em",
+            }}
+          >
             LETTER OF ENGAGEMENT
           </h1>
 
           {/* Greeting */}
-          <p className="text-sm mb-4">
+          <p style={{ fontSize: "14px", marginBottom: "16px", letterSpacing: "0.02em" }}>
             Dear {data.recipientName?.split(" ")[0] || "Recipient"},
           </p>
 
           {/* Body */}
-          <div className="text-sm text-foreground">
+          <div style={{ fontSize: "14px", color: "#1a1a1a" }}>
             {renderContent()}
           </div>
 
           {/* Closing */}
-          <div className="mt-8">
-            <p className="text-sm mb-6">Best Regards,</p>
+          <div style={{ marginTop: "32px" }}>
+            <p style={{ fontSize: "14px", marginBottom: "24px", letterSpacing: "0.02em" }}>Best Regards,</p>
 
             {/* Signatories and Seal Container */}
-            <div className="flex justify-between items-end">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
               {/* Signatories */}
-              <div className="space-y-8">
+              <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
                 {data.signatories.map((signatory) => (
-                  <div key={signatory.id} className="flex flex-col">
+                  <div key={signatory.id} style={{ display: "flex", flexDirection: "column" }}>
                     {signatory.signatureImage && (
-                      <div className="h-16 mb-2">
+                      <div style={{ height: "64px", marginBottom: "8px" }}>
                         <img
                           src={signatory.signatureImage}
                           alt={`${signatory.name}'s signature`}
-                          className="h-full w-auto object-contain"
+                          style={{ height: "100%", width: "auto", objectFit: "contain" }}
                         />
                       </div>
                     )}
                     {!signatory.signatureImage && (
-                      <div className="h-16 mb-2 border-b border-dashed border-muted-foreground/30 w-40" />
+                      <div style={{ height: "64px", marginBottom: "8px", borderBottom: "1px dashed #9ca3af", width: "160px" }} />
                     )}
-                    <p className="text-dit-teal font-medium">{signatory.name || "Signatory Name"}</p>
-                    <p className="text-dit-teal text-sm">{signatory.title || "Title, DIT."}</p>
+                    <p style={{ color: "#0d9488", fontWeight: 500, letterSpacing: "0.02em" }}>{signatory.name || "Signatory Name"}</p>
+                    <p style={{ color: "#0d9488", fontSize: "14px", letterSpacing: "0.02em" }}>{signatory.title || "Title, DIT."}</p>
                   </div>
                 ))}
               </div>
 
               {/* Digital Seal */}
               {showSeal && (
-                <div className="flex flex-col items-center">
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <img
                     src={ditSeal}
                     alt="DIT Official Seal"
-                    className="h-24 w-24 object-contain opacity-90"
+                    style={{ height: "96px", width: "96px", objectFit: "contain", opacity: 0.9 }}
                   />
-                  <p className="text-[9px] text-muted-foreground mt-1 text-center">
+                  <p style={{ fontSize: "9px", color: "#6b7280", marginTop: "4px", textAlign: "center", letterSpacing: "0.02em" }}>
                     Digitally Verified
                   </p>
                 </div>
@@ -162,34 +208,45 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
         </div>
 
         {/* Footer */}
-        <div className="mt-auto">
-          <div className="dit-gradient-footer text-white px-6 py-4 flex items-center justify-between text-xs">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
+        <div style={{ marginTop: "auto" }}>
+          <div 
+            className="dit-gradient-footer" 
+            style={{ 
+              color: "white", 
+              padding: "16px 24px", 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "space-between", 
+              fontSize: "12px",
+              letterSpacing: "0.02em",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span>📞</span>
                 <span>+234 905 365 1803</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span>📞</span>
                 <span>+234 814 588 0856</span>
               </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span>✉️</span>
                 <span>divintelteam@gmail.com</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span>📘</span>
                 <span>facebook.com/divintelteam</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span>© DIT {new Date().getFullYear()}</span>
               <img 
                 src={ditLogo}
                 alt="DIT" 
-                className="h-6 w-6 object-contain rounded opacity-80"
+                style={{ height: "24px", width: "24px", objectFit: "contain", borderRadius: "4px", opacity: 0.8 }}
               />
             </div>
           </div>
