@@ -3,13 +3,15 @@ import { format } from "date-fns";
 import { LetterFormData } from "@/types/letter";
 import { getCountryName, getStateName } from "@/data/countries";
 import ditLogo from "@/assets/dit-logo.jpg";
+import ditSeal from "@/assets/dit-seal.png";
 
 interface LetterPreviewProps {
   data: LetterFormData;
+  showSeal?: boolean;
 }
 
 const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
-  ({ data }, ref) => {
+  ({ data, showSeal = false }, ref) => {
     const formattedDate = format(data.dateOfAssignment, "EEEE, d MMMM, yyyy");
     const countryName = getCountryName(data.country);
     const stateName = getStateName(data.country, data.state);
@@ -118,26 +120,43 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
           <div className="mt-8">
             <p className="text-sm mb-6">Best Regards,</p>
 
-            {/* Signatories */}
-            <div className="space-y-8">
-              {data.signatories.map((signatory) => (
-                <div key={signatory.id} className="flex flex-col">
-                  {signatory.signatureImage && (
-                    <div className="h-16 mb-2">
-                      <img
-                        src={signatory.signatureImage}
-                        alt={`${signatory.name}'s signature`}
-                        className="h-full w-auto object-contain"
-                      />
-                    </div>
-                  )}
-                  {!signatory.signatureImage && (
-                    <div className="h-16 mb-2 border-b border-dashed border-muted-foreground/30 w-40" />
-                  )}
-                  <p className="text-dit-teal font-medium">{signatory.name || "Signatory Name"}</p>
-                  <p className="text-dit-teal text-sm">{signatory.title || "Title, DIT."}</p>
+            {/* Signatories and Seal Container */}
+            <div className="flex justify-between items-end">
+              {/* Signatories */}
+              <div className="space-y-8">
+                {data.signatories.map((signatory) => (
+                  <div key={signatory.id} className="flex flex-col">
+                    {signatory.signatureImage && (
+                      <div className="h-16 mb-2">
+                        <img
+                          src={signatory.signatureImage}
+                          alt={`${signatory.name}'s signature`}
+                          className="h-full w-auto object-contain"
+                        />
+                      </div>
+                    )}
+                    {!signatory.signatureImage && (
+                      <div className="h-16 mb-2 border-b border-dashed border-muted-foreground/30 w-40" />
+                    )}
+                    <p className="text-dit-teal font-medium">{signatory.name || "Signatory Name"}</p>
+                    <p className="text-dit-teal text-sm">{signatory.title || "Title, DIT."}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Digital Seal */}
+              {showSeal && (
+                <div className="flex flex-col items-center">
+                  <img
+                    src={ditSeal}
+                    alt="DIT Official Seal"
+                    className="h-24 w-24 object-contain opacity-90"
+                  />
+                  <p className="text-[9px] text-muted-foreground mt-1 text-center">
+                    Digitally Verified
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

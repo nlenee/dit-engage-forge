@@ -10,6 +10,18 @@ export interface Member {
   email: string;
   phone: string | null;
   birthday: string | null;
+  country: string | null;
+  state: string | null;
+  faction: string | null;
+  role_in_dit: string | null;
+  previous_roles: string[] | null;
+  bio: string | null;
+  testimony: string | null;
+  joined_dit_date: string | null;
+  email_verified: boolean | null;
+  locked_by_admin: boolean | null;
+  invitation_sent_at: string | null;
+  registered_at: string | null;
   created_at: string;
   updated_at: string;
 }
