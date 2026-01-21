@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,14 +18,30 @@ interface VerifyOTPRequest {
   memberId: string;
 }
 
+const createClient_SMTP = () => {
+  return new SMTPClient({
+    connection: {
+      hostname: "smtp.gmail.com",
+      port: 587,
+      tls: true,
+      auth: {
+        username: Deno.env.get("GMAIL_USER")!,
+        password: Deno.env.get("GMAIL_APP_PASSWORD")!,
+      },
+    },
+  });
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    
+    if (!gmailUser || !gmailPassword) {
       return new Response(
         JSON.stringify({ error: "Email service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -63,44 +80,37 @@ serve(async (req) => {
           .eq("id", memberId);
       }
 
-      // Send OTP email
-      const emailResponse = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "DIT Verification <onboarding@resend.dev>",
-          to: [email],
-          subject: "Your DIT Email Verification Code",
-          html: `
-            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); padding: 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Email Verification</h1>
-                <p style="color: #80ced7; margin: 10px 0 0 0;">Divine Intelligence Team</p>
-              </div>
-              <div style="padding: 30px; background-color: #f8fafc; text-align: center;">
-                <p style="color: #334155; font-size: 16px; line-height: 1.6;">
-                  Your verification code is:
-                </p>
-                
-                <div style="background: #e2e8f0; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                  <h2 style="color: #0a1628; font-size: 36px; letter-spacing: 8px; margin: 0;">${otp}</h2>
-                </div>
-                
-                <p style="color: #64748b; font-size: 14px;">
-                  This code will expire in 10 minutes.
-                </p>
-              </div>
+      // Send OTP email using Gmail SMTP
+      const client = createClient_SMTP();
+      
+      await client.send({
+        from: gmailUser,
+        to: email,
+        subject: "Your DIT Email Verification Code",
+        html: `
+          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); padding: 30px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Email Verification</h1>
+              <p style="color: #80ced7; margin: 10px 0 0 0;">Divine Intelligence Team</p>
             </div>
-          `,
-        }),
+            <div style="padding: 30px; background-color: #f8fafc; text-align: center;">
+              <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+                Your verification code is:
+              </p>
+              
+              <div style="background: #e2e8f0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h2 style="color: #0a1628; font-size: 36px; letter-spacing: 8px; margin: 0;">${otp}</h2>
+              </div>
+              
+              <p style="color: #64748b; font-size: 14px;">
+                This code will expire in 10 minutes.
+              </p>
+            </div>
+          </div>
+        `,
       });
 
-      if (!emailResponse.ok) {
-        throw new Error("Failed to send verification email");
-      }
+      await client.close();
 
       console.log(`OTP sent to ${email}`);
 

@@ -1,9 +1,24 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const createClient_SMTP = () => {
+  return new SMTPClient({
+    connection: {
+      hostname: "smtp.gmail.com",
+      port: 587,
+      tls: true,
+      auth: {
+        username: Deno.env.get("GMAIL_USER")!,
+        password: Deno.env.get("GMAIL_APP_PASSWORD")!,
+      },
+    },
+  });
 };
 
 serve(async (req) => {
@@ -12,8 +27,10 @@ serve(async (req) => {
   }
 
   try {
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    
+    if (!gmailUser || !gmailPassword) {
       return new Response(
         JSON.stringify({ error: "Email service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -47,6 +64,7 @@ serve(async (req) => {
 
     let processed = 0;
     let failed = 0;
+    const client = createClient_SMTP();
 
     for (const email of dueEmails) {
       try {
@@ -56,46 +74,39 @@ serve(async (req) => {
           .update({ status: "processing" })
           .eq("id", email.id);
 
-        // Send the email
-        const emailResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            "Content-Type": "application/json",
+        // Prepare attachments
+        const attachments = email.pdf_base64 ? [
+          {
+            filename: `DIT_Letter_of_Engagement_${email.recipient_name.replace(/\s+/g, "_")}.pdf`,
+            content: email.pdf_base64,
+            encoding: "base64" as const,
+            contentType: "application/pdf",
           },
-          body: JSON.stringify({
-            from: "DIT <onboarding@resend.dev>",
-            to: [email.recipient_email],
-            subject: email.subject,
-            html: `
-              <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); padding: 30px; text-align: center;">
-                  <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Divine Intelligence Team</h1>
-                  <p style="color: #80ced7; margin: 10px 0 0 0;">Letter of Engagement</p>
-                </div>
-                <div style="padding: 30px; background-color: #f8fafc;">
-                  <p style="color: #334155; font-size: 16px; line-height: 1.6;">Dear ${email.recipient_name},</p>
-                  <p style="color: #334155; font-size: 16px; line-height: 1.6;">${email.message}</p>
-                  <p style="color: #334155; font-size: 16px; line-height: 1.6;">Please find your official Letter of Engagement attached.</p>
-                  <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-top: 30px;">Best regards,<br><strong>Divine Intelligence Team</strong></p>
-                </div>
+        ] : [];
+
+        // Send the email using Gmail SMTP
+        await client.send({
+          from: gmailUser,
+          to: email.recipient_email,
+          subject: email.subject,
+          html: `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); padding: 30px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Divine Intelligence Team</h1>
+                <p style="color: #80ced7; margin: 10px 0 0 0;">Letter of Engagement</p>
               </div>
-            `,
-            attachments: email.pdf_base64 ? [
-              {
-                filename: `DIT_Letter_of_Engagement_${email.recipient_name.replace(/\s+/g, "_")}.pdf`,
-                content: email.pdf_base64,
-              },
-            ] : undefined,
-          }),
+              <div style="padding: 30px; background-color: #f8fafc;">
+                <p style="color: #334155; font-size: 16px; line-height: 1.6;">Dear ${email.recipient_name},</p>
+                <p style="color: #334155; font-size: 16px; line-height: 1.6;">${email.message}</p>
+                <p style="color: #334155; font-size: 16px; line-height: 1.6;">Please find your official Letter of Engagement attached.</p>
+                <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-top: 30px;">Best regards,<br><strong>Divine Intelligence Team</strong></p>
+              </div>
+            </div>
+          `,
+          attachments,
         });
 
-        if (!emailResponse.ok) {
-          const errorData = await emailResponse.json();
-          throw new Error(errorData.message || "Failed to send email");
-        }
-
-        const emailData = await emailResponse.json();
+        const messageId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
         // Update scheduled email status
         await supabase
@@ -115,7 +126,7 @@ serve(async (req) => {
             sent_by: email.created_by,
             status: "sent",
             delivery_status: "sent",
-            resend_email_id: emailData.id,
+            resend_email_id: messageId,
           });
 
           await supabase.from("letters").update({ status: "sent" }).eq("id", email.letter_id);
@@ -138,6 +149,8 @@ serve(async (req) => {
         failed++;
       }
     }
+
+    await client.close();
 
     return new Response(
       JSON.stringify({ 

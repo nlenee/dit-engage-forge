@@ -1,9 +1,24 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const createClient_SMTP = () => {
+  return new SMTPClient({
+    connection: {
+      hostname: "smtp.gmail.com",
+      port: 587,
+      tls: true,
+      auth: {
+        username: Deno.env.get("GMAIL_USER")!,
+        password: Deno.env.get("GMAIL_APP_PASSWORD")!,
+      },
+    },
+  });
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -17,9 +32,11 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not configured");
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    
+    if (!gmailUser || !gmailPassword) {
+      throw new Error("Gmail credentials are not configured");
     }
 
     // Get today's date in MM-DD format
@@ -72,6 +89,7 @@ Warmest wishes,
 The DIT Team`;
 
     let sentCount = 0;
+    const client = createClient_SMTP();
 
     for (const member of birthdayMembers) {
       try {
@@ -94,39 +112,31 @@ The DIT Team`;
           </div>
         `;
 
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "DIT <onboarding@resend.dev>",
-            to: [member.email],
-            subject,
-            html: htmlContent,
-          }),
+        await client.send({
+          from: gmailUser,
+          to: member.email,
+          subject,
+          html: htmlContent,
         });
 
-        const resData = await res.json();
-
-        if (res.ok && resData.id) {
-          sentCount++;
-          
-          await supabaseClient.from("email_logs").insert({
-            recipient_email: member.email,
-            subject,
-            status: "sent",
-            delivery_status: "sent",
-            resend_email_id: resData.id,
-          });
-          
-          console.log(`Birthday email sent to ${member.email}`);
-        }
+        const messageId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+        sentCount++;
+        
+        await supabaseClient.from("email_logs").insert({
+          recipient_email: member.email,
+          subject,
+          status: "sent",
+          delivery_status: "sent",
+          resend_email_id: messageId,
+        });
+        
+        console.log(`Birthday email sent to ${member.email}`);
       } catch (error) {
         console.error(`Failed to send birthday email to ${member.email}:`, error);
       }
     }
+
+    await client.close();
 
     return new Response(
       JSON.stringify({ 
