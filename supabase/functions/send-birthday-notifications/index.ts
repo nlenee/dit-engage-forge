@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,14 +9,30 @@ const corsHeaders = {
 
 const ADMIN_EMAILS = ["divintelteam@gmail.com", "nleneeletura@gmail.com"];
 
+const createClient_SMTP = () => {
+  return new SMTPClient({
+    connection: {
+      hostname: "smtp.gmail.com",
+      port: 587,
+      tls: true,
+      auth: {
+        username: Deno.env.get("GMAIL_USER")!,
+        password: Deno.env.get("GMAIL_APP_PASSWORD")!,
+      },
+    },
+  });
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    
+    if (!gmailUser || !gmailPassword) {
       console.log("Email service not configured");
       return new Response(
         JSON.stringify({ error: "Email service not configured" }),
@@ -67,6 +84,8 @@ serve(async (req) => {
       }
     });
 
+    const client = createClient_SMTP();
+
     // Send 7-day notifications
     if (notifications7Days.length > 0) {
       const membersList = notifications7Days
@@ -74,36 +93,29 @@ serve(async (req) => {
         .join("");
 
       for (const adminEmail of ADMIN_EMAILS) {
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "DIT Birthdays <onboarding@resend.dev>",
-            to: [adminEmail],
-            subject: `🎂 Upcoming Birthdays in 7 Days - ${notifications7Days.length} member(s)`,
-            html: `
-              <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 30px; text-align: center;">
-                  <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🎂 Birthday Alert</h1>
-                  <p style="color: #ffffff; margin: 10px 0 0 0;">7 Days Notice</p>
-                </div>
-                <div style="padding: 30px; background-color: #f8fafc;">
-                  <p style="color: #334155; font-size: 16px; line-height: 1.6;">
-                    The following members have birthdays coming up in 7 days:
-                  </p>
-                  <ul style="color: #334155; font-size: 14px; line-height: 1.8;">
-                    ${membersList}
-                  </ul>
-                  <p style="color: #64748b; font-size: 14px; margin-top: 20px;">
-                    You will receive another reminder 24 hours before.
-                  </p>
-                </div>
+        await client.send({
+          from: gmailUser,
+          to: adminEmail,
+          subject: `🎂 Upcoming Birthdays in 7 Days - ${notifications7Days.length} member(s)`,
+          html: `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 30px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🎂 Birthday Alert</h1>
+                <p style="color: #ffffff; margin: 10px 0 0 0;">7 Days Notice</p>
               </div>
-            `,
-          }),
+              <div style="padding: 30px; background-color: #f8fafc;">
+                <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+                  The following members have birthdays coming up in 7 days:
+                </p>
+                <ul style="color: #334155; font-size: 14px; line-height: 1.8;">
+                  ${membersList}
+                </ul>
+                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">
+                  You will receive another reminder 24 hours before.
+                </p>
+              </div>
+            </div>
+          `,
         });
       }
 
@@ -117,41 +129,36 @@ serve(async (req) => {
         .join("");
 
       for (const adminEmail of ADMIN_EMAILS) {
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "DIT Birthdays <onboarding@resend.dev>",
-            to: [adminEmail],
-            subject: `🎉 Birthdays TOMORROW - ${notifications24Hours.length} member(s)`,
-            html: `
-              <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center;">
-                  <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🎉 Birthday Tomorrow!</h1>
-                  <p style="color: #ffffff; margin: 10px 0 0 0;">24 Hour Notice</p>
-                </div>
-                <div style="padding: 30px; background-color: #f8fafc;">
-                  <p style="color: #334155; font-size: 16px; line-height: 1.6;">
-                    <strong>Action Required!</strong> The following members have birthdays TOMORROW:
-                  </p>
-                  <ul style="color: #334155; font-size: 14px; line-height: 1.8;">
-                    ${membersList}
-                  </ul>
-                  <p style="color: #64748b; font-size: 14px; margin-top: 20px;">
-                    Birthday emails will be sent automatically on their birthday.
-                  </p>
-                </div>
+        await client.send({
+          from: gmailUser,
+          to: adminEmail,
+          subject: `🎉 Birthdays TOMORROW - ${notifications24Hours.length} member(s)`,
+          html: `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🎉 Birthday Tomorrow!</h1>
+                <p style="color: #ffffff; margin: 10px 0 0 0;">24 Hour Notice</p>
               </div>
-            `,
-          }),
+              <div style="padding: 30px; background-color: #f8fafc;">
+                <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+                  <strong>Action Required!</strong> The following members have birthdays TOMORROW:
+                </p>
+                <ul style="color: #334155; font-size: 14px; line-height: 1.8;">
+                  ${membersList}
+                </ul>
+                <p style="color: #64748b; font-size: 14px; margin-top: 20px;">
+                  Birthday emails will be sent automatically on their birthday.
+                </p>
+              </div>
+            </div>
+          `,
         });
       }
 
       console.log(`Sent 24-hour birthday notifications for ${notifications24Hours.length} members`);
     }
+
+    await client.close();
 
     return new Response(
       JSON.stringify({ 

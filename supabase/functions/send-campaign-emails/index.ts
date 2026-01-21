@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,20 @@ interface CampaignRequest {
   recipients: Recipient[];
 }
 
+const createClient_SMTP = () => {
+  return new SMTPClient({
+    connection: {
+      hostname: "smtp.gmail.com",
+      port: 587,
+      tls: true,
+      auth: {
+        username: Deno.env.get("GMAIL_USER")!,
+        password: Deno.env.get("GMAIL_APP_PASSWORD")!,
+      },
+    },
+  });
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,9 +43,11 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not configured");
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    
+    if (!gmailUser || !gmailPassword) {
+      throw new Error("Gmail credentials are not configured");
     }
 
     const { subject, content, recipients }: CampaignRequest = await req.json();
@@ -53,6 +70,8 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: { user } } = await supabaseClient.auth.getUser(token);
       userId = user?.id || null;
     }
+
+    const client = createClient_SMTP();
 
     for (const recipient of recipients) {
       try {
@@ -82,43 +101,32 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
         `;
 
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${RESEND_API_KEY}`,
-          },
-          body: JSON.stringify({
-            from: "DIT <onboarding@resend.dev>",
-            to: [recipient.email],
-            subject: personalizedSubject,
-            html: htmlContent,
-          }),
+        await client.send({
+          from: gmailUser,
+          to: recipient.email,
+          subject: personalizedSubject,
+          html: htmlContent,
         });
 
-        const resData = await res.json();
-
-        if (res.ok && resData.id) {
-          sentCount++;
-          
-          // Log the email
-          await supabaseClient.from("email_logs").insert({
-            recipient_email: recipient.email,
-            subject: personalizedSubject,
-            sent_by: userId,
-            status: "sent",
-            delivery_status: "sent",
-            resend_email_id: resData.id,
-          });
-        } else {
-          failedCount++;
-          console.error(`Failed to send to ${recipient.email}:`, resData);
-        }
+        const messageId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+        sentCount++;
+        
+        // Log the email
+        await supabaseClient.from("email_logs").insert({
+          recipient_email: recipient.email,
+          subject: personalizedSubject,
+          sent_by: userId,
+          status: "sent",
+          delivery_status: "sent",
+          resend_email_id: messageId,
+        });
       } catch (error) {
         failedCount++;
-        console.error(`Error sending to ${recipient.email}:`, error);
+        console.error(`Failed to send to ${recipient.email}:`, error);
       }
     }
+
+    await client.close();
 
     console.log(`Campaign complete: ${sentCount} sent, ${failedCount} failed`);
 

@@ -1,9 +1,24 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const createClient_SMTP = () => {
+  return new SMTPClient({
+    connection: {
+      hostname: "smtp.gmail.com",
+      port: 587,
+      tls: true,
+      auth: {
+        username: Deno.env.get("GMAIL_USER")!,
+        password: Deno.env.get("GMAIL_APP_PASSWORD")!,
+      },
+    },
+  });
 };
 
 serve(async (req) => {
@@ -12,8 +27,10 @@ serve(async (req) => {
   }
 
   try {
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    
+    if (!gmailUser || !gmailPassword) {
       return new Response(
         JSON.stringify({ error: "Email service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -58,54 +75,46 @@ serve(async (req) => {
     const appUrl = Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '');
     const acceptUrl = `${appUrl}/auth?invitation=${invitation.token}&email=${encodeURIComponent(invitation.email)}`;
 
-    // Send invitation email
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "DIT Admin <onboarding@resend.dev>",
-        to: [invitation.email],
-        subject: "You've Been Invited as an Admin - Divine Intelligence Team",
-        html: `
-          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); padding: 30px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Admin Invitation</h1>
-              <p style="color: #80ced7; margin: 10px 0 0 0;">Divine Intelligence Team</p>
-            </div>
-            <div style="padding: 30px; background-color: #f8fafc;">
-              <p style="color: #334155; font-size: 16px; line-height: 1.6;">Hello,</p>
-              <p style="color: #334155; font-size: 16px; line-height: 1.6;">
-                You have been invited by <strong>${inviterName}</strong> to become an administrator on the Divine Intelligence Team platform.
-              </p>
-              <p style="color: #334155; font-size: 16px; line-height: 1.6;">
-                As an admin, you'll be able to manage users, view all letters, and monitor system activity.
-              </p>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${acceptUrl}" style="display: inline-block; background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
-                  Accept Invitation
-                </a>
-              </div>
-              
-              <p style="color: #64748b; font-size: 14px;">
-                This invitation will expire on ${new Date(invitation.expires_at).toLocaleDateString()}.
-              </p>
-              <p style="color: #64748b; font-size: 14px;">
-                Please click the button above and sign up using this email address: <strong>${invitation.email}</strong>
-              </p>
-            </div>
+    // Send invitation email using Gmail SMTP
+    const client = createClient_SMTP();
+    
+    await client.send({
+      from: gmailUser,
+      to: invitation.email,
+      subject: "You've Been Invited as an Admin - Divine Intelligence Team",
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Admin Invitation</h1>
+            <p style="color: #80ced7; margin: 10px 0 0 0;">Divine Intelligence Team</p>
           </div>
-        `,
-      }),
+          <div style="padding: 30px; background-color: #f8fafc;">
+            <p style="color: #334155; font-size: 16px; line-height: 1.6;">Hello,</p>
+            <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+              You have been invited by <strong>${inviterName}</strong> to become an administrator on the Divine Intelligence Team platform.
+            </p>
+            <p style="color: #334155; font-size: 16px; line-height: 1.6;">
+              As an admin, you'll be able to manage users, view all letters, and monitor system activity.
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${acceptUrl}" style="display: inline-block; background: linear-gradient(135deg, #0a1628 0%, #1a365d 100%); color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                Accept Invitation
+              </a>
+            </div>
+            
+            <p style="color: #64748b; font-size: 14px;">
+              This invitation will expire on ${new Date(invitation.expires_at).toLocaleDateString()}.
+            </p>
+            <p style="color: #64748b; font-size: 14px;">
+              Please click the button above and sign up using this email address: <strong>${invitation.email}</strong>
+            </p>
+          </div>
+        </div>
+      `,
     });
 
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
-      throw new Error(errorData.message || "Failed to send invitation email");
-    }
+    await client.close();
 
     console.log(`Admin invitation sent to ${invitation.email}`);
 
