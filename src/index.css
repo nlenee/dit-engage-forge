@@ -153,17 +153,22 @@
     box-shadow: var(--shadow-elevated);
   }
 
-  /* Letter Document Styles */
+  /* Letter Document Styles - PDF Optimized */
   .letter-document {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Times New Roman', Times, Georgia, serif;
     background: white;
     box-shadow: var(--shadow-elevated);
+    line-height: 1.8;
+  }
+
+  .letter-document * {
+    box-sizing: border-box;
   }
 
   .letter-title {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Times New Roman', Times, Georgia, serif;
     color: hsl(var(--dit-navy));
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
   }
 
   .letter-signatory {
@@ -209,11 +214,11 @@
   }
 }
 
-/* Print Styles */
+/* Print Styles - PDF Optimized */
 @media print {
   @page {
     size: A4;
-    margin: 0;
+    margin: 10mm 0;
   }
 
   html, body {
@@ -223,6 +228,7 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+    font-family: 'Times New Roman', Times, Georgia, serif !important;
   }
 
   .no-print {
@@ -232,11 +238,11 @@
   .letter-document {
     box-shadow: none !important;
     margin: 0 !important;
-    padding: 0 !important;
     width: 100% !important;
     max-width: none !important;
     border-radius: 0 !important;
-    page-break-inside: auto;
+    min-height: auto !important;
+    height: auto !important;
   }
 
   .letter-document * {
@@ -245,17 +251,39 @@
     color-adjust: exact !important;
   }
 
-  /* Allow content to flow to multiple pages */
-  .letter-document p,
-  .letter-document li {
+  /* Prevent text overlap and ensure proper flow */
+  .letter-document p {
     page-break-inside: avoid;
     orphans: 3;
     widows: 3;
+    margin-bottom: 14px !important;
+    line-height: 1.8 !important;
+  }
+
+  .letter-document li {
+    page-break-inside: avoid;
+    orphans: 2;
+    widows: 2;
+    margin-bottom: 8px !important;
+    line-height: 1.8 !important;
+  }
+
+  .letter-document ul {
+    page-break-inside: avoid;
+    margin-left: 20px !important;
+    padding-left: 10px !important;
   }
 
   .letter-document h1,
   .letter-document h2,
   .letter-document h3 {
     page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep header and footer from breaking */
+  .letter-document > div:first-child,
+  .letter-document > div:last-child {
+    page-break-inside: avoid;
   }
 }
