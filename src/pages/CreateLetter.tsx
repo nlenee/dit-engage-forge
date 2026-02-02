@@ -380,27 +380,38 @@ const CreateLetter = () => {
           <div
             className={`flex-1 ${showPreview ? "block" : "hidden"} lg:block`}
           >
-            <div className="sticky top-24">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-dit-teal" />
-                  Live Preview
-                </h2>
-                <span className="text-xs text-muted-foreground bg-accent px-2 py-1 rounded-full flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  Updates in real-time
-                </span>
-              </div>
-              
-              <div className="bg-muted/50 rounded-xl p-4 overflow-auto max-h-[calc(100vh-200px)]">
-                <div className="transform scale-[0.6] origin-top-left" style={{ width: "166.67%" }}>
-                  <LetterPreview 
-                    ref={letterRef} 
-                    data={formData} 
-                    showSeal={existingSeal?.status === "approved"}
-                  />
-                </div>
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
+                <Eye className="h-5 w-5 text-primary" />
+                Letter Preview
+              </h2>
+              <span className="text-xs text-muted-foreground bg-accent px-2 py-1 rounded-full flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Updates in real-time
+              </span>
+            </div>
+            
+            <LetterPreview 
+              ref={letterRef} 
+              data={formData} 
+              showSeal={existingSeal?.status === "approved"}
+            />
+
+            {/* Download Button at bottom */}
+            <div className="mt-6 flex justify-center">
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={!isFormValid || isGenerating}
+                size="lg"
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-8"
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Download className="h-5 w-5" />
+                )}
+                {isGenerating ? "Generating PDF..." : "Download Letter as PDF"}
+              </Button>
             </div>
           </div>
         </div>
