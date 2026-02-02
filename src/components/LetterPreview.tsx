@@ -34,7 +34,9 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
               key={`bullets-${elements.length}`} 
               style={{ 
                 listStyleType: "disc",
-                marginLeft: "24px",
+                listStylePosition: "outside",
+                marginLeft: "20px",
+                paddingLeft: "10px",
                 marginTop: "12px",
                 marginBottom: "12px",
               }}
@@ -43,10 +45,12 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
                 <li 
                   key={i} 
                   style={{ 
+                    fontFamily: "'Times New Roman', Times, Georgia, serif",
                     fontSize: "11pt",
-                    lineHeight: "1.6",
-                    marginBottom: "6px",
-                    color: "#1a1a1a",
+                    lineHeight: "1.8",
+                    marginBottom: "8px",
+                    color: "#000000",
+                    textAlign: "left",
                   }}
                 >
                   {bullet.replace(/^[•\-]\s*/, "")}
@@ -62,7 +66,7 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
         const trimmedLine = line.trim();
         if (!trimmedLine) {
           flushBullets();
-          elements.push(<div key={`space-${index}`} style={{ height: "8px" }} />);
+          elements.push(<div key={`space-${index}`} style={{ height: "14px" }} />);
           return;
         }
 
@@ -74,11 +78,13 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
             <p 
               key={index} 
               style={{ 
+                fontFamily: "'Times New Roman', Times, Georgia, serif",
                 fontSize: "11pt",
-                lineHeight: "1.6",
+                lineHeight: "1.8",
                 textAlign: "justify",
-                marginBottom: "10px",
-                color: "#1a1a1a",
+                marginBottom: "14px",
+                marginTop: "0",
+                color: "#000000",
               }}
             >
               {trimmedLine}
@@ -100,66 +106,78 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
           minHeight: "297mm",
           margin: "0 auto",
           backgroundColor: "#ffffff",
-          fontFamily: "Arial, Helvetica, sans-serif",
+          fontFamily: "'Times New Roman', Times, Georgia, serif",
           fontSize: "11pt",
-          color: "#1a1a1a",
+          color: "#000000",
           boxSizing: "border-box",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        {/* Header */}
+        {/* Header Section */}
         <div 
           style={{ 
-            backgroundColor: "#e8f4f8",
-            padding: "20px 32px",
-            borderBottom: "2px solid #0d9488",
+            backgroundColor: "#f0f7fa",
+            padding: "24px 50px",
+            borderBottom: "3px solid #0d9488",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexShrink: 0,
           }}
         >
           <img 
             src={ditLogo} 
             alt="DIT Logo" 
             style={{ 
-              height: "60px", 
-              width: "60px", 
+              height: "70px", 
+              width: "70px", 
               objectFit: "contain",
             }}
           />
           <div style={{ textAlign: "right" }}>
             <h2 style={{ 
-              fontSize: "16pt",
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              fontSize: "18pt",
               fontWeight: "bold",
               color: "#1e3a5f",
               margin: 0,
-              letterSpacing: "2px",
+              letterSpacing: "3px",
             }}>
               DIVINTEL TEAM
             </h2>
             <p style={{ 
-              fontSize: "9pt", 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              fontSize: "10pt", 
               color: "#0d9488",
-              margin: "4px 0 0 0",
+              margin: "6px 0 0 0",
               letterSpacing: "1px",
+              fontStyle: "italic",
             }}>
               Excellence in Innovation
             </p>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div style={{ padding: "28px 40px" }}>
-          {/* Recipient */}
-          <div style={{ marginBottom: "16px" }}>
+        {/* Main Content Area */}
+        <div style={{ 
+          padding: "40px 50px",
+          flexGrow: 1,
+        }}>
+          {/* Recipient Section */}
+          <div style={{ marginBottom: "20px" }}>
             <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
               fontSize: "9pt", 
-              color: "#666", 
+              color: "#555555", 
               fontWeight: "bold", 
-              marginBottom: "4px",
+              marginBottom: "6px",
+              marginTop: "0",
               textTransform: "uppercase",
               letterSpacing: "1px",
             }}>To:</p>
             <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
               fontSize: "14pt", 
               fontWeight: "bold", 
               color: "#0d9488",
@@ -170,26 +188,44 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
           </div>
 
           {/* Location and Date */}
-          <div style={{ marginBottom: "20px", fontSize: "10pt", color: "#444" }}>
-            {location && <p style={{ margin: "0 0 4px 0" }}>{location}</p>}
-            <p style={{ margin: 0, fontStyle: "italic" }}>{formattedDate}</p>
+          <div style={{ marginBottom: "24px" }}>
+            {location && (
+              <p style={{ 
+                fontFamily: "'Times New Roman', Times, Georgia, serif",
+                fontSize: "11pt", 
+                color: "#333333",
+                margin: "0 0 6px 0",
+              }}>
+                {location}
+              </p>
+            )}
+            <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              fontSize: "11pt",
+              color: "#333333",
+              margin: 0, 
+              fontStyle: "italic",
+            }}>
+              {formattedDate}
+            </p>
           </div>
 
-          {/* Divider */}
+          {/* Decorative Line */}
           <div style={{ 
-            width: "50px", 
-            height: "2px", 
+            width: "60px", 
+            height: "3px", 
             backgroundColor: "#0d9488",
-            marginBottom: "24px",
+            marginBottom: "28px",
           }} />
 
-          {/* Title */}
+          {/* Document Title */}
           <h1 style={{ 
-            fontSize: "14pt",
+            fontFamily: "'Times New Roman', Times, Georgia, serif",
+            fontSize: "16pt",
             fontWeight: "bold",
             textAlign: "center",
-            margin: "20px 0 28px 0",
-            letterSpacing: "3px",
+            margin: "0 0 32px 0",
+            letterSpacing: "4px",
             color: "#1e3a5f",
             textTransform: "uppercase",
           }}>
@@ -198,62 +234,79 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
 
           {/* Greeting */}
           <p style={{ 
+            fontFamily: "'Times New Roman', Times, Georgia, serif",
             fontSize: "11pt", 
-            marginBottom: "16px",
-            color: "#1a1a1a",
+            marginBottom: "20px",
+            marginTop: "0",
+            color: "#000000",
+            lineHeight: "1.8",
           }}>
             Dear {data.recipientName?.split(" ")[0] || "Recipient"},
           </p>
 
           {/* Body Content */}
-          <div>{renderContent()}</div>
+          <div style={{ marginBottom: "32px" }}>
+            {renderContent()}
+          </div>
 
-          {/* Closing */}
-          <div style={{ marginTop: "28px" }}>
+          {/* Closing Section */}
+          <div style={{ marginTop: "36px" }}>
             <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
               fontSize: "11pt", 
-              marginBottom: "24px",
-              color: "#1a1a1a",
+              marginBottom: "28px",
+              marginTop: "0",
+              color: "#000000",
+              lineHeight: "1.8",
             }}>
               Best Regards,
             </p>
 
-            {/* Signatories and Seal */}
+            {/* Signatories and Seal Container */}
             <div style={{ 
               display: "flex", 
               justifyContent: "space-between", 
-              alignItems: "flex-end",
+              alignItems: "flex-start",
+              flexWrap: "wrap",
+              gap: "20px",
             }}>
               {/* Signatories */}
-              <div>
+              <div style={{ flexShrink: 0 }}>
                 {data.signatories.map((signatory) => (
-                  <div key={signatory.id} style={{ marginBottom: "20px" }}>
+                  <div key={signatory.id} style={{ marginBottom: "24px" }}>
                     {signatory.signatureImage ? (
-                      <div style={{ height: "50px", marginBottom: "8px" }}>
+                      <div style={{ height: "55px", marginBottom: "10px" }}>
                         <img
                           src={signatory.signatureImage}
                           alt="Signature"
-                          style={{ height: "100%", width: "auto", objectFit: "contain" }}
+                          style={{ 
+                            height: "100%", 
+                            width: "auto", 
+                            maxWidth: "180px",
+                            objectFit: "contain",
+                          }}
                         />
                       </div>
                     ) : (
                       <div style={{ 
-                        height: "50px", 
-                        marginBottom: "8px", 
-                        borderBottom: "1px dashed #999", 
-                        width: "150px",
+                        height: "55px", 
+                        marginBottom: "10px", 
+                        borderBottom: "1px dashed #888888", 
+                        width: "160px",
                       }} />
                     )}
                     <p style={{ 
+                      fontFamily: "'Times New Roman', Times, Georgia, serif",
                       color: "#0d9488", 
                       fontWeight: "bold",
                       fontSize: "11pt",
-                      margin: "0 0 2px 0",
+                      margin: "0 0 4px 0",
                     }}>
                       {signatory.name || "Signatory Name"}
                     </p>
                     <p style={{ 
-                      color: "#666", 
+                      fontFamily: "'Times New Roman', Times, Georgia, serif",
+                      color: "#555555", 
                       fontSize: "10pt",
                       fontStyle: "italic",
                       margin: 0,
@@ -268,20 +321,27 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
               {showSeal && (
                 <div style={{ 
                   textAlign: "center",
-                  padding: "10px",
-                  border: "1px solid #d1fae5",
+                  padding: "12px 16px",
+                  border: "2px solid #d1fae5",
                   borderRadius: "8px",
                   backgroundColor: "#f0fdfa",
+                  flexShrink: 0,
                 }}>
                   <img
                     src={ditSeal}
                     alt="DIT Official Seal"
-                    style={{ height: "70px", width: "70px", objectFit: "contain" }}
+                    style={{ 
+                      height: "75px", 
+                      width: "75px", 
+                      objectFit: "contain",
+                    }}
                   />
                   <p style={{ 
-                    fontSize: "7pt", 
+                    fontFamily: "'Times New Roman', Times, Georgia, serif",
+                    fontSize: "8pt", 
                     color: "#059669", 
-                    marginTop: "4px",
+                    marginTop: "6px",
+                    marginBottom: "0",
                     fontWeight: "bold",
                     textTransform: "uppercase",
                     letterSpacing: "1px",
@@ -294,31 +354,71 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer Section */}
         <div style={{ 
           backgroundColor: "#1e3a5f",
-          color: "white", 
-          padding: "16px 32px", 
+          color: "#ffffff", 
+          padding: "18px 50px", 
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between", 
           fontSize: "9pt",
+          flexShrink: 0,
           marginTop: "auto",
         }}>
           <div>
-            <p style={{ margin: "0 0 4px 0" }}>📞 +234 905 365 1803</p>
-            <p style={{ margin: 0 }}>📞 +234 814 588 0856</p>
+            <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              margin: "0 0 4px 0",
+              fontSize: "9pt",
+            }}>
+              📞 +234 905 365 1803
+            </p>
+            <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              margin: 0,
+              fontSize: "9pt",
+            }}>
+              📞 +234 814 588 0856
+            </p>
           </div>
-          <div>
-            <p style={{ margin: "0 0 4px 0" }}>✉️ divintelteam@gmail.com</p>
-            <p style={{ margin: 0 }}>📘 facebook.com/divintelteam</p>
+          <div style={{ textAlign: "center" }}>
+            <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              margin: "0 0 4px 0",
+              fontSize: "9pt",
+            }}>
+              ✉️ divintelteam@gmail.com
+            </p>
+            <p style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              margin: 0,
+              fontSize: "9pt",
+            }}>
+              📘 facebook.com/divintelteam
+            </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontWeight: "bold" }}>© DIT {new Date().getFullYear()}</span>
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "10px",
+          }}>
+            <span style={{ 
+              fontFamily: "'Times New Roman', Times, Georgia, serif",
+              fontWeight: "bold",
+              fontSize: "9pt",
+            }}>
+              © DIT {new Date().getFullYear()}
+            </span>
             <img 
               src={ditLogo}
               alt="DIT" 
-              style={{ height: "24px", width: "24px", objectFit: "contain", borderRadius: "4px" }}
+              style={{ 
+                height: "28px", 
+                width: "28px", 
+                objectFit: "contain", 
+                borderRadius: "4px",
+              }}
             />
           </div>
         </div>
