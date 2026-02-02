@@ -217,8 +217,6 @@
   }
 
   html, body {
-    width: 210mm;
-    height: 297mm;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
@@ -235,11 +233,10 @@
     box-shadow: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 210mm !important;
-    min-height: 297mm !important;
+    width: 100% !important;
     max-width: none !important;
-    page-break-inside: avoid;
     border-radius: 0 !important;
+    page-break-inside: auto;
   }
 
   .letter-document * {
@@ -248,29 +245,17 @@
     color-adjust: exact !important;
   }
 
-  .dit-gradient-header,
-  .dit-gradient-footer {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  /* Allow content to flow to multiple pages */
+  .letter-document p,
+  .letter-document li {
+    page-break-inside: avoid;
+    orphans: 3;
+    widows: 3;
   }
 
-  .letter-watermark {
-    opacity: 0.06 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+  .letter-document h1,
+  .letter-document h2,
+  .letter-document h3 {
+    page-break-after: avoid;
   }
-}
-
-/* Watermark Styling */
-.letter-watermark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 320px;
-  height: 320px;
-  opacity: 0.05;
-  pointer-events: none;
-  z-index: 0;
-  filter: grayscale(100%);
 }
