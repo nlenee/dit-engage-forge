@@ -30,29 +30,9 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
       const flushBullets = () => {
         if (currentBullets.length > 0) {
           elements.push(
-            <ul 
-              key={`bullets-${elements.length}`} 
-              style={{ 
-                listStyleType: "disc",
-                listStylePosition: "outside",
-                marginLeft: "20px",
-                paddingLeft: "10px",
-                marginTop: "12px",
-                marginBottom: "12px",
-              }}
-            >
+            <ul key={`bullets-${elements.length}`} className="list-disc list-outside ml-6 space-y-2 my-4">
               {currentBullets.map((bullet, i) => (
-                <li 
-                  key={i} 
-                  style={{ 
-                    fontFamily: "'Times New Roman', Times, Georgia, serif",
-                    fontSize: "11pt",
-                    lineHeight: "1.8",
-                    marginBottom: "8px",
-                    color: "#000000",
-                    textAlign: "left",
-                  }}
-                >
+                <li key={i} className="text-foreground leading-relaxed">
                   {bullet.replace(/^[•\-]\s*/, "")}
                 </li>
               ))}
@@ -66,7 +46,7 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
         const trimmedLine = line.trim();
         if (!trimmedLine) {
           flushBullets();
-          elements.push(<div key={`space-${index}`} style={{ height: "14px" }} />);
+          elements.push(<div key={`space-${index}`} className="h-4" />);
           return;
         }
 
@@ -75,18 +55,7 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
         } else {
           flushBullets();
           elements.push(
-            <p 
-              key={index} 
-              style={{ 
-                fontFamily: "'Times New Roman', Times, Georgia, serif",
-                fontSize: "11pt",
-                lineHeight: "1.8",
-                textAlign: "justify",
-                marginBottom: "14px",
-                marginTop: "0",
-                color: "#000000",
-              }}
-            >
+            <p key={index} className="text-foreground leading-relaxed mb-4">
               {trimmedLine}
             </p>
           );
@@ -98,219 +67,83 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
     };
 
     return (
-      <div
-        ref={ref}
-        className="letter-document"
-        style={{ 
-          width: "210mm",
-          minHeight: "297mm",
-          margin: "0 auto",
-          backgroundColor: "#ffffff",
-          fontFamily: "'Times New Roman', Times, Georgia, serif",
-          fontSize: "11pt",
-          color: "#000000",
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {/* Header Section */}
-        <div 
-          style={{ 
-            backgroundColor: "#f0f7fa",
-            padding: "24px 50px",
-            borderBottom: "3px solid #0d9488",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexShrink: 0,
-          }}
-        >
-          <img 
-            src={ditLogo} 
-            alt="DIT Logo" 
-            style={{ 
-              height: "70px", 
-              width: "70px", 
-              objectFit: "contain",
-            }}
-          />
-          <div style={{ textAlign: "right" }}>
-            <h2 style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              fontSize: "18pt",
-              fontWeight: "bold",
-              color: "#1e3a5f",
-              margin: 0,
-              letterSpacing: "3px",
-            }}>
-              DIVINTEL TEAM
-            </h2>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              fontSize: "10pt", 
-              color: "#0d9488",
-              margin: "6px 0 0 0",
-              letterSpacing: "1px",
-              fontStyle: "italic",
-            }}>
-              Excellence in Innovation
-            </p>
+      <div ref={ref} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="bg-secondary/50 border-b border-border p-6">
+          <div className="flex items-center justify-between">
+            <img 
+              src={ditLogo} 
+              alt="DIT Logo" 
+              className="h-14 w-14 object-contain rounded-lg"
+            />
+            <div className="text-right">
+              <h2 className="text-xl font-bold text-primary tracking-wider">
+                DIVINTEL TEAM
+              </h2>
+              <p className="text-sm text-muted-foreground italic mt-1">
+                Excellence in Innovation
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div style={{ 
-          padding: "40px 50px",
-          flexGrow: 1,
-        }}>
-          {/* Recipient Section */}
-          <div style={{ marginBottom: "20px" }}>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              fontSize: "9pt", 
-              color: "#555555", 
-              fontWeight: "bold", 
-              marginBottom: "6px",
-              marginTop: "0",
-              textTransform: "uppercase",
-              letterSpacing: "1px",
-            }}>To:</p>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              fontSize: "14pt", 
-              fontWeight: "bold", 
-              color: "#0d9488",
-              margin: 0,
-            }}>
+        {/* Content */}
+        <div className="p-6 md:p-8">
+          {/* Recipient Info */}
+          <div className="mb-6">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">To:</span>
+            <h3 className="text-lg font-bold text-primary mt-1">
               {data.recipientName || "Recipient Name"}
-            </p>
+            </h3>
           </div>
 
-          {/* Location and Date */}
-          <div style={{ marginBottom: "24px" }}>
-            {location && (
-              <p style={{ 
-                fontFamily: "'Times New Roman', Times, Georgia, serif",
-                fontSize: "11pt", 
-                color: "#333333",
-                margin: "0 0 6px 0",
-              }}>
-                {location}
-              </p>
-            )}
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              fontSize: "11pt",
-              color: "#333333",
-              margin: 0, 
-              fontStyle: "italic",
-            }}>
-              {formattedDate}
-            </p>
+          {/* Location & Date */}
+          <div className="mb-6 text-sm text-muted-foreground">
+            {location && <p>{location}</p>}
+            <p className="italic">{formattedDate}</p>
           </div>
 
-          {/* Decorative Line */}
-          <div style={{ 
-            width: "60px", 
-            height: "3px", 
-            backgroundColor: "#0d9488",
-            marginBottom: "28px",
-          }} />
+          <div className="w-16 h-1 bg-primary rounded mb-8" />
 
-          {/* Document Title */}
-          <h1 style={{ 
-            fontFamily: "'Times New Roman', Times, Georgia, serif",
-            fontSize: "16pt",
-            fontWeight: "bold",
-            textAlign: "center",
-            margin: "0 0 32px 0",
-            letterSpacing: "4px",
-            color: "#1e3a5f",
-            textTransform: "uppercase",
-          }}>
-            LETTER OF ENGAGEMENT
+          {/* Title */}
+          <h1 className="text-xl md:text-2xl font-bold text-center text-primary uppercase tracking-widest mb-8">
+            Letter of Engagement
           </h1>
 
           {/* Greeting */}
-          <p style={{ 
-            fontFamily: "'Times New Roman', Times, Georgia, serif",
-            fontSize: "11pt", 
-            marginBottom: "20px",
-            marginTop: "0",
-            color: "#000000",
-            lineHeight: "1.8",
-          }}>
+          <p className="text-foreground leading-relaxed mb-6">
             Dear {data.recipientName?.split(" ")[0] || "Recipient"},
           </p>
 
           {/* Body Content */}
-          <div style={{ marginBottom: "32px" }}>
+          <div className="prose prose-sm max-w-none">
             {renderContent()}
           </div>
 
-          {/* Closing Section */}
-          <div style={{ marginTop: "36px" }}>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              fontSize: "11pt", 
-              marginBottom: "28px",
-              marginTop: "0",
-              color: "#000000",
-              lineHeight: "1.8",
-            }}>
-              Best Regards,
-            </p>
+          {/* Closing */}
+          <div className="mt-10">
+            <p className="text-foreground mb-8">Best Regards,</p>
 
-            {/* Signatories and Seal Container */}
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
-              alignItems: "flex-start",
-              flexWrap: "wrap",
-              gap: "20px",
-            }}>
+            <div className="flex flex-wrap items-start justify-between gap-6">
               {/* Signatories */}
-              <div style={{ flexShrink: 0 }}>
+              <div className="space-y-6">
                 {data.signatories.map((signatory) => (
-                  <div key={signatory.id} style={{ marginBottom: "24px" }}>
+                  <div key={signatory.id}>
                     {signatory.signatureImage ? (
-                      <div style={{ height: "55px", marginBottom: "10px" }}>
+                      <div className="h-14 mb-2">
                         <img
                           src={signatory.signatureImage}
                           alt="Signature"
-                          style={{ 
-                            height: "100%", 
-                            width: "auto", 
-                            maxWidth: "180px",
-                            objectFit: "contain",
-                          }}
+                          className="h-full w-auto max-w-[160px] object-contain"
                         />
                       </div>
                     ) : (
-                      <div style={{ 
-                        height: "55px", 
-                        marginBottom: "10px", 
-                        borderBottom: "1px dashed #888888", 
-                        width: "160px",
-                      }} />
+                      <div className="h-14 mb-2 w-40 border-b border-dashed border-muted-foreground" />
                     )}
-                    <p style={{ 
-                      fontFamily: "'Times New Roman', Times, Georgia, serif",
-                      color: "#0d9488", 
-                      fontWeight: "bold",
-                      fontSize: "11pt",
-                      margin: "0 0 4px 0",
-                    }}>
+                    <p className="font-bold text-primary">
                       {signatory.name || "Signatory Name"}
                     </p>
-                    <p style={{ 
-                      fontFamily: "'Times New Roman', Times, Georgia, serif",
-                      color: "#555555", 
-                      fontSize: "10pt",
-                      fontStyle: "italic",
-                      margin: 0,
-                    }}>
+                    <p className="text-sm text-muted-foreground italic">
                       {signatory.title || "Title, DIT"}
                     </p>
                   </div>
@@ -319,33 +152,13 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
 
               {/* Digital Seal */}
               {showSeal && (
-                <div style={{ 
-                  textAlign: "center",
-                  padding: "12px 16px",
-                  border: "2px solid #d1fae5",
-                  borderRadius: "8px",
-                  backgroundColor: "#f0fdfa",
-                  flexShrink: 0,
-                }}>
+                <div className="text-center p-4 border-2 border-accent rounded-lg bg-accent/30">
                   <img
                     src={ditSeal}
                     alt="DIT Official Seal"
-                    style={{ 
-                      height: "75px", 
-                      width: "75px", 
-                      objectFit: "contain",
-                    }}
+                    className="h-16 w-16 object-contain mx-auto"
                   />
-                  <p style={{ 
-                    fontFamily: "'Times New Roman', Times, Georgia, serif",
-                    fontSize: "8pt", 
-                    color: "#059669", 
-                    marginTop: "6px",
-                    marginBottom: "0",
-                    fontWeight: "bold",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px",
-                  }}>
+                  <p className="text-xs font-bold text-primary mt-2 uppercase tracking-wider">
                     Digitally Verified
                   </p>
                 </div>
@@ -354,72 +167,25 @@ const LetterPreview = forwardRef<HTMLDivElement, LetterPreviewProps>(
           </div>
         </div>
 
-        {/* Footer Section */}
-        <div style={{ 
-          backgroundColor: "#1e3a5f",
-          color: "#ffffff", 
-          padding: "18px 50px", 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "space-between", 
-          fontSize: "9pt",
-          flexShrink: 0,
-          marginTop: "auto",
-        }}>
-          <div>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              margin: "0 0 4px 0",
-              fontSize: "9pt",
-            }}>
-              📞 +234 905 365 1803
-            </p>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              margin: 0,
-              fontSize: "9pt",
-            }}>
-              📞 +234 814 588 0856
-            </p>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              margin: "0 0 4px 0",
-              fontSize: "9pt",
-            }}>
-              ✉️ divintelteam@gmail.com
-            </p>
-            <p style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              margin: 0,
-              fontSize: "9pt",
-            }}>
-              📘 facebook.com/divintelteam
-            </p>
-          </div>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "10px",
-          }}>
-            <span style={{ 
-              fontFamily: "'Times New Roman', Times, Georgia, serif",
-              fontWeight: "bold",
-              fontSize: "9pt",
-            }}>
-              © DIT {new Date().getFullYear()}
-            </span>
-            <img 
-              src={ditLogo}
-              alt="DIT" 
-              style={{ 
-                height: "28px", 
-                width: "28px", 
-                objectFit: "contain", 
-                borderRadius: "4px",
-              }}
-            />
+        {/* Footer */}
+        <div className="bg-primary text-primary-foreground p-4 md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
+            <div className="space-y-1">
+              <p>📞 +234 905 365 1803</p>
+              <p>📞 +234 814 588 0856</p>
+            </div>
+            <div className="space-y-1 text-center">
+              <p>✉️ divintelteam@gmail.com</p>
+              <p>📘 facebook.com/divintelteam</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold">© DIT {new Date().getFullYear()}</span>
+              <img 
+                src={ditLogo}
+                alt="DIT" 
+                className="h-7 w-7 object-contain rounded"
+              />
+            </div>
           </div>
         </div>
       </div>
