@@ -1,88 +1,92 @@
 import { useState } from "react";
-import { Search, Users, MapPin, Calendar, Briefcase, Loader2 } from "lucide-react";
+import { Search, Users, MapPin, Calendar, Shield, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { Country, State } from "country-state-city";
 import Header from "@/components/Header";
-import { format, differenceInYears } from "date-fns";
+import { useAuth } from "@/hooks/useAuth";
+import { format } from "date-fns";
 
-interface Member {
+interface DirectoryMember {
   id: string;
-  full_name: string;
-  email: string;
-  country: string | null;
-  state: string | null;
-  bio: string | null;
-  role_in_dit: string | null;
-  previous_roles: string[] | null;
-  joined_dit_date: string | null;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
   faction: string | null;
-  email_verified: boolean | null;
+  date_of_birth: string | null;
+  status: string;
+  created_at: string;
+  role?: string;
 }
 
+const FACTION_LABELS: Record<string, string> = {
+  SHI: "Secured Health Initiative",
+  TECK: "Technology",
+  MINDUP: "Mind Up",
+  DYP: "Discover Your Purpose",
+};
+
+const FACTION_COLORS: Record<string, string> = {
+  SHI: "bg-purple-100 text-purple-800",
+  TECK: "bg-green-100 text-green-800",
+  MINDUP: "bg-orange-100 text-orange-800",
+  DYP: "bg-blue-100 text-blue-800",
+};
+
 export default function MemberDirectory() {
+  const { isAdminOrES } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [factionFilter, setFactionFilter] = useState("all");
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["member-directory"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("members")
-        .select("id, full_name, email, country, state, bio, role_in_dit, previous_roles, joined_dit_date, faction, email_verified")
-        .eq("email_verified", true)
+      // Fetch profiles
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("id, user_id, full_name, email, phone, faction, date_of_birth, status, created_at")
+        .eq("status", "active")
         .order("full_name", { ascending: true });
 
       if (error) throw error;
-      return data as Member[];
+
+      // Fetch roles
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+
+      return (profiles || []).map((p) => {
+        const userRole = roles?.find((r) => r.user_id === p.user_id);
+        return {
+          ...p,
+          role: userRole?.role || "user",
+        } as DirectoryMember;
+      });
     },
   });
 
-  const filteredMembers = members.filter(
-    (m) =>
-      m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.role_in_dit?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.faction?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMembers = members.filter((m) => {
+    const matchesSearch =
+      m.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.faction?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.role?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFaction = factionFilter === "all" || m.faction === factionFilter;
+    return matchesSearch && matchesFaction;
+  });
 
-  const getLocationName = (countryCode: string | null, stateCode: string | null) => {
-    if (!countryCode) return null;
-    const country = Country.getCountryByCode(countryCode);
-    const state = stateCode ? State.getStateByCodeAndCountry(stateCode, countryCode) : null;
-    return `${state?.name ? state.name + ", " : ""}${country?.name || ""}`;
+  const getInitials = (name: string | null) => {
+    if (!name) return "?";
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().substring(0, 2);
   };
 
-  const getYearsInDit = (joinedDate: string | null) => {
-    if (!joinedDate) return null;
-    const years = differenceInYears(new Date(), new Date(joinedDate));
-    return years === 0 ? "< 1 year" : `${years} year${years > 1 ? "s" : ""}`;
-  };
-
-  const getFactionColor = (faction: string | null) => {
-    switch (faction) {
-      case "DYP":
-        return "bg-blue-100 text-blue-800";
-      case "TECK":
-        return "bg-green-100 text-green-800";
-      case "SHI":
-        return "bg-purple-100 text-purple-800";
-      case "MINDUP":
-        return "bg-orange-100 text-orange-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const getRoleLabel = (role?: string) => {
+    switch (role) {
+      case "admin": return "Admin";
+      case "executive_secretary": return "Executive Secretary";
+      default: return "Member";
     }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
   };
 
   return (
@@ -96,18 +100,31 @@ export default function MemberDirectory() {
             Member Directory
           </h1>
           <p className="text-muted-foreground mt-1">
-            Browse all registered DIT members
+            Browse all community members ({filteredMembers.length} members)
           </p>
         </div>
 
-        <div className="relative mb-6 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, role, or faction..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, role, or faction..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={factionFilter} onValueChange={setFactionFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by faction" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Factions</SelectItem>
+              {Object.entries(FACTION_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {isLoading ? (
@@ -133,46 +150,34 @@ export default function MemberDirectory() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg truncate">{member.full_name}</CardTitle>
-                      {member.role_in_dit && (
-                        <p className="text-sm text-primary font-medium">{member.role_in_dit}</p>
-                      )}
+                      <CardTitle className="text-lg truncate">{member.full_name || "—"}</CardTitle>
+                      <p className="text-sm text-primary font-medium flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        {getRoleLabel(member.role)}
+                      </p>
                     </div>
                     {member.faction && (
-                      <Badge className={getFactionColor(member.faction)}>
+                      <Badge className={FACTION_COLORS[member.faction] || "bg-muted text-muted-foreground"}>
                         {member.faction}
                       </Badge>
                     )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {member.bio && (
-                    <p className="text-sm text-muted-foreground italic">"{member.bio}"</p>
+                  {member.faction && (
+                    <p className="text-sm text-muted-foreground">
+                      {FACTION_LABELS[member.faction] || member.faction}
+                    </p>
                   )}
 
-                  {getLocationName(member.country, member.state) && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-                      <span>{getLocationName(member.country, member.state)}</span>
-                    </div>
+                  {isAdminOrES && member.email && (
+                    <p className="text-sm text-muted-foreground truncate">{member.email}</p>
                   )}
 
-                  {member.joined_dit_date && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>
-                        Joined {format(new Date(member.joined_dit_date), "MMM yyyy")} 
-                        ({getYearsInDit(member.joined_dit_date)} in DIT)
-                      </span>
-                    </div>
-                  )}
-
-                  {member.previous_roles && member.previous_roles.length > 0 && (
-                    <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <Briefcase className="h-3 w-3 mt-0.5" />
-                      <span>Previous: {member.previous_roles.join(", ")}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <span>Joined {format(new Date(member.created_at), "MMM yyyy")}</span>
+                  </div>
                 </CardContent>
               </Card>
             ))}

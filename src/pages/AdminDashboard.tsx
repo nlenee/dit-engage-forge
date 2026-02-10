@@ -66,11 +66,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getCountryName, getStateName } from "@/data/countries";
 
-type AppRole = "admin" | "user" | "super_admin";
+type AppRole = "admin" | "user" | "executive_secretary";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, isSuperAdmin, loading } = useAuth();
+  const { isAdmin, isAdminOrES, loading } = useAuth();
   const {
     users,
     usersLoading,
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAdminOrES) {
     return <Navigate to="/" replace />;
   }
 
@@ -121,7 +121,7 @@ const AdminDashboard = () => {
 
   const stats = {
     totalUsers: users.length,
-    adminUsers: users.filter((u) => u.role === "admin" || u.role === "super_admin").length,
+    adminUsers: users.filter((u) => u.role === "admin" || u.role === "executive_secretary").length,
     totalLetters: allLetters.length,
     sentEmails: emailLogs.filter((e) => e.status === "sent").length,
     deliveredEmails: emailLogs.filter((e) => e.delivery_status === "delivered").length,
@@ -163,11 +163,11 @@ const AdminDashboard = () => {
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case "super_admin":
+      case "executive_secretary":
         return (
           <Badge className="bg-purple-100 text-purple-700 border-purple-200">
             <Crown className="h-3 w-3 mr-1" />
-            Super Admin
+            Executive Secretary
           </Badge>
         );
       case "admin":
@@ -178,7 +178,7 @@ const AdminDashboard = () => {
           </Badge>
         );
       default:
-        return <Badge variant="secondary">User</Badge>;
+        return <Badge variant="secondary">Member</Badge>;
     }
   };
 
@@ -202,10 +202,10 @@ const AdminDashboard = () => {
           <div>
             <h1 className="font-display text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
               Admin Dashboard
-              {isSuperAdmin && (
-                <Badge className="bg-purple-100 text-purple-700 border-purple-200">
-                  <Crown className="h-3 w-3 mr-1" />
-                  Super Admin
+              {isAdmin && (
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Admin
                 </Badge>
               )}
             </h1>
@@ -213,7 +213,7 @@ const AdminDashboard = () => {
               Manage users, members, view all letters, and monitor email delivery.
             </p>
           </div>
-          {isSuperAdmin && (
+          {isAdmin && (
             <Button onClick={() => setInviteDialogOpen(true)} className="gap-2">
               <UserPlus className="h-4 w-4" />
               Invite Admin
@@ -314,7 +314,7 @@ const AdminDashboard = () => {
                           {user.user_id.slice(0, 8)}...
                         </TableCell>
                         <TableCell>
-                          {isSuperAdmin && user.role !== "super_admin" ? (
+                          {isAdmin ? (
                             <Select
                               value={user.role}
                               onValueChange={(value: AppRole) =>
@@ -325,11 +325,12 @@ const AdminDashboard = () => {
                                 })
                               }
                             >
-                              <SelectTrigger className="w-28 h-8">
+                              <SelectTrigger className="w-40 h-8">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="user">User</SelectItem>
+                                <SelectItem value="user">Member</SelectItem>
+                                <SelectItem value="executive_secretary">Executive Secretary</SelectItem>
                                 <SelectItem value="admin">Admin</SelectItem>
                               </SelectContent>
                             </Select>

@@ -51,7 +51,7 @@ const FACTIONS = ["DYP", "TECK", "SHI", "MINDUP"];
 
 export const MemberManagement = () => {
   const { members, isLoading, createMember, updateMember, deleteMember, getTodaysBirthdays, getUpcomingBirthdays } = useMembers();
-  const { isSuperAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -401,7 +401,7 @@ export const MemberManagement = () => {
                           <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(member)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          {isSuperAdmin && (
+                          {isAdmin && (
                             <Button 
                               variant="ghost" 
                               size="icon" 
@@ -619,7 +619,7 @@ export const MemberManagement = () => {
               <p className="text-xs text-muted-foreground">{formData.bio.length}/50</p>
             </div>
 
-            {isSuperAdmin && editingMember && (
+            {isAdmin && editingMember && (
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="space-y-0.5">
                   <Label htmlFor="locked">Lock Profile</Label>
