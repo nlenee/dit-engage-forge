@@ -15,7 +15,7 @@ export interface AdminInvitation {
 }
 
 export const useAdminInvitations = () => {
-  const { user, isSuperAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -30,7 +30,7 @@ export const useAdminInvitations = () => {
       if (error) throw error;
       return data as AdminInvitation[];
     },
-    enabled: !!user && isSuperAdmin,
+    enabled: !!user && isAdmin,
   });
 
   const inviteAdmin = useMutation({

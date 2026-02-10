@@ -3,14 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, LogIn, UserPlus, Loader2 } from "lucide-react";
+import { Mail, Lock, User, LogIn, UserPlus, Loader2, Phone, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import ditLogo from "@/assets/dit-logo.jpg";
+
+const FACTIONS = [
+  { value: "SHI", label: "Secured Health Initiative" },
+  { value: "TECK", label: "Technology" },
+  { value: "MINDUP", label: "Mind Up" },
+  { value: "DYP", label: "Discover Your Purpose" },
+];
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -22,6 +30,9 @@ const signupSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  phone: z.string().optional(),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  faction: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -50,7 +61,7 @@ const Auth = () => {
 
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "", phone: "", dateOfBirth: "", faction: "" },
   });
 
   const handleLogin = async (data: LoginFormData) => {
@@ -74,7 +85,11 @@ const Auth = () => {
 
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
-    const { error } = await signUp(data.email, data.password, data.fullName);
+    const { error } = await signUp(data.email, data.password, data.fullName, {
+      phone: data.phone,
+      date_of_birth: data.dateOfBirth,
+      faction: data.faction,
+    });
     setIsLoading(false);
 
     if (error) {
@@ -86,9 +101,9 @@ const Auth = () => {
     } else {
       toast({
         title: "Account created!",
-        description: "Welcome to DIT Letter Generator. You can now create letters.",
+        description: "Please check your email to verify your account before logging in.",
       });
-      navigate("/");
+      setActiveTab("login");
     }
   };
 
@@ -98,10 +113,10 @@ const Auth = () => {
         <div className="text-center mb-8 animate-fade-in">
           <img src={ditLogo} alt="DIT Logo" className="h-20 w-20 mx-auto mb-4 rounded-xl shadow-soft" />
           <h1 className="font-display text-2xl font-bold text-foreground">
-            DIT Letter Generator
+            DIT Community Platform
           </h1>
           <p className="text-muted-foreground mt-2">
-            Sign in to create and manage engagement letters
+            Sign in to access your community dashboard
           </p>
         </div>
 
@@ -114,7 +129,7 @@ const Auth = () => {
               </TabsTrigger>
               <TabsTrigger value="signup" className="flex items-center gap-2">
                 <UserPlus className="h-4 w-4" />
-                Sign Up
+                Register
               </TabsTrigger>
             </TabsList>
 
@@ -124,48 +139,22 @@ const Auth = () => {
                   <Label htmlFor="login-email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      className="pl-10"
-                      {...loginForm.register("email")}
-                    />
+                    <Input id="login-email" type="email" placeholder="Enter your email" className="pl-10" {...loginForm.register("email")} />
                   </div>
-                  {loginForm.formState.errors.email && (
-                    <p className="text-sm text-destructive">{loginForm.formState.errors.email.message}</p>
-                  )}
+                  {loginForm.formState.errors.email && <p className="text-sm text-destructive">{loginForm.formState.errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      className="pl-10"
-                      {...loginForm.register("password")}
-                    />
+                    <Input id="login-password" type="password" placeholder="Enter your password" className="pl-10" {...loginForm.register("password")} />
                   </div>
-                  {loginForm.formState.errors.password && (
-                    <p className="text-sm text-destructive">{loginForm.formState.errors.password.message}</p>
-                  )}
+                  {loginForm.formState.errors.password && <p className="text-sm text-destructive">{loginForm.formState.errors.password.message}</p>}
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="h-4 w-4 mr-2" />
-                      Sign In
-                    </>
-                  )}
+                  {isLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Signing in...</> : <><LogIn className="h-4 w-4 mr-2" />Sign In</>}
                 </Button>
               </form>
             </TabsContent>
@@ -173,84 +162,74 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Label htmlFor="signup-name">Full Name *</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-name"
-                      placeholder="Enter your full name"
-                      className="pl-10"
-                      {...signupForm.register("fullName")}
-                    />
+                    <Input id="signup-name" placeholder="Enter your full name" className="pl-10" {...signupForm.register("fullName")} />
                   </div>
-                  {signupForm.formState.errors.fullName && (
-                    <p className="text-sm text-destructive">{signupForm.formState.errors.fullName.message}</p>
-                  )}
+                  {signupForm.formState.errors.fullName && <p className="text-sm text-destructive">{signupForm.formState.errors.fullName.message}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email">Email *</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      className="pl-10"
-                      {...signupForm.register("email")}
-                    />
+                    <Input id="signup-email" type="email" placeholder="Enter your email" className="pl-10" {...signupForm.register("email")} />
                   </div>
-                  {signupForm.formState.errors.email && (
-                    <p className="text-sm text-destructive">{signupForm.formState.errors.email.message}</p>
-                  )}
+                  {signupForm.formState.errors.email && <p className="text-sm text-destructive">{signupForm.formState.errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-phone">Phone Number</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Create a password"
-                      className="pl-10"
-                      {...signupForm.register("password")}
-                    />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="signup-phone" placeholder="+234 xxx xxx xxxx" className="pl-10" {...signupForm.register("phone")} />
                   </div>
-                  {signupForm.formState.errors.password && (
-                    <p className="text-sm text-destructive">{signupForm.formState.errors.password.message}</p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-confirm">Confirm Password</Label>
+                  <Label htmlFor="signup-dob">Date of Birth *</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="signup-dob" type="date" className="pl-10" {...signupForm.register("dateOfBirth")} />
+                  </div>
+                  {signupForm.formState.errors.dateOfBirth && <p className="text-sm text-destructive">{signupForm.formState.errors.dateOfBirth.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Faction (Optional)</Label>
+                  <Select onValueChange={(value) => signupForm.setValue("faction", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a faction" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FACTIONS.map((f) => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password *</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-confirm"
-                      type="password"
-                      placeholder="Confirm your password"
-                      className="pl-10"
-                      {...signupForm.register("confirmPassword")}
-                    />
+                    <Input id="signup-password" type="password" placeholder="Create a password" className="pl-10" {...signupForm.register("password")} />
                   </div>
-                  {signupForm.formState.errors.confirmPassword && (
-                    <p className="text-sm text-destructive">{signupForm.formState.errors.confirmPassword.message}</p>
-                  )}
+                  {signupForm.formState.errors.password && <p className="text-sm text-destructive">{signupForm.formState.errors.password.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-confirm">Confirm Password *</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="signup-confirm" type="password" placeholder="Confirm your password" className="pl-10" {...signupForm.register("confirmPassword")} />
+                  </div>
+                  {signupForm.formState.errors.confirmPassword && <p className="text-sm text-destructive">{signupForm.formState.errors.confirmPassword.message}</p>}
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating account...
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Create Account
-                    </>
-                  )}
+                  {isLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating account...</> : <><UserPlus className="h-4 w-4 mr-2" />Create Account</>}
                 </Button>
               </form>
             </TabsContent>

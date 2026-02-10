@@ -47,6 +47,39 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          target_id: string | null
+          target_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          target_id?: string | null
+          target_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          target_id?: string | null
+          target_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       birthday_notifications: {
         Row: {
           created_at: string
@@ -640,27 +673,39 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          date_of_birth: string | null
           email: string | null
+          faction: string | null
           full_name: string | null
           id: string
+          phone: string | null
+          status: string
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
+          faction?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
+          status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
+          faction?: string | null
           full_name?: string | null
           id?: string
+          phone?: string | null
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -788,10 +833,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_executive_secretary: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user" | "super_admin"
+      app_role: "admin" | "user" | "super_admin" | "executive_secretary"
       letter_status: "draft" | "downloaded" | "sent"
     }
     CompositeTypes: {
@@ -920,7 +966,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user", "super_admin"],
+      app_role: ["admin", "user", "super_admin", "executive_secretary"],
       letter_status: ["draft", "downloaded", "sent"],
     },
   },
