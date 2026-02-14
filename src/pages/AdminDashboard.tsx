@@ -66,7 +66,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getCountryName, getStateName } from "@/data/countries";
 
-type AppRole = "admin" | "user" | "executive_secretary";
+type AppRole = "admin" | "user" | "executive_secretary" | "community_manager" | "chief_finance_officer";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -175,6 +175,18 @@ const AdminDashboard = () => {
           <Badge className="bg-blue-100 text-blue-700 border-blue-200">
             <Shield className="h-3 w-3 mr-1" />
             Admin
+          </Badge>
+        );
+      case "community_manager":
+        return (
+          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+            Community Manager
+          </Badge>
+        );
+      case "chief_finance_officer":
+        return (
+          <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+            CFO
           </Badge>
         );
       default:
@@ -330,6 +342,8 @@ const AdminDashboard = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="user">Member</SelectItem>
+                                <SelectItem value="community_manager">Community Manager</SelectItem>
+                                <SelectItem value="chief_finance_officer">CFO</SelectItem>
                                 <SelectItem value="executive_secretary">Executive Secretary</SelectItem>
                                 <SelectItem value="admin">Admin</SelectItem>
                               </SelectContent>

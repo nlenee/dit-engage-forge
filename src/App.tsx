@@ -13,6 +13,9 @@ import MemberRegister from "./pages/MemberRegister";
 import MemberDirectory from "./pages/MemberDirectory";
 import ProfilePage from "./pages/ProfilePage";
 import AnnouncementsPage from "./pages/AnnouncementsPage";
+import CommunityManagerDashboard from "./pages/CommunityManagerDashboard";
+import CFODashboard from "./pages/CFODashboard";
+import ExecutiveSummary from "./pages/ExecutiveSummary";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +71,9 @@ const App = () => (
             <Route path="/members" element={<ProtectedRoute><MemberDirectory /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><CommunityManagerDashboard /></ProtectedRoute>} />
+            <Route path="/finance" element={<ProtectedRoute><CFODashboard /></ProtectedRoute>} />
+            <Route path="/executive-summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
             <Route path="/register" element={<MemberRegister />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

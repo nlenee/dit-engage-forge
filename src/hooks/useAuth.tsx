@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "admin" | "user" | "executive_secretary";
+type AppRole = "admin" | "user" | "executive_secretary" | "community_manager" | "chief_finance_officer";
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +10,8 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isExecutiveSecretary: boolean;
+  isCommunityManager: boolean;
+  isCFO: boolean;
   isAdminOrES: boolean;
   userRole: AppRole | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -27,6 +29,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAdmin = userRole === "admin";
   const isExecutiveSecretary = userRole === "executive_secretary";
+  const isCommunityManager = userRole === "community_manager";
+  const isCFO = userRole === "chief_finance_officer";
   const isAdminOrES = isAdmin || isExecutiveSecretary;
 
   const checkUserRole = async (userId: string) => {
@@ -98,7 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isExecutiveSecretary, isAdminOrES, userRole, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, userRole, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
