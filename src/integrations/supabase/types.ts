@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          resource_id: string | null
+          resource_type: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          resource_id?: string | null
+          resource_type: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          resource_id?: string | null
+          resource_type?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_invitations: {
         Row: {
           accepted_at: string | null
@@ -115,6 +148,48 @@ export type Database = {
           },
         ]
       }
+      budgets: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string
+          fiscal_year: number
+          id: string
+          name: string
+          notes: string | null
+          spent_amount: number
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by: string
+          fiscal_year: number
+          id?: string
+          name: string
+          notes?: string | null
+          spent_amount?: number
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          fiscal_year?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          spent_amount?: number
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bulk_email_jobs: {
         Row: {
           completed_at: string | null
@@ -205,6 +280,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      community_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_by: string | null
+          status: string
+          subject: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          resolution_notes?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          resolution_notes?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       digital_seals: {
         Row: {
@@ -403,6 +514,203 @@ export type Database = {
           name?: string
           subject?: string
           type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      engagement_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          created_by: string
+          id: string
+          member_user_id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          created_by: string
+          id?: string
+          member_user_id: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          member_user_id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      event_attendance: {
+        Row: {
+          checked_in_at: string | null
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          checked_in_at?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          checked_in_at?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          event_date: string
+          event_end_date: string | null
+          id: string
+          location: string | null
+          max_attendees: number | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_date: string
+          event_end_date?: string | null
+          id?: string
+          location?: string | null
+          max_attendees?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          event_end_date?: string | null
+          id?: string
+          location?: string | null
+          max_attendees?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_transactions: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          created_by: string
+          description: string
+          document_url: string | null
+          faction: string | null
+          id: string
+          reference_number: string | null
+          transaction_date: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          document_url?: string | null
+          faction?: string | null
+          id?: string
+          reference_number?: string | null
+          transaction_date?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          document_url?: string | null
+          faction?: string | null
+          id?: string
+          reference_number?: string | null
+          transaction_date?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fundraising_campaigns: {
+        Row: {
+          contributors_count: number
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          raised_amount: number
+          start_date: string
+          status: string
+          target_amount: number
+          updated_at: string
+        }
+        Insert: {
+          contributors_count?: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          raised_amount?: number
+          start_date: string
+          status?: string
+          target_amount: number
+          updated_at?: string
+        }
+        Update: {
+          contributors_count?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          raised_amount?: number
+          start_date?: string
+          status?: string
+          target_amount?: number
           updated_at?: string
         }
         Relationships: []
@@ -837,7 +1145,13 @@ export type Database = {
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user" | "super_admin" | "executive_secretary"
+      app_role:
+        | "admin"
+        | "user"
+        | "super_admin"
+        | "executive_secretary"
+        | "community_manager"
+        | "chief_finance_officer"
       letter_status: "draft" | "downloaded" | "sent"
     }
     CompositeTypes: {
@@ -966,7 +1280,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user", "super_admin", "executive_secretary"],
+      app_role: [
+        "admin",
+        "user",
+        "super_admin",
+        "executive_secretary",
+        "community_manager",
+        "chief_finance_officer",
+      ],
       letter_status: ["draft", "downloaded", "sent"],
     },
   },
