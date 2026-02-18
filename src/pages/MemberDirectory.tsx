@@ -19,6 +19,7 @@ interface DirectoryMember {
   faction: string | null;
   date_of_birth: string | null;
   status: string;
+  bio: string | null;
   created_at: string;
   role?: string;
 }
@@ -48,7 +49,7 @@ export default function MemberDirectory() {
       // Fetch profiles
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, user_id, full_name, email, phone, faction, date_of_birth, status, created_at")
+        .select("id, user_id, full_name, email, phone, faction, date_of_birth, status, bio, created_at")
         .eq("status", "active")
         .order("full_name", { ascending: true });
 
@@ -164,6 +165,12 @@ export default function MemberDirectory() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {member.bio && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 italic">
+                      "{member.bio}"
+                    </p>
+                  )}
+
                   {member.faction && (
                     <p className="text-sm text-muted-foreground">
                       {FACTION_LABELS[member.faction] || member.faction}

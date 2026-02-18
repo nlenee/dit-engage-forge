@@ -16,7 +16,7 @@ const createClient_SMTP = () => {
   return new SMTPClient({
     connection: {
       hostname: "smtp.gmail.com",
-      port: 587,
+      port: 465,
       tls: true,
       auth: {
         username: Deno.env.get("GMAIL_USER")!,

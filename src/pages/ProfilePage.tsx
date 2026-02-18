@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, Calendar, Shield, Loader2, Save } from "lucide-react";
+import { User, Mail, Phone, Calendar, Shield, Loader2, Save, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +21,7 @@ interface Profile {
   faction: string | null;
   status: string;
   avatar_url: string | null;
+  bio: string | null;
   created_at: string;
 }
 
@@ -37,6 +39,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
 
   useEffect(() => {
     if (user) fetchProfile();
@@ -52,6 +55,7 @@ export default function ProfilePage() {
     if (!error && data) {
       setProfile(data as Profile);
       setPhone(data.phone || "");
+      setBio(data.bio || "");
     }
     setLoading(false);
   };
@@ -61,13 +65,13 @@ export default function ProfilePage() {
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ phone })
+      .update({ phone, bio })
       .eq("user_id", user!.id);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Profile updated", description: "Your phone number has been saved." });
+      toast({ title: "Profile updated", description: "Your profile has been saved." });
     }
     setSaving(false);
   };
@@ -76,6 +80,8 @@ export default function ProfilePage() {
     switch (userRole) {
       case "admin": return "Admin";
       case "executive_secretary": return "Executive Secretary";
+      case "community_manager": return "Community Manager";
+      case "chief_finance_officer": return "Chief Finance Officer";
       default: return "Member";
     }
   };
@@ -103,7 +109,7 @@ export default function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>{profile?.full_name || "—"}</CardTitle>
-            <CardDescription className="flex items-center gap-2">
+            <CardDescription className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="gap-1">
                 <Shield className="h-3 w-3" />
                 {getRoleLabel()}
@@ -155,6 +161,20 @@ export default function ProfilePage() {
                 <Label className="text-muted-foreground">Member Since</Label>
                 <Input value={profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : ""} disabled className="bg-muted" />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-muted-foreground">
+                <FileText className="h-4 w-4" /> Bio
+              </Label>
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Write a short bio about yourself..."
+                rows={4}
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground">{bio.length}/500 characters</p>
             </div>
 
             <Button onClick={handleSave} disabled={saving} className="gap-2">
