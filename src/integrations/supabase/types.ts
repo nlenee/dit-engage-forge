@@ -78,7 +78,15 @@ export type Database = {
           status?: string
           token?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "admin_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       announcements: {
         Row: {
@@ -235,6 +243,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "bulk_email_jobs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "bulk_email_jobs_letter_id_fkey"
             columns: ["letter_id"]
             isOneToOne: false
@@ -371,6 +386,13 @@ export type Database = {
             referencedRelation: "letters"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "digital_seals_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       email_campaigns: {
@@ -420,6 +442,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "email_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "email_campaigns_template_id_fkey"
             columns: ["template_id"]
@@ -480,6 +509,13 @@ export type Database = {
             referencedRelation: "letters"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "email_logs_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       email_templates: {
@@ -516,7 +552,15 @@ export type Database = {
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       engagement_logs: {
         Row: {
@@ -746,7 +790,15 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "letter_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       letter_versions: {
         Row: {
@@ -798,6 +850,13 @@ export type Database = {
           version_number?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "letter_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "letter_versions_letter_id_fkey"
             columns: ["letter_id"]
@@ -858,6 +917,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "letters_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "letters_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
@@ -897,7 +963,15 @@ export type Database = {
           status?: string
           token?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "member_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       members: {
         Row: {
@@ -975,11 +1049,20 @@ export type Database = {
           user_id?: string | null
           verification_code_expires_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           date_of_birth: string | null
           email: string | null
@@ -993,6 +1076,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -1006,6 +1090,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -1016,6 +1101,29 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -1100,6 +1208,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "scheduled_emails_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "scheduled_emails_letter_id_fkey"
             columns: ["letter_id"]
             isOneToOne: false
@@ -1127,20 +1242,42 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_roles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      admin_users_roles: {
+        Row: {
+          email: string | null
+          roles: string[] | null
+          signup_date: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: { role_name: Database["public"]["Enums"]["app_role"] }
+            Returns: boolean
+          }
+      has_role_text: { Args: { role_name: string }; Returns: boolean }
       is_executive_secretary: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
@@ -1152,6 +1289,7 @@ export type Database = {
         | "executive_secretary"
         | "community_manager"
         | "chief_finance_officer"
+        | "cfo"
       letter_status: "draft" | "downloaded" | "sent"
     }
     CompositeTypes: {
@@ -1287,6 +1425,7 @@ export const Constants = {
         "executive_secretary",
         "community_manager",
         "chief_finance_officer",
+        "cfo",
       ],
       letter_status: ["draft", "downloaded", "sent"],
     },

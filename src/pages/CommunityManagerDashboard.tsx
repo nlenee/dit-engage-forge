@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Users, Activity, Calendar, MessageSquare, Plus, Search,
   TrendingUp, UserCheck, UserX, Loader2, BarChart3, CheckCircle,
-  AlertTriangle, ArrowUpRight
+  AlertTriangle, ArrowUpRight, Cake, Mail, Timer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,15 +24,59 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEvents } from "@/hooks/useEvents";
 import { useEngagement } from "@/hooks/useEngagement";
 import { useFeedback } from "@/hooks/useFeedback";
+import { useMembers } from "@/hooks/useMembers";
+import { useEmailTemplates } from "@/hooks/useEmailTemplates";
+import { EmailCampaignManager } from "@/components/EmailCampaignManager";
 import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
+interface BirthdayMember {
+  id: string;
+  full_name: string;
+  birthday: string;
+  daysUntil: number;
+  nextBirthday: Date;
+}
+
+function BirthdayCountdown({ targetDate }: { targetDate: Date }) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const diff = targetDate.getTime() - now.getTime();
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diff % (1000 * 60)) / 1000),
+      });
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    <span className="font-mono text-lg font-bold text-primary">
+      {pad(timeLeft.days)}:{pad(timeLeft.hours)}:{pad(timeLeft.minutes)}:{pad(timeLeft.seconds)}
+    </span>
+  );
+}
 
 const CommunityManagerDashboard = () => {
   const { isCommunityManager, isAdmin, isAdminOrES, loading } = useAuth();
   const { events, isLoading: eventsLoading, createEvent, updateEvent, attendance, getEventAttendance } = useEvents();
   const { engagementLogs, isLoading: engLoading, createLog } = useEngagement();
   const { feedback, isLoading: fbLoading, updateFeedbackStatus } = useFeedback();
+  const { members } = useMembers();
 
   const [newEventOpen, setNewEventOpen] = useState(false);
   const [newLogOpen, setNewLogOpen] = useState(false);
@@ -49,6 +93,40 @@ const CommunityManagerDashboard = () => {
     },
   });
 
+  // Calculate upcoming birthdays from members table (within 30 days)
+  const upcomingBirthdays: BirthdayMember[] = (() => {
+    const now = new Date();
+    const results: BirthdayMember[] = [];
+    
+    members.forEach((member) => {
+      if (!member.birthday) return;
+      const [year, month, day] = member.birthday.split("-").map(Number);
+      const bdayThisYear = new Date(now.getFullYear(), month - 1, day);
+      
+      // If birthday has passed this year, check next year
+      if (bdayThisYear < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+        bdayThisYear.setFullYear(bdayThisYear.getFullYear() + 1);
+      }
+      
+      const diffMs = bdayThisYear.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays >= 0 && diffDays <= 30) {
+        results.push({
+          id: member.id,
+          full_name: member.full_name,
+          birthday: member.birthday,
+          daysUntil: diffDays,
+          nextBirthday: bdayThisYear,
+        });
+      }
+    });
+    
+    return results.sort((a, b) => a.daysUntil - b.daysUntil);
+  })();
+
+  const todayBirthdays = upcomingBirthdays.filter((b) => b.daysUntil === 0);
+
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!isCommunityManager && !isAdmin) return <Navigate to="/" replace />;
 
@@ -58,9 +136,6 @@ const CommunityManagerDashboard = () => {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const newMembers = profiles.filter((p) => p.created_at >= thirtyDaysAgo).length;
   const engagementRate = totalMembers > 0 ? Math.round((activeMembers / totalMembers) * 100) : 0;
-
-  const upcomingEvents = events.filter((e) => new Date(e.event_date) >= new Date());
-  const pastEvents = events.filter((e) => new Date(e.event_date) < new Date());
 
   const handleCreateEvent = async () => {
     await createEvent.mutateAsync({
@@ -96,6 +171,60 @@ const CommunityManagerDashboard = () => {
           <p className="text-muted-foreground">Monitor community health, manage events, and track engagement.</p>
         </div>
 
+        {/* Birthday Banner */}
+        {upcomingBirthdays.length > 0 && (
+          <Card className="mb-8 border-primary/30 bg-primary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Cake className="h-6 w-6 text-primary" />
+                Upcoming Birthdays This Month
+                <Badge variant="secondary">{upcomingBirthdays.length}</Badge>
+              </CardTitle>
+              {todayBirthdays.length > 0 && (
+                <CardDescription className="text-primary font-semibold">
+                  🎉 {todayBirthdays.map((b) => b.full_name).join(", ")} — Happy Birthday Today!
+                </CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {upcomingBirthdays.map((bday) => (
+                  <div
+                    key={bday.id}
+                    className={`flex items-center justify-between p-4 rounded-xl border ${
+                      bday.daysUntil === 0
+                        ? "bg-primary/10 border-primary/40"
+                        : "bg-card border-border/50"
+                    }`}
+                  >
+                    <div>
+                      <p className="font-semibold text-foreground">{bday.full_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(bday.birthday), "MMMM d")}
+                      </p>
+                      {bday.daysUntil === 0 && (
+                        <Badge className="mt-1 bg-primary text-primary-foreground">🎂 Today!</Badge>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      {bday.daysUntil === 0 ? (
+                        <span className="text-2xl">🎉</span>
+                      ) : (
+                        <div className="flex flex-col items-end">
+                          <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                            <Timer className="h-3 w-3" /> Next birthday in
+                          </p>
+                          <BirthdayCountdown targetDate={bday.nextBirthday} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Health Overview */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           {[
@@ -120,6 +249,7 @@ const CommunityManagerDashboard = () => {
             <TabsTrigger value="events" className="gap-2"><Calendar className="h-4 w-4" />Events</TabsTrigger>
             <TabsTrigger value="engagement" className="gap-2"><Activity className="h-4 w-4" />Engagement</TabsTrigger>
             <TabsTrigger value="feedback" className="gap-2"><MessageSquare className="h-4 w-4" />Feedback</TabsTrigger>
+            <TabsTrigger value="campaigns" className="gap-2"><Mail className="h-4 w-4" />Campaigns</TabsTrigger>
           </TabsList>
 
           {/* Events Tab */}
@@ -131,7 +261,10 @@ const CommunityManagerDashboard = () => {
                   <Button className="gap-2"><Plus className="h-4 w-4" />Create Event</Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>Create New Event</DialogTitle></DialogHeader>
+                  <DialogHeader>
+                    <DialogTitle>Create New Event</DialogTitle>
+                    <DialogDescription>Fill in the event details below.</DialogDescription>
+                  </DialogHeader>
                   <div className="space-y-4">
                     <div><Label>Title</Label><Input value={eventForm.title} onChange={(e) => setEventForm((p) => ({ ...p, title: e.target.value }))} /></div>
                     <div><Label>Description</Label><Textarea value={eventForm.description} onChange={(e) => setEventForm((p) => ({ ...p, description: e.target.value }))} /></div>
@@ -196,7 +329,10 @@ const CommunityManagerDashboard = () => {
                   <Button className="gap-2"><Plus className="h-4 w-4" />Log Engagement</Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>Log Engagement</DialogTitle></DialogHeader>
+                  <DialogHeader>
+                    <DialogTitle>Log Engagement</DialogTitle>
+                    <DialogDescription>Record an engagement interaction with a member.</DialogDescription>
+                  </DialogHeader>
                   <div className="space-y-4">
                     <div>
                       <Label>Member</Label>
@@ -316,6 +452,11 @@ const CommunityManagerDashboard = () => {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* Campaigns Tab */}
+          <TabsContent value="campaigns">
+            <EmailCampaignManager />
           </TabsContent>
         </Tabs>
       </main>
