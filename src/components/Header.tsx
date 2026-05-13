@@ -33,7 +33,7 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card/80 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/dashboard" className="flex items-center gap-3 group">
           <div className="relative overflow-hidden rounded-lg shadow-soft">
             <img src={ditLogo} alt="DIT Logo" className="h-10 w-10 object-cover transition-transform group-hover:scale-105" />
           </div>
