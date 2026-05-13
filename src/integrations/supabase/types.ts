@@ -1061,43 +1061,100 @@ export type Database = {
       }
       profiles: {
         Row: {
+          academic_background: string | null
           avatar_url: string | null
           bio: string | null
+          course: string | null
           created_at: string
+          date_joined_approx: boolean | null
+          date_joined_day: number | null
+          date_joined_month: number | null
+          date_joined_year: number | null
           date_of_birth: string | null
           email: string | null
+          employer_name: string | null
+          employment_status: string | null
           faction: string | null
           full_name: string | null
+          graduation_year: number | null
           id: string
+          is_student: boolean | null
+          level: string | null
+          origin_city: string | null
+          origin_country: string | null
+          origin_state: string | null
           phone: string | null
+          profile_completed: boolean
+          residence_city: string | null
+          residence_country: string | null
+          residence_state: string | null
+          school: string | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          academic_background?: string | null
           avatar_url?: string | null
           bio?: string | null
+          course?: string | null
           created_at?: string
+          date_joined_approx?: boolean | null
+          date_joined_day?: number | null
+          date_joined_month?: number | null
+          date_joined_year?: number | null
           date_of_birth?: string | null
           email?: string | null
+          employer_name?: string | null
+          employment_status?: string | null
           faction?: string | null
           full_name?: string | null
+          graduation_year?: number | null
           id?: string
+          is_student?: boolean | null
+          level?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          origin_state?: string | null
           phone?: string | null
+          profile_completed?: boolean
+          residence_city?: string | null
+          residence_country?: string | null
+          residence_state?: string | null
+          school?: string | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          academic_background?: string | null
           avatar_url?: string | null
           bio?: string | null
+          course?: string | null
           created_at?: string
+          date_joined_approx?: boolean | null
+          date_joined_day?: number | null
+          date_joined_month?: number | null
+          date_joined_year?: number | null
           date_of_birth?: string | null
           email?: string | null
+          employer_name?: string | null
+          employment_status?: string | null
           faction?: string | null
           full_name?: string | null
+          graduation_year?: number | null
           id?: string
+          is_student?: boolean | null
+          level?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          origin_state?: string | null
           phone?: string | null
+          profile_completed?: boolean
+          residence_city?: string | null
+          residence_country?: string | null
+          residence_state?: string | null
+          school?: string | null
           status?: string
           updated_at?: string
           user_id?: string

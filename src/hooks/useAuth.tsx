@@ -14,6 +14,7 @@ interface AuthContextType {
   isCFO: boolean;
   isAdminOrES: boolean;
   userRole: AppRole | null;
+  profileCompleted: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string, extra?: { phone?: string; date_of_birth?: string; faction?: string }) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
+  const [profileCompleted, setProfileCompleted] = useState<boolean>(true);
 
   const isAdmin = userRole === "admin";
   const isExecutiveSecretary = userRole === "executive_secretary";
@@ -41,6 +43,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .maybeSingle();
     
     setUserRole((data?.role as AppRole) || "user");
+
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("profile_completed")
+      .eq("user_id", userId)
+      .maybeSingle();
+    setProfileCompleted(prof?.profile_completed ?? false);
   };
 
   useEffect(() => {
@@ -102,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, userRole, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, userRole, profileCompleted, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

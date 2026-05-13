@@ -16,11 +16,13 @@ import AnnouncementsPage from "./pages/AnnouncementsPage";
 import CommunityManagerDashboard from "./pages/CommunityManagerDashboard";
 import CFODashboard from "./pages/CFODashboard";
 import ExecutiveSummary from "./pages/ExecutiveSummary";
+import Landing from "./pages/Landing";
+import CompleteProfile from "./pages/CompleteProfile";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, profileCompleted } = useAuth();
 
   if (loading) {
     return (
@@ -34,11 +36,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
+  if (!profileCompleted && window.location.pathname !== "/complete-profile") {
+    return <Navigate to="/complete-profile" replace />;
+  }
+
   return <>{children}</>;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, profileCompleted } = useAuth();
 
   if (loading) {
     return (
@@ -49,7 +55,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={profileCompleted ? "/dashboard" : "/complete-profile"} replace />;
   }
 
   return <>{children}</>;
@@ -63,8 +69,10 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
             <Route path="/create" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
             <Route path="/edit/:id" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
