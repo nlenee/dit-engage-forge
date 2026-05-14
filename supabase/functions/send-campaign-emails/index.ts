@@ -32,6 +32,11 @@ const createClient_SMTP = () => {
   });
 };
 
+const esc = (s: string) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -42,6 +47,31 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    // Require authenticated admin/CM/ES caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const { data: { user } } = await supabaseClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const { data: roles } = await supabaseClient
+      .from("user_roles").select("role").eq("user_id", user.id);
+    const allowed = (roles || []).some((r: any) =>
+      ["admin", "executive_secretary", "community_manager"].includes(r.role)
+    );
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const userId: string = user.id;
 
     const gmailUser = Deno.env.get("GMAIL_USER");
     const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
@@ -60,16 +90,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     let sentCount = 0;
     let failedCount = 0;
-
-    // Get auth user
-    const authHeader = req.headers.get("Authorization");
-    let userId: string | null = null;
-    
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const { data: { user } } = await supabaseClient.auth.getUser(token);
-      userId = user?.id || null;
-    }
 
     const client = createClient_SMTP();
 
@@ -93,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
               <h1 style="color: white; margin: 0;">DIT</h1>
             </div>
             <div style="padding: 30px; background: #f9fafb; border: 1px solid #e5e7eb;">
-              ${personalizedContent.split("\n").map((line) => `<p style="margin: 0 0 15px 0; line-height: 1.6;">${line}</p>`).join("")}
+              ${personalizedContent.split("\n").map((line) => `<p style="margin: 0 0 15px 0; line-height: 1.6;">${esc(line)}</p>`).join("")}
             </div>
             <div style="background: #1f2937; color: white; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 12px;">
               <p style="margin: 0;">© DIT ${new Date().getFullYear()}</p>
