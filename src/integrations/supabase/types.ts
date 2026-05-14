@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          code: string
+          description: string | null
+          icon: string | null
+          id: string
+          threshold_xp: number | null
+          title: string
+        }
+        Insert: {
+          code: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          threshold_xp?: number | null
+          title: string
+        }
+        Update: {
+          code?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          threshold_xp?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           action: string
@@ -1071,20 +1098,25 @@ export type Database = {
           date_joined_month: number | null
           date_joined_year: number | null
           date_of_birth: string | null
+          edits_locked: boolean
           email: string | null
           employer_name: string | null
           employment_status: string | null
           faction: string | null
+          favourite_quote: string | null
           full_name: string | null
           graduation_year: number | null
+          headshot_url: string | null
           id: string
           is_student: boolean | null
           level: string | null
+          member_level: number
           origin_city: string | null
           origin_country: string | null
           origin_state: string | null
           phone: string | null
           profile_completed: boolean
+          public_image_url: string | null
           residence_city: string | null
           residence_country: string | null
           residence_state: string | null
@@ -1092,6 +1124,7 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string
+          xp: number
         }
         Insert: {
           academic_background?: string | null
@@ -1104,20 +1137,25 @@ export type Database = {
           date_joined_month?: number | null
           date_joined_year?: number | null
           date_of_birth?: string | null
+          edits_locked?: boolean
           email?: string | null
           employer_name?: string | null
           employment_status?: string | null
           faction?: string | null
+          favourite_quote?: string | null
           full_name?: string | null
           graduation_year?: number | null
+          headshot_url?: string | null
           id?: string
           is_student?: boolean | null
           level?: string | null
+          member_level?: number
           origin_city?: string | null
           origin_country?: string | null
           origin_state?: string | null
           phone?: string | null
           profile_completed?: boolean
+          public_image_url?: string | null
           residence_city?: string | null
           residence_country?: string | null
           residence_state?: string | null
@@ -1125,6 +1163,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id: string
+          xp?: number
         }
         Update: {
           academic_background?: string | null
@@ -1137,20 +1176,25 @@ export type Database = {
           date_joined_month?: number | null
           date_joined_year?: number | null
           date_of_birth?: string | null
+          edits_locked?: boolean
           email?: string | null
           employer_name?: string | null
           employment_status?: string | null
           faction?: string | null
+          favourite_quote?: string | null
           full_name?: string | null
           graduation_year?: number | null
+          headshot_url?: string | null
           id?: string
           is_student?: boolean | null
           level?: string | null
+          member_level?: number
           origin_city?: string | null
           origin_country?: string | null
           origin_state?: string | null
           phone?: string | null
           profile_completed?: boolean
+          public_image_url?: string | null
           residence_city?: string | null
           residence_country?: string | null
           residence_state?: string | null
@@ -1158,6 +1202,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+          xp?: number
         }
         Relationships: [
           {
@@ -1280,21 +1325,124 @@ export type Database = {
           },
         ]
       }
+      task_completions: {
+        Row: {
+          completed_at: string
+          evidence_url: string | null
+          id: string
+          points_awarded: number
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          evidence_url?: string | null
+          id?: string
+          points_awarded?: number
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          evidence_url?: string | null
+          id?: string
+          points_awarded?: number
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          active: boolean
+          category: string | null
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          repeatable: boolean
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          repeatable?: boolean
+          title: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          repeatable?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
+          faction: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
+          faction?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
+          faction?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
@@ -1322,19 +1470,52 @@ export type Database = {
       }
     }
     Functions: {
+      get_leaderboard: {
+        Args: { _faction?: string; _limit?: number }
+        Returns: {
+          faction: string
+          full_name: string
+          headshot_url: string
+          member_level: number
+          user_id: string
+          xp: number
+        }[]
+      }
       get_member_directory: {
         Args: never
         Returns: {
           avatar_url: string
           bio: string
           created_at: string
+          date_of_birth: string
           faction: string
           full_name: string
+          headshot_url: string
           id: string
+          member_level: number
+          public_image_url: string
           status: string
           user_id: string
+          xp: number
         }[]
       }
+      get_public_profile: {
+        Args: { _user_id: string }
+        Returns: {
+          bio: string
+          created_at: string
+          date_joined_year: number
+          faction: string
+          favourite_quote: string
+          full_name: string
+          headshot_url: string
+          member_level: number
+          public_image_url: string
+          user_id: string
+          xp: number
+        }[]
+      }
+      has_any_global_role: { Args: { _user_id: string }; Returns: boolean }
       has_role:
         | {
             Args: {
