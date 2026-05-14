@@ -1369,6 +1369,9 @@ export type Database = {
         | "community_manager"
         | "chief_finance_officer"
         | "cfo"
+        | "chief_executive_director"
+        | "executive_director"
+        | "executive_assistant"
       letter_status: "draft" | "downloaded" | "sent"
     }
     CompositeTypes: {
@@ -1505,6 +1508,9 @@ export const Constants = {
         "community_manager",
         "chief_finance_officer",
         "cfo",
+        "chief_executive_director",
+        "executive_director",
+        "executive_assistant",
       ],
       letter_status: ["draft", "downloaded", "sent"],
     },
