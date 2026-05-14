@@ -21,6 +21,11 @@ const createClient_SMTP = () => {
   });
 };
 
+const esc = (s: string) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -40,6 +45,27 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Require authenticated admin/ES caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: roles } = await supabase
+      .from("user_roles").select("role").eq("user_id", user.id);
+    if (!(roles || []).some((r: any) => r.role === "admin" || r.role === "executive_secretary")) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { jobId, pdfBase64 } = await req.json();
 
@@ -114,8 +140,8 @@ async function processEmails(
               <p style="color: #80ced7; margin: 10px 0 0 0;">Letter of Engagement</p>
             </div>
             <div style="padding: 30px; background-color: #f8fafc;">
-              <p style="color: #334155; font-size: 16px; line-height: 1.6;">Dear ${recipient.recipient_name},</p>
-              <p style="color: #334155; font-size: 16px; line-height: 1.6;">${job.message}</p>
+              <p style="color: #334155; font-size: 16px; line-height: 1.6;">Dear ${esc(recipient.recipient_name)},</p>
+              <p style="color: #334155; font-size: 16px; line-height: 1.6;">${esc(job.message)}</p>
               <p style="color: #334155; font-size: 16px; line-height: 1.6;">Please find your official Letter of Engagement attached.</p>
               <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-top: 30px;">Best regards,<br><strong>Divine Intelligence Team</strong></p>
             </div>
