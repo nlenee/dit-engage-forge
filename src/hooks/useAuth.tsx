@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "admin" | "user" | "executive_secretary" | "community_manager" | "chief_finance_officer";
+type AppRole = "admin" | "user" | "executive_secretary" | "community_manager" | "chief_finance_officer" | "chief_executive_director" | "executive_director" | "executive_assistant";
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +13,10 @@ interface AuthContextType {
   isCommunityManager: boolean;
   isCFO: boolean;
   isAdminOrES: boolean;
+  isCED: boolean;
+  isED: boolean;
+  isEA: boolean;
+  isGlobalLeader: boolean;
   userRole: AppRole | null;
   profileCompleted: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -33,7 +37,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isExecutiveSecretary = userRole === "executive_secretary";
   const isCommunityManager = userRole === "community_manager";
   const isCFO = userRole === "chief_finance_officer";
-  const isAdminOrES = isAdmin || isExecutiveSecretary;
+  const isCED = userRole === "chief_executive_director";
+  const isED = userRole === "executive_director";
+  const isEA = userRole === "executive_assistant";
+  const isAdminOrES = isAdmin || isExecutiveSecretary || isCED;
+  const isGlobalLeader = isAdmin || isCED || isExecutiveSecretary || isCommunityManager || isCFO;
 
   const checkUserRole = async (userId: string) => {
     const { data } = await supabase
@@ -111,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, userRole, profileCompleted, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, isCED, isED, isEA, isGlobalLeader, userRole, profileCompleted, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

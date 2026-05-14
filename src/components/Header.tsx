@@ -1,4 +1,4 @@
-import { FileText, LayoutDashboard, LogOut, Plus, Shield, Users, Megaphone, User, Activity, DollarSign, ClipboardList } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut, Plus, Shield, Users, Megaphone, User, Activity, DollarSign, ClipboardList, IdCard, Sparkles, BarChart3 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -14,21 +14,24 @@ import ditLogo from "@/assets/dit-logo.jpg";
 
 const Header = () => {
   const location = useLocation();
-  const { user, isAdmin, isExecutiveSecretary, isAdminOrES, isCommunityManager, isCFO, signOut } = useAuth();
+  const { user, isAdmin, isExecutiveSecretary, isAdminOrES, isCommunityManager, isCFO, isCED, signOut } = useAuth();
 
   const navItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { path: "/anniversary", label: "Anniversary", icon: Sparkles },
     { path: "/members", label: "Directory", icon: Users },
+    { path: "/facecard", label: "Facecard", icon: IdCard },
     { path: "/announcements", label: "Announcements", icon: Megaphone },
     ...(isAdminOrES ? [{ path: "/create", label: "New Letter", icon: Plus }] : []),
     ...(isCommunityManager || isAdmin ? [{ path: "/community", label: "Community", icon: Activity }] : []),
     ...(isCFO || isAdmin ? [{ path: "/finance", label: "Finance", icon: DollarSign }] : []),
     ...(isAdminOrES ? [{ path: "/executive-summary", label: "Summary", icon: ClipboardList }] : []),
+    ...(isAdmin || isCED ? [{ path: "/analytics", label: "Analytics", icon: BarChart3 }] : []),
     ...(isAdminOrES ? [{ path: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
-  const roleLabel = isAdmin ? "Admin" : isExecutiveSecretary ? "Executive Secretary" : isCommunityManager ? "Community Manager" : isCFO ? "Chief Finance Officer" : "Member";
+  const roleLabel = isCED ? "Chief Executive Director" : isAdmin ? "Admin" : isExecutiveSecretary ? "Executive Secretary" : isCommunityManager ? "Community Manager" : isCFO ? "Chief Finance Officer" : "Member";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card/80 backdrop-blur-xl">
