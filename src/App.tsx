@@ -18,6 +18,11 @@ import CFODashboard from "./pages/CFODashboard";
 import ExecutiveSummary from "./pages/ExecutiveSummary";
 import Landing from "./pages/Landing";
 import CompleteProfile from "./pages/CompleteProfile";
+import Welcome from "./pages/Welcome";
+import FacecardPage from "./pages/FacecardPage";
+import PublicProfile from "./pages/PublicProfile";
+import AnniversaryHub from "./pages/AnniversaryHub";
+import AdminAnalytics from "./pages/AdminAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +78,12 @@ const App = () => (
             <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+            <Route path="/facecard" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
+            <Route path="/facecard/:userId" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
+            <Route path="/u/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
+            <Route path="/anniversary" element={<ProtectedRoute><AnniversaryHub /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="/create" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
             <Route path="/edit/:id" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

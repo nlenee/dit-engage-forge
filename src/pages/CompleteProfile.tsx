@@ -30,7 +30,7 @@ const CompleteProfile = () => {
             mode="complete"
             defaultEmail={user.email || ""}
             defaultFullName={fullName}
-            onDone={() => navigate("/dashboard")}
+            onDone={() => navigate("/welcome")}
           />
         </div>
       </div>
