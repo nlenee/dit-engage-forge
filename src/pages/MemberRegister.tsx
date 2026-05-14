@@ -64,20 +64,16 @@ export default function MemberRegister() {
   const validateToken = async () => {
     try {
       const { data, error } = await supabase
-        .from("member_invitations")
-        .select("*")
-        .eq("token", token)
-        .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString())
-        .single();
+        .rpc("validate_invitation_token", { _token: token });
+      const invitation = Array.isArray(data) ? data[0] : data;
 
-      if (error || !data) {
+      if (error || !invitation) {
         setStep("error");
         return;
       }
 
-      setInvitation(data);
-      setFormData((prev) => ({ ...prev, email: data.email }));
+      setInvitation(invitation);
+      setFormData((prev) => ({ ...prev, email: invitation.email }));
       setStep("form");
     } catch (err) {
       setStep("error");
