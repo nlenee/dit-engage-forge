@@ -46,22 +46,29 @@ export default function MemberDirectory() {
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["member-directory"],
     queryFn: async () => {
-      // Fetch profiles
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("id, user_id, full_name, email, phone, faction, date_of_birth, status, bio, created_at")
-        .eq("status", "active")
-        .order("full_name", { ascending: true });
-
+      // Use safe directory RPC (excludes phone, email, DOB for non-admins)
+      const { data: profiles, error } = await supabase.rpc("get_member_directory");
       if (error) throw error;
 
-      // Fetch roles
+      // Admin/ES can additionally fetch contact details (RLS allows)
+      let contactMap: Record<string, { email: string | null; phone: string | null; date_of_birth: string | null }> = {};
+      if (isAdminOrES) {
+        const { data: full } = await supabase
+          .from("profiles")
+          .select("user_id, email, phone, date_of_birth");
+        (full || []).forEach((f: any) => {
+          contactMap[f.user_id] = { email: f.email, phone: f.phone, date_of_birth: f.date_of_birth };
+        });
+      }
+
       const { data: roles } = await supabase.from("user_roles").select("user_id, role");
 
-      return (profiles || []).map((p) => {
-        const userRole = roles?.find((r) => r.user_id === p.user_id);
+      return (profiles || []).map((p: any) => {
+        const userRole = roles?.find((r: any) => r.user_id === p.user_id);
+        const contact = contactMap[p.user_id] || { email: null, phone: null, date_of_birth: null };
         return {
           ...p,
+          ...contact,
           role: userRole?.role || "user",
         } as DirectoryMember;
       });

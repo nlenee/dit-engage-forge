@@ -31,6 +31,11 @@ const createClient_SMTP = () => {
   });
 };
 
+const esc = (s: string) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -78,6 +83,17 @@ serve(async (req) => {
       );
     }
 
+    // Verify ownership of the letter before any state mutation
+    if (letterId) {
+      const { data: letter } = await supabase
+        .from("letters").select("id, created_by").eq("id", letterId).maybeSingle();
+      if (!letter || letter.created_by !== user.id) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Send email using Gmail SMTP
     const client = createClient_SMTP();
     
@@ -92,8 +108,8 @@ serve(async (req) => {
             <p style="color: #80ced7; margin: 10px 0 0 0;">Letter of Engagement</p>
           </div>
           <div style="padding: 30px; background-color: #f8fafc;">
-            <p style="color: #334155; font-size: 16px; line-height: 1.6;">Dear ${recipientName},</p>
-            <p style="color: #334155; font-size: 16px; line-height: 1.6;">${message}</p>
+            <p style="color: #334155; font-size: 16px; line-height: 1.6;">Dear ${esc(recipientName)},</p>
+            <p style="color: #334155; font-size: 16px; line-height: 1.6;">${esc(message)}</p>
             <p style="color: #334155; font-size: 16px; line-height: 1.6;">Please find your official Letter of Engagement attached.</p>
             <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-top: 30px;">Best regards,<br><strong>Divine Intelligence Team</strong></p>
           </div>

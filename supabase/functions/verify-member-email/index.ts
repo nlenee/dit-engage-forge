@@ -58,9 +58,9 @@ serve(async (req) => {
     if (action === "send") {
       const { email, memberId }: SendOTPRequest = await req.json();
 
-      if (!email) {
+      if (!email || !memberId) {
         return new Response(
-          JSON.stringify({ error: "Email is required" }),
+          JSON.stringify({ error: "Email and memberId are required" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -69,16 +69,14 @@ serve(async (req) => {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-      // Store OTP in members table if memberId provided, otherwise in a temp location
-      if (memberId) {
-        await supabase
-          .from("members")
-          .update({
-            email_verification_code: otp,
-            verification_code_expires_at: expiresAt.toISOString(),
-          })
-          .eq("id", memberId);
-      }
+      // Store OTP server-side only — never returned to caller
+      await supabase
+        .from("members")
+        .update({
+          email_verification_code: otp,
+          verification_code_expires_at: expiresAt.toISOString(),
+        })
+        .eq("id", memberId);
 
       // Send OTP email using Gmail SMTP
       const client = createClient_SMTP();
@@ -115,7 +113,7 @@ serve(async (req) => {
       console.log(`OTP sent to ${email}`);
 
       return new Response(
-        JSON.stringify({ success: true, otp: memberId ? undefined : otp }), // Only return OTP for temp storage during registration
+        JSON.stringify({ success: true }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else if (action === "verify") {

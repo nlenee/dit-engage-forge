@@ -29,6 +29,25 @@ serve(async (req) => {
   }
 
   try {
+    // Require CRON_SECRET (or admin/CM fallback)
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    if (cronSecret) {
+      if (req.headers.get("x-cron-secret") !== cronSecret) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      const authHeader = req.headers.get("Authorization");
+      const tmp = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      if (!authHeader) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { data: { user } } = await tmp.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { data: roles } = await tmp.from("user_roles").select("role").eq("user_id", user.id);
+      const ok = (roles || []).some((r: any) => ["admin","executive_secretary","community_manager"].includes(r.role));
+      if (!ok) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const gmailUser = Deno.env.get("GMAIL_USER");
     const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
     

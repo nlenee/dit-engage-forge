@@ -1322,6 +1322,19 @@ export type Database = {
       }
     }
     Functions: {
+      get_member_directory: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          faction: string
+          full_name: string
+          id: string
+          status: string
+          user_id: string
+        }[]
+      }
       has_role:
         | {
             Args: {
@@ -1337,6 +1350,15 @@ export type Database = {
       has_role_text: { Args: { role_name: string }; Returns: boolean }
       is_executive_secretary: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      validate_invitation_token: {
+        Args: { _token: string }
+        Returns: {
+          email: string
+          expires_at: string
+          id: string
+          status: string
+        }[]
+      }
     }
     Enums: {
       app_role:

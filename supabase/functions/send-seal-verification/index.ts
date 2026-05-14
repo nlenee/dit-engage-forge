@@ -26,12 +26,32 @@ const createClient_SMTP = () => {
   });
 };
 
+const esc = (s: string) =>
+  String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Require authenticated admin/ES caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const tmp = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: { user } } = await tmp.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const gmailUser = Deno.env.get("GMAIL_USER");
     const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
     
@@ -95,9 +115,9 @@ serve(async (req) => {
               
               <div style="background: #e2e8f0; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 0 0 10px 0;"><strong>Document:</strong> Letter of Engagement</p>
-                <p style="margin: 0 0 10px 0;"><strong>Recipient:</strong> ${seal.letters?.recipient_name || 'N/A'}</p>
-                <p style="margin: 0 0 10px 0;"><strong>Requested By:</strong> ${requesterProfile?.full_name || 'Unknown'}</p>
-                <p style="margin: 0;"><strong>Purpose:</strong> ${seal.purpose}</p>
+                <p style="margin: 0 0 10px 0;"><strong>Recipient:</strong> ${esc(seal.letters?.recipient_name || 'N/A')}</p>
+                <p style="margin: 0 0 10px 0;"><strong>Requested By:</strong> ${esc(requesterProfile?.full_name || 'Unknown')}</p>
+                <p style="margin: 0;"><strong>Purpose:</strong> ${esc(seal.purpose)}</p>
               </div>
               
               <div style="text-align: center; margin: 30px 0;">

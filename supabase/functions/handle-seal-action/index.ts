@@ -47,8 +47,9 @@ serve(async (req) => {
       });
     }
 
-    // Get the approver's email from referer or default
-    const approverEmail = req.headers.get("referer") || "email-link";
+    // Identity is established only by possession of the approval token.
+    // Do NOT trust the Referer header (client-controlled) for the approver identity.
+    const approverEmail = "email-link";
 
     if (action === "approve") {
       await supabase
