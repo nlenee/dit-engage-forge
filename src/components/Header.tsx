@@ -1,4 +1,4 @@
-import { FileText, LayoutDashboard, LogOut, Plus, Shield, Users, Megaphone, User, Activity, DollarSign, ClipboardList, IdCard, Sparkles, BarChart3 } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut, Plus, Shield, Users, Megaphone, User, Activity, DollarSign, ClipboardList, IdCard, Sparkles, BarChart3, Home } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,12 @@ const Header = () => {
                 <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                   <User className="h-4 w-4" />
                   My Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/" className="flex items-center gap-2 cursor-pointer">
+                  <Home className="h-4 w-4" />
+                  Public landing
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
