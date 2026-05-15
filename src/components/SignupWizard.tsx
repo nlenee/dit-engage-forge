@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FACTIONS } from "@/config/contact";
 
@@ -62,6 +63,8 @@ export const SignupWizard = ({ mode, defaultEmail, defaultFullName, onDone }: Pr
   const [joinedYear, setJoinedYear] = useState("");
   const [joinedDay, setJoinedDay] = useState("");
   const [joinedApprox, setJoinedApprox] = useState(false);
+  const [isNewToDit, setIsNewToDit] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
 
   const [employment, setEmployment] = useState<"employed" | "self_employed" | "unemployed" | "">("");
   const [employer, setEmployer] = useState("");
@@ -113,7 +116,7 @@ export const SignupWizard = ({ mode, defaultEmail, defaultFullName, onDone }: Pr
       if (!residence.country || !residence.state) return "Please select your country and state of residence";
     }
     if (step === membershipStep) {
-      if (!joinedMonth || !joinedYear) return "Please tell us when you joined DIT";
+      if (!isNewToDit && (!joinedMonth || !joinedYear)) return "Please tell us when you joined DIT";
     }
     if (step === employmentStep) {
       if (!employment) return "Please select your employment status";
@@ -148,10 +151,12 @@ export const SignupWizard = ({ mode, defaultEmail, defaultFullName, onDone }: Pr
     residence_country: residence.country,
     residence_state: residence.state,
     residence_city: residence.city || null,
-    date_joined_month: Number(joinedMonth),
-    date_joined_year: Number(joinedYear),
-    date_joined_day: joinedDay ? Number(joinedDay) : null,
-    date_joined_approx: joinedApprox,
+    date_joined_month: isNewToDit ? new Date().getMonth() + 1 : Number(joinedMonth),
+    date_joined_year: isNewToDit ? new Date().getFullYear() : Number(joinedYear),
+    date_joined_day: isNewToDit ? new Date().getDate() : (joinedDay ? Number(joinedDay) : null),
+    date_joined_approx: isNewToDit ? false : joinedApprox,
+    is_new_to_dit: isNewToDit,
+    pending_role_assignment: isNewToDit,
     employment_status: employment,
     employer_name: employment === "employed" ? employer : null,
     is_student: isStudent === "yes",
