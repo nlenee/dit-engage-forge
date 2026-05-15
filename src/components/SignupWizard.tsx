@@ -247,8 +247,15 @@ export const SignupWizard = ({ mode, defaultEmail, defaultFullName, onDone }: Pr
           <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Password *"><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-          <Field label="Confirm *"><Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></Field>
+          <Field label="Password *">
+            <div className="relative">
+              <Input type={showPwd ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+              <button type="button" onClick={() => setShowPwd((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </Field>
+          <Field label="Confirm *"><Input type={showPwd ? "text" : "password"} value={confirm} onChange={(e) => setConfirm(e.target.value)} /></Field>
         </div>
       </div>
     );
@@ -328,7 +335,16 @@ export const SignupWizard = ({ mode, defaultEmail, defaultFullName, onDone }: Pr
   function renderMembership() {
     return (
       <div className="space-y-4 animate-fade-in">
-        <h2 className="text-xl font-semibold">When did you join DIT?</h2>
+        <h2 className="text-xl font-semibold">Your DIT membership</h2>
+        <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted">
+          <Checkbox checked={isNewToDit} onCheckedChange={(v) => setIsNewToDit(!!v)} className="mt-0.5" />
+          <div>
+            <div className="font-medium text-sm">I'm new to DIT — I've never been on the team before</div>
+            <div className="text-xs text-muted-foreground mt-0.5">You'll join your selected faction now. Your Executive Director will assign your role; an Admin / ES / CM will approve.</div>
+          </div>
+        </label>
+        {!isNewToDit && (<>
+        <p className="text-sm text-muted-foreground">When did you join DIT?</p>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Month *">
             <Select value={joinedMonth} onValueChange={setJoinedMonth}>
@@ -354,6 +370,7 @@ export const SignupWizard = ({ mode, defaultEmail, defaultFullName, onDone }: Pr
           <Checkbox checked={joinedApprox} onCheckedChange={(v) => setJoinedApprox(!!v)} />
           To the best of my knowledge
         </label>
+        </>)}
       </div>
     );
   }
