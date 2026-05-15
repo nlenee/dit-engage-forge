@@ -1086,6 +1086,42 @@ export type Database = {
           },
         ]
       }
+      password_reset_requests: {
+        Row: {
+          email: string
+          id: string
+          notes: string | null
+          reason: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           academic_background: string | null
@@ -1108,12 +1144,14 @@ export type Database = {
           graduation_year: number | null
           headshot_url: string | null
           id: string
+          is_new_to_dit: boolean
           is_student: boolean | null
           level: string | null
           member_level: number
           origin_city: string | null
           origin_country: string | null
           origin_state: string | null
+          pending_role_assignment: boolean
           phone: string | null
           profile_completed: boolean
           public_image_url: string | null
@@ -1147,12 +1185,14 @@ export type Database = {
           graduation_year?: number | null
           headshot_url?: string | null
           id?: string
+          is_new_to_dit?: boolean
           is_student?: boolean | null
           level?: string | null
           member_level?: number
           origin_city?: string | null
           origin_country?: string | null
           origin_state?: string | null
+          pending_role_assignment?: boolean
           phone?: string | null
           profile_completed?: boolean
           public_image_url?: string | null
@@ -1186,12 +1226,14 @@ export type Database = {
           graduation_year?: number | null
           headshot_url?: string | null
           id?: string
+          is_new_to_dit?: boolean
           is_student?: boolean | null
           level?: string | null
           member_level?: number
           origin_city?: string | null
           origin_country?: string | null
           origin_state?: string | null
+          pending_role_assignment?: boolean
           phone?: string | null
           profile_completed?: boolean
           public_image_url?: string | null
