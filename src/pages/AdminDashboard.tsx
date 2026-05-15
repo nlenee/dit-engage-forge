@@ -515,6 +515,11 @@ const AdminDashboard = () => {
           <TabsContent value="campaigns">
             <EmailCampaignManager />
           </TabsContent>
+
+          {/* Password Reset Requests Tab */}
+          <TabsContent value="password-resets">
+            <PasswordResetRequests />
+          </TabsContent>
         </Tabs>
       </main>
 
