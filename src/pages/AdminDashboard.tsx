@@ -19,6 +19,7 @@ import {
   Cake,
   Send,
   FileEdit,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,7 @@ import { EmailAnalyticsDashboard } from "@/components/EmailAnalyticsDashboard";
 import { MemberManagement } from "@/components/MemberManagement";
 import { EmailTemplateManager } from "@/components/EmailTemplateManager";
 import { EmailCampaignManager } from "@/components/EmailCampaignManager";
+import PasswordResetRequests from "@/components/PasswordResetRequests";
 import { useAdminData } from "@/hooks/useAdminData";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -295,6 +297,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="campaigns" className="gap-2">
               <Send className="h-4 w-4" />
               Campaigns
+            </TabsTrigger>
+            <TabsTrigger value="password-resets" className="gap-2">
+              <KeyRound className="h-4 w-4" />
+              Resets
             </TabsTrigger>
           </TabsList>
 
