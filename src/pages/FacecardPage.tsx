@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Share2, Loader2, Film, Upload as UploadIcon, Image as ImageIcon } from "lucide-react";
