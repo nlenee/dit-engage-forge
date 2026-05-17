@@ -105,15 +105,7 @@ export type Database = {
           status?: string
           token?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "admin_invitations_invited_by_fkey"
-            columns: ["invited_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       announcements: {
         Row: {
@@ -270,13 +262,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bulk_email_jobs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "bulk_email_jobs_letter_id_fkey"
             columns: ["letter_id"]
             isOneToOne: false
@@ -413,13 +398,6 @@ export type Database = {
             referencedRelation: "letters"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "digital_seals_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       email_campaigns: {
@@ -469,13 +447,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "email_campaigns_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "email_campaigns_template_id_fkey"
             columns: ["template_id"]
@@ -536,13 +507,6 @@ export type Database = {
             referencedRelation: "letters"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "email_logs_sent_by_fkey"
-            columns: ["sent_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       email_templates: {
@@ -579,15 +543,7 @@ export type Database = {
           type?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "email_templates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       engagement_logs: {
         Row: {
@@ -817,15 +773,7 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "letter_templates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       letter_versions: {
         Row: {
@@ -877,13 +825,6 @@ export type Database = {
           version_number?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "letter_versions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "letter_versions_letter_id_fkey"
             columns: ["letter_id"]
@@ -944,13 +885,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "letters_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-          {
             foreignKeyName: "letters_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
@@ -990,15 +924,7 @@ export type Database = {
           status?: string
           token?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "member_invitations_invited_by_fkey"
-            columns: ["invited_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       members: {
         Row: {
@@ -1076,15 +1002,7 @@ export type Database = {
           user_id?: string | null
           verification_code_expires_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       password_reset_requests: {
         Row: {
@@ -1246,15 +1164,7 @@ export type Database = {
           user_id?: string
           xp?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       roles: {
         Row: {
@@ -1351,13 +1261,6 @@ export type Database = {
           timezone?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "scheduled_emails_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
           {
             foreignKeyName: "scheduled_emails_letter_id_fkey"
             columns: ["letter_id"]
@@ -1489,27 +1392,11 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users_roles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
-      admin_users_roles: {
-        Row: {
-          email: string | null
-          roles: string[] | null
-          signup_date: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_leaderboard: {
