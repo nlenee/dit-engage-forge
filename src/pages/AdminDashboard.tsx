@@ -20,6 +20,11 @@ import {
   Send,
   FileEdit,
   KeyRound,
+  Trophy,
+  Star,
+  Ban,
+  Trash2,
+  CheckCircle as CheckIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,11 +69,26 @@ import { EmailTemplateManager } from "@/components/EmailTemplateManager";
 import { EmailCampaignManager } from "@/components/EmailCampaignManager";
 import PasswordResetRequests from "@/components/PasswordResetRequests";
 import { useAdminData } from "@/hooks/useAdminData";
+import type { AdminAppRole } from "@/hooks/useAdminData";
+import { PROTECTED_ADMIN_EMAIL } from "@/hooks/useAdminData";
+import PendingXpReviews from "@/components/PendingXpReviews";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { getCountryName, getStateName } from "@/data/countries";
 
-type AppRole = "admin" | "user" | "executive_secretary" | "community_manager" | "chief_finance_officer";
+type AppRole = AdminAppRole;
+
+const ROLE_OPTIONS: { value: AppRole; label: string }[] = [
+  { value: "user", label: "Member" },
+  { value: "community_manager", label: "Community Manager" },
+  { value: "chief_finance_officer", label: "Chief Financial Officer (CFO)" },
+  { value: "executive_secretary", label: "Executive Secretary" },
+  { value: "executive_assistant", label: "Executive Assistant" },
+  { value: "executive_director", label: "Executive Director" },
+  { value: "chief_executive_director", label: "Chief Executive Director (CED)" },
+  { value: "admin", label: "Admin" },
+];
+const ROLE_LABEL: Record<string, string> = Object.fromEntries(ROLE_OPTIONS.map((r) => [r.value, r.label]));
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -81,6 +101,9 @@ const AdminDashboard = () => {
     emailLogs,
     emailLogsLoading,
     updateUserRole,
+    awardXp,
+    setUserStatus,
+    deleteUserAccount,
   } = useAdminData();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,6 +113,7 @@ const AdminDashboard = () => {
     newRole: AppRole;
   } | null>(null);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ userId: string; name: string } | null>(null);
 
   if (loading) {
     return (
@@ -164,36 +188,7 @@ const AdminDashboard = () => {
   };
 
   const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "executive_secretary":
-        return (
-          <Badge className="bg-purple-100 text-purple-700 border-purple-200">
-            <Crown className="h-3 w-3 mr-1" />
-            Executive Secretary
-          </Badge>
-        );
-      case "admin":
-        return (
-          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-            <Shield className="h-3 w-3 mr-1" />
-            Admin
-          </Badge>
-        );
-      case "community_manager":
-        return (
-          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
-            Community Manager
-          </Badge>
-        );
-      case "chief_finance_officer":
-        return (
-          <Badge className="bg-amber-100 text-amber-700 border-amber-200">
-            CFO
-          </Badge>
-        );
-      default:
-        return <Badge variant="secondary">Member</Badge>;
-    }
+    return <Badge variant="secondary">{ROLE_LABEL[role] || "Member"}</Badge>;
   };
 
   const handleRoleChange = async () => {
@@ -302,6 +297,10 @@ const AdminDashboard = () => {
               <KeyRound className="h-4 w-4" />
               Resets
             </TabsTrigger>
+            <TabsTrigger value="xp-reviews" className="gap-2">
+              <Trophy className="h-4 w-4" />
+              XP Reviews
+            </TabsTrigger>
           </TabsList>
 
           {/* Users Tab */}
@@ -342,16 +341,15 @@ const AdminDashboard = () => {
                                   newRole: value,
                                 })
                               }
+                              disabled={user.email?.toLowerCase() === PROTECTED_ADMIN_EMAIL}
                             >
-                              <SelectTrigger className="w-40 h-8">
+                              <SelectTrigger className="w-56 h-8">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="user">Member</SelectItem>
-                                <SelectItem value="community_manager">Community Manager</SelectItem>
-                                <SelectItem value="chief_finance_officer">CFO</SelectItem>
-                                <SelectItem value="executive_secretary">Executive Secretary</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
+                                {ROLE_OPTIONS.map((r) => (
+                                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           ) : (
@@ -369,7 +367,50 @@ const AdminDashboard = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/profile/${user.user_id}`)}>
+                                <Eye className="h-4 w-4 mr-2" /> View Profile
+                              </DropdownMenuItem>
+                              {isAdmin && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const amount = parseInt(window.prompt("Award XP — amount:", "50") || "0", 10);
+                                      if (amount > 0) awardXp.mutate({ userId: user.user_id, amount });
+                                    }}
+                                  >
+                                    <Star className="h-4 w-4 mr-2" /> Award XP
+                                  </DropdownMenuItem>
+                                  {user.email?.toLowerCase() !== PROTECTED_ADMIN_EMAIL && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          setUserStatus.mutate({
+                                            userId: user.user_id,
+                                            status: user.status === "suspended" ? "active" : "suspended",
+                                          })
+                                        }
+                                      >
+                                        {user.status === "suspended" ? (
+                                          <><CheckIcon className="h-4 w-4 mr-2" /> Reinstate</>
+                                        ) : (
+                                          <><Ban className="h-4 w-4 mr-2" /> Suspend</>
+                                        )}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        className="text-destructive"
+                                        onClick={() =>
+                                          setConfirmDelete({
+                                            userId: user.user_id,
+                                            name: user.full_name || "this user",
+                                          })
+                                        }
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" /> Delete User
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -520,6 +561,11 @@ const AdminDashboard = () => {
           <TabsContent value="password-resets">
             <PasswordResetRequests />
           </TabsContent>
+
+          {/* XP Reviews Tab */}
+          <TabsContent value="xp-reviews">
+            <PendingXpReviews />
+          </TabsContent>
         </Tabs>
       </main>
 
@@ -530,7 +576,7 @@ const AdminDashboard = () => {
             <AlertDialogTitle>Change User Role</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to change {roleChangeUser?.name}'s role to{" "}
-              <strong>{roleChangeUser?.newRole}</strong>?
+              <strong>{roleChangeUser ? ROLE_LABEL[roleChangeUser.newRole] : ""}</strong>?
               {roleChangeUser?.newRole === "admin" &&
                 " This will give them full administrative access."}
             </AlertDialogDescription>
@@ -539,6 +585,31 @@ const AdminDashboard = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleRoleChange}>
               Confirm Change
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user account</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes <strong>{confirmDelete?.name}</strong> and removes their data. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!confirmDelete) return;
+                await deleteUserAccount.mutateAsync({ userId: confirmDelete.userId });
+                setConfirmDelete(null);
+              }}
+            >
+              Delete User
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

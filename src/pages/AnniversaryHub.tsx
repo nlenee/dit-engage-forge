@@ -54,17 +54,26 @@ export default function AnniversaryHub() {
   });
 
   const complete = useMutation({
-    mutationFn: async (taskId: string) => {
-      const { error } = await supabase.from("task_completions").insert({ user_id: user!.id, task_id: taskId });
+    mutationFn: async ({ taskId, evidence }: { taskId: string; evidence?: string }) => {
+      const { error } = await supabase.from("task_completions").insert({
+        user_id: user!.id,
+        task_id: taskId,
+        evidence_url: evidence || null,
+        notes: evidence ? null : null,
+      });
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast({ title: "Task completed!", description: "XP awarded — keep going!" });
+    onSuccess: (_d, vars) => {
+      // Login/platform tasks auto-approve via DB trigger
+      toast({
+        title: "Submitted for review",
+        description: "Admins will verify and award your XP shortly.",
+      });
       qc.invalidateQueries({ queryKey: ["my-completions"] });
       qc.invalidateQueries({ queryKey: ["profile-xp"] });
       qc.invalidateQueries({ queryKey: ["leaderboard"] });
     },
-    onError: (e: any) => toast({ title: "Could not complete", description: e.message, variant: "destructive" }),
+    onError: (e: any) => toast({ title: "Could not submit", description: e.message, variant: "destructive" }),
   });
 
   const completedIds = new Set(completions.map((c: any) => c.task_id));
@@ -112,7 +121,15 @@ export default function AnniversaryHub() {
           <TabsContent value="tasks" className="mt-4">
             <div className="grid md:grid-cols-2 gap-4">
               {tasks.map((t: any) => {
-                const done = completedIds.has(t.id) && !t.repeatable;
+                const myCompletion = completions.find((c: any) => c.task_id === t.id);
+                const status = myCompletion?.status;
+                const done = !!myCompletion && !t.repeatable && status === "approved";
+                const pending = !!myCompletion && status === "pending" && !t.repeatable;
+                const rejected = status === "rejected";
+                const isLoginTask =
+                  (t.code || "").toLowerCase().includes("login") ||
+                  (t.category || "").toLowerCase() === "platform" ||
+                  (t.category || "").toLowerCase().includes("login");
                 return (
                   <Card key={t.id} className={done ? "bg-muted/40" : ""}>
                     <CardContent className="p-5 flex items-start gap-4">
@@ -123,14 +140,29 @@ export default function AnniversaryHub() {
                         <div className="font-semibold flex items-center gap-2">
                           {t.title}
                           {done && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                          {pending && <Badge variant="outline" className="text-[9px]">PENDING REVIEW</Badge>}
+                          {rejected && <Badge variant="destructive" className="text-[9px]">REJECTED</Badge>}
                           {t.repeatable && <Badge variant="outline" className="text-[9px]">REPEATABLE</Badge>}
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">{t.description}</div>
+                        {!isLoginTask && !done && !pending && (
+                          <p className="text-xs text-muted-foreground mt-2 italic">
+                            Requires admin verification. Provide a proof link if available.
+                          </p>
+                        )}
                         <Button
-                          size="sm" className="mt-3" disabled={done || complete.isPending}
-                          onClick={() => complete.mutate(t.id)}
+                          size="sm" className="mt-3" disabled={done || pending || complete.isPending}
+                          onClick={() => {
+                            if (isLoginTask) {
+                              complete.mutate({ taskId: t.id });
+                            } else {
+                              const evidence =
+                                window.prompt("Paste a proof link (screenshot, post, doc) — optional:") || undefined;
+                              complete.mutate({ taskId: t.id, evidence });
+                            }
+                          }}
                         >
-                          {done ? "Completed" : "Mark complete"}
+                          {done ? "Completed" : pending ? "Awaiting review" : isLoginTask ? "Claim XP" : "Submit for review"}
                         </Button>
                       </div>
                     </CardContent>
