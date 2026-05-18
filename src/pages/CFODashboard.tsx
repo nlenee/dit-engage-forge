@@ -42,7 +42,7 @@ const CFODashboard = () => {
   const [campaignForm, setCampaignForm] = useState({ name: "", description: "", target_amount: "", start_date: format(new Date(), "yyyy-MM-dd"), end_date: "" });
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (!isCFO && !isAdmin) return <Navigate to="/" replace />;
+  if (!isCFO && !isAdmin) return <Navigate to="/dashboard" replace />;
 
   const handleCreateTx = async () => {
     await createTransaction.mutateAsync({
