@@ -4,6 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 type AppRole = "admin" | "user" | "executive_secretary" | "community_manager" | "chief_finance_officer" | "chief_executive_director" | "executive_director" | "executive_assistant";
 
+// Higher priority wins when a user has multiple roles assigned.
+const ROLE_PRIORITY: AppRole[] = [
+  "admin",
+  "chief_executive_director",
+  "executive_secretary",
+  "community_manager",
+  "chief_finance_officer",
+  "executive_director",
+  "executive_assistant",
+  "user",
+];
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -31,15 +43,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
+  const [allRoles, setAllRoles] = useState<AppRole[]>([]);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(true);
 
-  const isAdmin = userRole === "admin";
-  const isExecutiveSecretary = userRole === "executive_secretary";
-  const isCommunityManager = userRole === "community_manager";
-  const isCFO = userRole === "chief_finance_officer";
-  const isCED = userRole === "chief_executive_director";
-  const isED = userRole === "executive_director";
-  const isEA = userRole === "executive_assistant";
+  const has = (r: AppRole) => allRoles.includes(r);
+  const isAdmin = has("admin");
+  const isExecutiveSecretary = has("executive_secretary");
+  const isCommunityManager = has("community_manager");
+  const isCFO = has("chief_finance_officer");
+  const isCED = has("chief_executive_director");
+  const isED = has("executive_director");
+  const isEA = has("executive_assistant");
   const isAdminOrES = isAdmin || isExecutiveSecretary || isCED;
   const isGlobalLeader = isAdmin || isCED || isExecutiveSecretary || isCommunityManager || isCFO;
 
@@ -47,10 +61,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .maybeSingle();
-    
-    setUserRole((data?.role as AppRole) || "user");
+      .eq("user_id", userId);
+
+    const roles = ((data || []).map((r: any) => r.role as AppRole));
+    setAllRoles(roles.length ? roles : ["user"]);
+    const top = ROLE_PRIORITY.find((r) => roles.includes(r)) || "user";
+    setUserRole(top);
 
     const { data: prof } = await supabase
       .from("profiles")

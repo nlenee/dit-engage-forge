@@ -5,6 +5,7 @@ import { Download, Share2, Loader2, Film, Upload as UploadIcon, Image as ImageIc
 import { toPng } from "html-to-image";
 // @ts-ignore
 import GIF from "gif.js";
+import { removeBackground } from "@imgly/background-removal";
 import Header from "@/components/Header";
 import { Facecard } from "@/components/Facecard";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export default function FacecardPage() {
   const { toast } = useToast();
   const [gifBusy, setGifBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [bgRemoving, setBgRemoving] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [exportPreset, setExportPreset] = useState<Preset | null>(null);
   const targetId = routeUserId || user?.id;
@@ -77,11 +79,19 @@ export default function FacecardPage() {
     }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${user.id}/${Date.now()}.${ext}`;
+      // AI background removal for cinematic blending
+      setBgRemoving(true);
+      let uploadBlob: Blob = file;
+      try {
+        uploadBlob = await removeBackground(file, { output: { format: "image/png", quality: 0.92 } });
+      } catch (bgErr) {
+        console.warn("Background removal failed, uploading original", bgErr);
+      }
+      setBgRemoving(false);
+      const path = `${user.id}/${Date.now()}.png`;
       const { error: upErr } = await supabase.storage
         .from("headshots")
-        .upload(path, file, { upsert: true, cacheControl: "3600" });
+        .upload(path, uploadBlob, { upsert: true, cacheControl: "3600", contentType: "image/png" });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("headshots").getPublicUrl(path);
       const { error: profErr } = await supabase
@@ -90,16 +100,23 @@ export default function FacecardPage() {
         .eq("user_id", user.id);
       if (profErr) throw profErr;
       await qc.invalidateQueries({ queryKey: ["facecard", targetId] });
-      toast({ title: "Portrait uploaded", description: "Your cinematic facecard is ready" });
+      toast({ title: "Portrait uploaded", description: "Background removed · cinematic facecard ready" });
     } catch (e: any) {
       toast({ title: "Upload failed", description: e?.message || "", variant: "destructive" });
     } finally {
       setUploading(false);
+      setBgRemoving(false);
     }
   };
 
   const captureNode = async (node: HTMLDivElement, pixelRatio = 3) =>
-    toPng(node, { cacheBust: true, pixelRatio, fetchRequestInit: { cache: "no-cache" } });
+    toPng(node, {
+      cacheBust: true,
+      pixelRatio,
+      fetchRequestInit: { cache: "no-cache", mode: "cors" },
+      skipFonts: true,
+      filter: (n: any) => n.tagName !== "LINK",
+    });
 
   const downloadDataUrl = (url: string, name: string) => {
     const a = document.createElement("a");
@@ -112,9 +129,16 @@ export default function FacecardPage() {
 
   const handleDownloadCard = async () => {
     if (!cardRef.current) return;
-    const url = await captureNode(cardRef.current, 3);
-    downloadDataUrl(url, `${baseName}_facecard.png`);
-    toast({ title: "Ultra-HD PNG downloaded" });
+    try {
+      // Pre-warm: render twice (first render flushes fonts/images, second is the real export)
+      await captureNode(cardRef.current, 1);
+      const url = await captureNode(cardRef.current, 3);
+      downloadDataUrl(url, `${baseName}_facecard.png`);
+      toast({ title: "Ultra-HD PNG downloaded" });
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Download failed", description: e?.message || "Try again", variant: "destructive" });
+    }
   };
 
   const handleExportPreset = async (preset: Preset) => {
@@ -271,7 +295,7 @@ export default function FacecardPage() {
                 {uploading ? (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="text-sm">Uploading…</span>
+                    <span className="text-sm">{bgRemoving ? "Removing background…" : "Uploading…"}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">

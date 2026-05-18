@@ -100,7 +100,7 @@ const AdminDashboard = () => {
   }
 
   if (!isAdminOrES) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const filteredUsers = users.filter(

@@ -128,7 +128,7 @@ const CommunityManagerDashboard = () => {
   const todayBirthdays = upcomingBirthdays.filter((b) => b.daysUntil === 0);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (!isCommunityManager && !isAdmin) return <Navigate to="/" replace />;
+  if (!isCommunityManager && !isAdmin) return <Navigate to="/dashboard" replace />;
 
   const totalMembers = profiles.length;
   const activeMembers = profiles.filter((p) => p.status === "active").length;
