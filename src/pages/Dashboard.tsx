@@ -45,6 +45,7 @@ import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useAuth } from "@/hooks/useAuth";
 import { getCountryName, getStateName } from "@/data/countries";
 import ditLogo from "@/assets/dit-logo.jpg";
+import { NextBirthdayCountdown } from "@/components/NextBirthdayCountdown";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -126,6 +127,11 @@ const Dashboard = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Upcoming Birthday Spotlight */}
+        <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
+          <NextBirthdayCountdown />
         </div>
 
         {/* Announcements Section */}
