@@ -92,7 +92,12 @@ export default function MemberDirectory() {
   const getRoleLabel = (role?: string) => {
     switch (role) {
       case "admin": return "Admin";
+      case "chief_executive_director": return "Chief Executive Director";
       case "executive_secretary": return "Executive Secretary";
+      case "community_manager": return "Community Manager";
+      case "chief_finance_officer": return "Chief Financial Officer";
+      case "executive_director": return "Executive Director";
+      case "executive_assistant": return "Executive Assistant";
       default: return "Member";
     }
   };
