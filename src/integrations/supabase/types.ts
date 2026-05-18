@@ -1275,7 +1275,13 @@ export type Database = {
           completed_at: string
           evidence_url: string | null
           id: string
+          notes: string | null
           points_awarded: number
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string
           task_id: string
           user_id: string
         }
@@ -1283,7 +1289,13 @@ export type Database = {
           completed_at?: string
           evidence_url?: string | null
           id?: string
+          notes?: string | null
           points_awarded?: number
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
           task_id: string
           user_id: string
         }
@@ -1291,7 +1303,13 @@ export type Database = {
           completed_at?: string
           evidence_url?: string | null
           id?: string
+          notes?: string | null
           points_awarded?: number
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string
           task_id?: string
           user_id?: string
         }
