@@ -35,19 +35,19 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card/80 backdrop-blur-xl">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/dashboard" className="flex items-center gap-3 group">
+      <div className="container mx-auto flex h-14 items-center justify-between gap-2 px-3 sm:px-4">
+        <Link to="/dashboard" className="flex items-center gap-2 group shrink-0">
           <div className="relative overflow-hidden rounded-lg shadow-soft">
-            <img src={ditLogo} alt="DIT Logo" className="h-10 w-10 object-cover transition-transform group-hover:scale-105" />
+            <img src={ditLogo} alt="DIT Logo" className="h-8 w-8 sm:h-9 sm:w-9 object-cover transition-transform group-hover:scale-105" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-display text-lg font-semibold text-primary">DIT</span>
-            <span className="text-xs text-muted-foreground -mt-1">Community Platform</span>
+          <div className="hidden sm:flex flex-col leading-tight">
+            <span className="font-display text-sm font-semibold text-primary">DIT</span>
+            <span className="text-[10px] text-muted-foreground -mt-0.5">Community Platform</span>
           </div>
         </Link>
 
-        <div className="flex items-center gap-4">
-          <nav className="flex items-center gap-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <nav className="flex items-center gap-0.5 overflow-x-auto no-scrollbar max-w-[calc(100vw-9rem)]">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               const Icon = item.icon;
@@ -55,14 +55,14 @@ const Header = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] xl:text-xs font-medium whitespace-nowrap transition-all duration-200 ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-soft"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden md:inline">{item.label}</span>
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="hidden lg:inline">{item.label}</span>
                 </Link>
               );
             })}
