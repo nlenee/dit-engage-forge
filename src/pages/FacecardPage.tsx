@@ -295,7 +295,7 @@ export default function FacecardPage() {
                 {uploading ? (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="text-sm">Uploading…</span>
+                    <span className="text-sm">{bgRemoving ? "Removing background…" : "Uploading…"}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
