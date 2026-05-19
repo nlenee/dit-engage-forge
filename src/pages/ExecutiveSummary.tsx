@@ -1,14 +1,14 @@
-import { Loader2, FileText, Activity, DollarSign, Download } from "lucide-react";
+import { FileText, Activity, DollarSign, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
+import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useEvents } from "@/hooks/useEvents";
 import { useEngagement } from "@/hooks/useEngagement";
 import { useFinance } from "@/hooks/useFinance";
 import { useLetters } from "@/hooks/useLetters";
-import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -35,8 +35,8 @@ const ExecutiveSummary = () => {
     },
   });
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (!isAdminOrES) return <Navigate to="/dashboard" replace />;
+  if (loading) return <PageLoader />;
+  if (!isAdminOrES) return <AccessDenied description="Executive summaries are available to Admin, Chief Executive Director, and Executive Secretary roles only." />;
 
   const currentMonth = format(new Date(), "MMMM yyyy");
   const totalMembers = profiles.length;
