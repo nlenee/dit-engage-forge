@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [allRoles, setAllRoles] = useState<AppRole[]>([]);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(true);
   const roleRequestRef = useRef(0);
+  const rolesLoadedForRef = useRef<string | null>(null);
 
   const has = (r: AppRole) => allRoles.includes(r);
   const isAdmin = has("admin");
@@ -74,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const roles = ((data || []).map((r: any) => r.role as AppRole));
       const resolvedRoles: AppRole[] = roles.length ? roles : ["user"];
       if (roleRequestRef.current !== requestId) return;
+      rolesLoadedForRef.current = userId;
       setAllRoles(resolvedRoles);
       const top = ROLE_PRIORITY.find((r) => resolvedRoles.includes(r)) || "user";
       setUserRole(top);
@@ -87,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfileCompleted(prof?.profile_completed ?? false);
     } catch {
       if (roleRequestRef.current !== requestId) return;
+      rolesLoadedForRef.current = userId;
       setAllRoles(["user"]);
       setUserRole("user");
       setProfileCompleted(true);
@@ -103,12 +106,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
         
         if (session?.user) {
+          if (rolesLoadedForRef.current === session.user.id) return;
           setRolesLoading(true);
           setTimeout(() => {
             checkUserRole(session.user.id);
           }, 0);
         } else {
           roleRequestRef.current += 1;
+          rolesLoadedForRef.current = null;
           setUserRole(null);
           setAllRoles([]);
           setProfileCompleted(true);
@@ -123,8 +128,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       
       if (session?.user) {
+        if (rolesLoadedForRef.current === session.user.id) return;
         checkUserRole(session.user.id);
       } else {
+        rolesLoadedForRef.current = null;
         setRolesLoading(false);
       }
     });
