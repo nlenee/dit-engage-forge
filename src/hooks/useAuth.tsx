@@ -20,6 +20,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  authReady: boolean;
+  rolesLoading: boolean;
   isAdmin: boolean;
   isExecutiveSecretary: boolean;
   isCommunityManager: boolean;
@@ -42,6 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [allRoles, setAllRoles] = useState<AppRole[]>([]);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(true);
@@ -58,22 +61,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isGlobalLeader = isAdmin || isCED || isExecutiveSecretary || isCommunityManager || isCFO;
 
   const checkUserRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
+    setRolesLoading(true);
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
 
-    const roles = ((data || []).map((r: any) => r.role as AppRole));
-    setAllRoles(roles.length ? roles : ["user"]);
-    const top = ROLE_PRIORITY.find((r) => roles.includes(r)) || "user";
-    setUserRole(top);
+      const roles = ((data || []).map((r: any) => r.role as AppRole));
+      const resolvedRoles = roles.length ? roles : ["user"];
+      setAllRoles(resolvedRoles);
+      const top = ROLE_PRIORITY.find((r) => resolvedRoles.includes(r)) || "user";
+      setUserRole(top);
 
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("profile_completed")
-      .eq("user_id", userId)
-      .maybeSingle();
-    setProfileCompleted(prof?.profile_completed ?? false);
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("profile_completed")
+        .eq("user_id", userId)
+        .maybeSingle();
+      setProfileCompleted(prof?.profile_completed ?? false);
+    } finally {
+      setRolesLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -84,11 +93,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
         
         if (session?.user) {
+          setRolesLoading(true);
           setTimeout(() => {
             checkUserRole(session.user.id);
           }, 0);
         } else {
           setUserRole(null);
+          setAllRoles([]);
+          setProfileCompleted(true);
+          setRolesLoading(false);
         }
       }
     );
@@ -100,6 +113,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user) {
         checkUserRole(session.user.id);
+      } else {
+        setRolesLoading(false);
       }
     });
 
@@ -135,7 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, isCED, isED, isEA, isGlobalLeader, userRole, profileCompleted, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading: loading || rolesLoading, authReady: !loading && !rolesLoading, rolesLoading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, isCED, isED, isEA, isGlobalLeader, userRole, profileCompleted, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
