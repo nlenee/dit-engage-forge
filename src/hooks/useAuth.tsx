@@ -80,6 +80,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("user_id", userId)
         .maybeSingle();
       setProfileCompleted(prof?.profile_completed ?? false);
+    } catch {
+      setAllRoles(["user"]);
+      setUserRole("user");
+      setProfileCompleted(false);
     } finally {
       setRolesLoading(false);
     }
