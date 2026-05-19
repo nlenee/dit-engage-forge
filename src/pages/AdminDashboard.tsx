@@ -72,8 +72,9 @@ import { useAdminData } from "@/hooks/useAdminData";
 import type { AdminAppRole } from "@/hooks/useAdminData";
 import { PROTECTED_ADMIN_EMAIL } from "@/hooks/useAdminData";
 import PendingXpReviews from "@/components/PendingXpReviews";
+import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getCountryName, getStateName } from "@/data/countries";
 
 type AppRole = AdminAppRole;
@@ -115,16 +116,10 @@ const AdminDashboard = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ userId: string; name: string } | null>(null);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <PageLoader />;
 
   if (!isAdminOrES) {
-    return <Navigate to="/dashboard" replace />;
+    return <AccessDenied description="Admin tools are available to Admin, Chief Executive Director, and Executive Secretary roles only." />;
   }
 
   const filteredUsers = users.filter(

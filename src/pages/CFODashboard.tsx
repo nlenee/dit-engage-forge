@@ -20,9 +20,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import Header from "@/components/Header";
+import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinance } from "@/hooks/useFinance";
-import { Navigate } from "react-router-dom";
 
 const CFODashboard = () => {
   const { isCFO, isAdmin, loading } = useAuth();
@@ -41,8 +41,8 @@ const CFODashboard = () => {
   const [budgetForm, setBudgetForm] = useState({ name: "", fiscal_year: new Date().getFullYear().toString(), total_amount: "", category: "", notes: "" });
   const [campaignForm, setCampaignForm] = useState({ name: "", description: "", target_amount: "", start_date: format(new Date(), "yyyy-MM-dd"), end_date: "" });
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (!isCFO && !isAdmin) return <Navigate to="/dashboard" replace />;
+  if (loading) return <PageLoader />;
+  if (!isCFO && !isAdmin) return <AccessDenied description="Finance tools are available to Chief Finance Officer and Admin roles only." />;
 
   const handleCreateTx = async () => {
     await createTransaction.mutateAsync({

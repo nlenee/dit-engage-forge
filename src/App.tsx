@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import CreateLetter from "./pages/CreateLetter";
@@ -30,6 +30,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, profileCompleted } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -43,7 +44,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!profileCompleted && window.location.pathname !== "/complete-profile") {
+  if (!profileCompleted && location.pathname !== "/complete-profile") {
     return <Navigate to="/complete-profile" replace />;
   }
 
@@ -93,9 +94,11 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/members" element={<ProtectedRoute><MemberDirectory /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><CommunityManagerDashboard /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute><CFODashboard /></ProtectedRoute>} />
+            <Route path="/summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
             <Route path="/executive-summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
             <Route path="/register" element={<MemberRegister />} />
             <Route path="*" element={<NotFound />} />
