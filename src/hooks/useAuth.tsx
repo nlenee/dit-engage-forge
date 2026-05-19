@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("user_id", userId);
 
       const roles = ((data || []).map((r: any) => r.role as AppRole));
-      const resolvedRoles = roles.length ? roles : ["user"];
+      const resolvedRoles: AppRole[] = roles.length ? roles : ["user"];
       setAllRoles(resolvedRoles);
       const top = ROLE_PRIORITY.find((r) => resolvedRoles.includes(r)) || "user";
       setUserRole(top);
