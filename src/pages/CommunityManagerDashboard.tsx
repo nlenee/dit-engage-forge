@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import Header from "@/components/Header";
+import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useEvents } from "@/hooks/useEvents";
 import { useEngagement } from "@/hooks/useEngagement";
@@ -27,7 +28,6 @@ import { useFeedback } from "@/hooks/useFeedback";
 import { useMembers } from "@/hooks/useMembers";
 import { useEmailTemplates } from "@/hooks/useEmailTemplates";
 import { EmailCampaignManager } from "@/components/EmailCampaignManager";
-import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -127,8 +127,8 @@ const CommunityManagerDashboard = () => {
 
   const todayBirthdays = upcomingBirthdays.filter((b) => b.daysUntil === 0);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (!isCommunityManager && !isAdmin) return <Navigate to="/dashboard" replace />;
+  if (loading) return <PageLoader />;
+  if (!isCommunityManager && !isAdmin) return <AccessDenied description="Community tools are available to Community Manager and Admin roles only." />;
 
   const totalMembers = profiles.length;
   const activeMembers = profiles.filter((p) => p.status === "active").length;
