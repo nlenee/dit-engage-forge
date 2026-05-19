@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Navigate } from "react-router-dom";
 import { BarChart3, Users, TrendingUp, Cake } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
 import Header from "@/components/Header";
+import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,8 +21,8 @@ export default function AdminAnalytics() {
     },
   });
 
-  if (loading) return null;
-  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  if (loading) return <PageLoader />;
+  if (!isAdmin) return <AccessDenied description="Analytics are available to Admin users only." />;
 
   // Per-faction
   const factionCounts = profiles.reduce<Record<string, number>>((acc, p: any) => {
