@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, createContext, useContext, useRef, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [allRoles, setAllRoles] = useState<AppRole[]>([]);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(true);
+  const roleRequestRef = useRef(0);
 
   const has = (r: AppRole) => allRoles.includes(r);
   const isAdmin = has("admin");
@@ -61,6 +62,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isGlobalLeader = isAdmin || isCED || isExecutiveSecretary || isCommunityManager || isCFO;
 
   const checkUserRole = async (userId: string) => {
+    const requestId = roleRequestRef.current + 1;
+    roleRequestRef.current = requestId;
     setRolesLoading(true);
     try {
       const { data } = await supabase
@@ -70,6 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const roles = ((data || []).map((r: any) => r.role as AppRole));
       const resolvedRoles: AppRole[] = roles.length ? roles : ["user"];
+      if (roleRequestRef.current !== requestId) return;
       setAllRoles(resolvedRoles);
       const top = ROLE_PRIORITY.find((r) => resolvedRoles.includes(r)) || "user";
       setUserRole(top);
@@ -79,13 +83,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .select("profile_completed")
         .eq("user_id", userId)
         .maybeSingle();
+      if (roleRequestRef.current !== requestId) return;
       setProfileCompleted(prof?.profile_completed ?? false);
     } catch {
+      if (roleRequestRef.current !== requestId) return;
       setAllRoles(["user"]);
       setUserRole("user");
-      setProfileCompleted(false);
+      setProfileCompleted(true);
     } finally {
-      setRolesLoading(false);
+      if (roleRequestRef.current === requestId) setRolesLoading(false);
     }
   };
 
@@ -102,6 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             checkUserRole(session.user.id);
           }, 0);
         } else {
+          roleRequestRef.current += 1;
           setUserRole(null);
           setAllRoles([]);
           setProfileCompleted(true);
