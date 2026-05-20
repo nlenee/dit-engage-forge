@@ -1047,6 +1047,7 @@ export type Database = {
           bio: string | null
           course: string | null
           created_at: string
+          custom_role_title: string | null
           date_joined_approx: boolean | null
           date_joined_day: number | null
           date_joined_month: number | null
@@ -1088,6 +1089,7 @@ export type Database = {
           bio?: string | null
           course?: string | null
           created_at?: string
+          custom_role_title?: string | null
           date_joined_approx?: boolean | null
           date_joined_day?: number | null
           date_joined_month?: number | null
@@ -1129,6 +1131,7 @@ export type Database = {
           bio?: string | null
           course?: string | null
           created_at?: string
+          custom_role_title?: string | null
           date_joined_approx?: boolean | null
           date_joined_day?: number | null
           date_joined_month?: number | null
@@ -1434,9 +1437,18 @@ export type Database = {
           avatar_url: string
           bio: string
           created_at: string
+          custom_role_title: string
+          date_joined_year: number
+          date_of_birth: string
+          email: string
           faction: string
           full_name: string
+          headshot_url: string
           id: string
+          origin_country: string
+          origin_state: string
+          phone: string
+          primary_role: string
           status: string
           user_id: string
         }[]
