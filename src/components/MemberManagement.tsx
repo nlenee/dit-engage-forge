@@ -419,7 +419,7 @@ export const MemberManagement = () => {
                               )}
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(member.id)}>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(member.user_id || member.id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
