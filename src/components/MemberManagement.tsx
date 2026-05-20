@@ -122,7 +122,11 @@ export const MemberManagement = () => {
 
   const handleSubmit = async () => {
     if (editingMember) {
-      await updateMember.mutateAsync({ id: editingMember.id, ...formData });
+      await updateMember.mutateAsync({
+        id: editingMember.id,
+        user_id: editingMember.user_id,
+        ...formData,
+      } as any);
     } else {
       await createMember.mutateAsync(formData as any);
     }
