@@ -237,10 +237,6 @@ export const MemberManagement = () => {
           />
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Manually
-          </Button>
           <Button variant="outline" onClick={() => setIsInviteDialogOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
             Send Invite
