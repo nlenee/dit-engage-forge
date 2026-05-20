@@ -26,39 +26,65 @@ export interface Member {
   updated_at: string;
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  user: "Member",
+  community_manager: "Community Manager",
+  chief_finance_officer: "Chief Financial Officer",
+  executive_secretary: "Executive Secretary",
+  executive_assistant: "Executive Assistant",
+  executive_director: "Executive Director",
+  chief_executive_director: "Chief Executive Director",
+};
+
 export const useMembers = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdminOrES } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["members"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("members")
-        .select("*")
-        .order("full_name", { ascending: true });
-
+      // Source of truth: registered users from profiles (admin excluded by RPC)
+      const { data, error } = await supabase.rpc("get_member_directory");
       if (error) throw error;
-      return data as Member[];
+      const rows = (data || []) as any[];
+      return rows.map((r) => ({
+        id: r.id,
+        user_id: r.user_id,
+        full_name: r.full_name || "",
+        email: r.email || "",
+        phone: r.phone || null,
+        birthday: r.date_of_birth || null,
+        country: r.origin_country || null,
+        state: r.origin_state || null,
+        faction: r.faction || null,
+        role_in_dit:
+          r.custom_role_title || ROLE_LABEL[r.primary_role] || "Member",
+        previous_roles: null,
+        bio: r.bio || null,
+        testimony: null,
+        joined_dit_date: r.date_joined_year
+          ? `${r.date_joined_year}-01-01`
+          : null,
+        email_verified: true,
+        locked_by_admin: false,
+        invitation_sent_at: null,
+        registered_at: r.created_at,
+        created_at: r.created_at,
+        updated_at: r.created_at,
+      })) as Member[];
     },
-    enabled: !!user && isAdmin,
+    enabled: !!user && isAdminOrES,
   });
 
   const createMember = useMutation({
-    mutationFn: async (data: { full_name: string; email: string; phone?: string; birthday?: string }) => {
-      const { data: member, error } = await supabase
-        .from("members")
-        .insert(data)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return member;
+    mutationFn: async (_data: any) => {
+      throw new Error(
+        "Manual member creation is disabled. Use 'Send Invite' so the user can register and appear here automatically."
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });
-      toast({ title: "Member added", description: "New member has been registered." });
     },
     onError: (error: Error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -66,12 +92,32 @@ export const useMembers = () => {
   });
 
   const updateMember = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; full_name?: string; email?: string; phone?: string; birthday?: string }) => {
-      const { error } = await supabase.from("members").update(data).eq("id", id);
+    mutationFn: async ({
+      id: _profileId,
+      user_id,
+      ...data
+    }: any) => {
+      // Map Member fields back onto profiles
+      const update: Record<string, any> = {};
+      if (data.full_name !== undefined) update.full_name = data.full_name;
+      if (data.phone !== undefined) update.phone = data.phone || null;
+      if (data.birthday !== undefined) update.date_of_birth = data.birthday || null;
+      if (data.country !== undefined) update.origin_country = data.country || null;
+      if (data.state !== undefined) update.origin_state = data.state || null;
+      if (data.faction !== undefined) update.faction = data.faction || null;
+      if (data.bio !== undefined) update.bio = data.bio || null;
+      if (data.role_in_dit !== undefined) update.custom_role_title = data.role_in_dit || null;
+      if (data.joined_dit_date !== undefined && data.joined_dit_date) {
+        update.date_joined_year = Number(String(data.joined_dit_date).slice(0, 4));
+      }
+      const targetUserId = user_id;
+      if (!targetUserId) throw new Error("Missing user id");
+      const { error } = await supabase.from("profiles").update(update as any).eq("user_id", targetUserId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast({ title: "Member updated" });
     },
     onError: (error: Error) => {
@@ -80,12 +126,16 @@ export const useMembers = () => {
   });
 
   const deleteMember = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("members").delete().eq("id", id);
+    mutationFn: async (userIdToDelete: string) => {
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+        body: { target_user_id: userIdToDelete },
+      });
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       toast({ title: "Member deleted" });
     },
     onError: (error: Error) => {

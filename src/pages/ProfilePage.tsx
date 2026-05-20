@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import { ImageUploader } from "@/components/ImageUploader";
 
 interface Profile {
   id: string;
@@ -40,6 +41,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) fetchProfile();
@@ -56,6 +59,8 @@ export default function ProfilePage() {
       setProfile(data as Profile);
       setPhone(data.phone || "");
       setBio(data.bio || "");
+      setFullName(data.full_name || "");
+      setAvatarUrl(data.avatar_url || null);
     }
     setLoading(false);
   };
@@ -65,7 +70,7 @@ export default function ProfilePage() {
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ phone, bio })
+      .update({ phone, bio, full_name: fullName, avatar_url: avatarUrl })
       .eq("user_id", user!.id);
 
     if (error) {
@@ -108,7 +113,21 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{profile?.full_name || "—"}</CardTitle>
+            <div className="flex items-center gap-4 mb-2">
+              <ImageUploader
+                bucket="headshots"
+                userId={user!.id}
+                currentUrl={avatarUrl}
+                onUploaded={(url) => setAvatarUrl(url)}
+                shape="circle"
+                label="Upload photo"
+              />
+              <div className="flex-1 space-y-2">
+                <Label className="text-muted-foreground">Full Name</Label>
+                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" />
+              </div>
+            </div>
+            <CardTitle>{fullName || "—"}</CardTitle>
             <CardDescription className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="gap-1">
                 <Shield className="h-3 w-3" />

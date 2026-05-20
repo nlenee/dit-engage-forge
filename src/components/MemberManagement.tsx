@@ -122,7 +122,11 @@ export const MemberManagement = () => {
 
   const handleSubmit = async () => {
     if (editingMember) {
-      await updateMember.mutateAsync({ id: editingMember.id, ...formData });
+      await updateMember.mutateAsync({
+        id: editingMember.id,
+        user_id: editingMember.user_id,
+        ...formData,
+      } as any);
     } else {
       await createMember.mutateAsync(formData as any);
     }
@@ -233,10 +237,6 @@ export const MemberManagement = () => {
           />
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Manually
-          </Button>
           <Button variant="outline" onClick={() => setIsInviteDialogOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
             Send Invite
@@ -415,7 +415,7 @@ export const MemberManagement = () => {
                               )}
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(member.id)}>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(member.user_id || member.id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
