@@ -75,6 +75,9 @@ import PendingXpReviews from "@/components/PendingXpReviews";
 import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { getCountryName, getStateName } from "@/data/countries";
 
 type AppRole = AdminAppRole;
@@ -94,6 +97,8 @@ const ROLE_LABEL: Record<string, string> = Object.fromEntries(ROLE_OPTIONS.map((
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { isAdmin, isAdminOrES, loading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const {
     users,
     usersLoading,
@@ -367,6 +372,28 @@ const AdminDashboard = () => {
                               </DropdownMenuItem>
                               {isAdmin && (
                                 <>
+                                   <DropdownMenuItem
+                                     onClick={async () => {
+                                       const title = window.prompt(
+                                         "Set custom role title (e.g. 'Marketing Lead'). Leave blank to clear.",
+                                         ""
+                                       );
+                                       if (title === null) return;
+                                       const { error } = await supabase
+                                         .from("profiles")
+                                         .update({ custom_role_title: title || null } as any)
+                                         .eq("user_id", user.user_id);
+                                       if (error) {
+                                         toast({ title: "Error", description: error.message, variant: "destructive" });
+                                       } else {
+                                         toast({ title: "Custom role updated" });
+                                         queryClient.invalidateQueries({ queryKey: ["members"] });
+                                         queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+                                       }
+                                     }}
+                                   >
+                                     <Shield className="h-4 w-4 mr-2" /> Set Custom Role
+                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => {
                                       const amount = parseInt(window.prompt("Award XP — amount:", "50") || "0", 10);
