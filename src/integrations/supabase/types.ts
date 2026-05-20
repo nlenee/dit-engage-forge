@@ -1434,16 +1434,11 @@ export type Database = {
           avatar_url: string
           bio: string
           created_at: string
-          date_of_birth: string
           faction: string
           full_name: string
-          headshot_url: string
           id: string
-          member_level: number
-          public_image_url: string
           status: string
           user_id: string
-          xp: number
         }[]
       }
       get_public_profile: {
