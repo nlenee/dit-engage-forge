@@ -112,7 +112,7 @@ export const useMembers = () => {
       }
       const targetUserId = user_id;
       if (!targetUserId) throw new Error("Missing user id");
-      const { error } = await supabase.from("profiles").update(update).eq("user_id", targetUserId);
+      const { error } = await supabase.from("profiles").update(update as any).eq("user_id", targetUserId);
       if (error) throw error;
     },
     onSuccess: () => {
