@@ -312,7 +312,6 @@ export default function FacecardPage() {
                   ref={fileRef}
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
-                  capture="user"
                   className="hidden"
                   onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                 />
