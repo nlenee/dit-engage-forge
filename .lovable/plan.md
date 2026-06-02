@@ -1,80 +1,53 @@
-## Overview
-Add a cinematic public landing page at `/` (move authenticated dashboard to `/dashboard`) and extend the signup flow with a complete onboarding form. Reuse existing auth + profiles backend; only add new columns where needed.
+# DIT Membership Application & Recruitment Pipeline
 
-## 1. Routing changes (`src/App.tsx`)
-- `/` → new public `Landing` page (no auth gate). If user is logged in, show a "Go to Dashboard" CTA but still render landing.
-- `/dashboard` → existing `Dashboard` (protected).
-- `/auth` already exists — keep, but landing's "Login"/"Join DIT" buttons deep-link to `/auth?mode=login` or `/auth?mode=signup`.
-- Update `Header` "home" link to `/dashboard` for logged-in users.
+This is a large multi-system module. I'll build it in the order you specified, in **phased batches** so each phase is reviewable and testable before the next. Trying to ship all 14 phases in a single pass would produce unreviewable, error-prone code and exhaust context before the AI placement and dashboard work.
 
-## 2. New Landing page (`src/pages/Landing.tsx`)
-Cinematic flyer-style hero matching the attached countdown design:
-- Deep navy bg with damask SVG pattern overlay + side curtain gradients (CSS only — no asset uploads).
-- Top: small date line "31ST MAY, 2026".
-- Massive glowing weeks number (auto-computed to target date 2026-05-31), with smaller `WEEKS TO GO` label.
-- Animated countdown row: Weeks · Days · Hours · Minutes · Seconds (live ticking).
-- Centerpiece: large rainbow/glow "10 Years Anniversary" mark — pure CSS/SVG (gradient ring + script font for "Years Anniversary").
-- Floating "10" logo: small version that bounces around the viewport (DVD-style), velocity vector reflected on edge collisions, soft glow trail (requestAnimationFrame in a useEffect).
-- Particle layer: 30 absolutely-positioned dots with random animation delays/durations using existing tailwind animate utilities + new keyframes (`float`, `twinkle`, `glow-pulse`) added to `tailwind.config.ts` & `index.css`.
-- Mission + Vision section (text content from user).
-- CTA section: "Member Login" + "Join DIT" buttons with hover scale/glow.
-- Footer: contact emails, phone numbers, socials (DIVINE INTELLIGENCE TEAM).
+## Approach
 
-All colors via existing semantic tokens; add a few new tokens (`--gold-glow`, `--rainbow-*`) to `index.css`.
+- **No changes to existing tables.** All 12 new tables live alongside current schema.
+- **Design system matched** to existing platform (Sora/Fraunces/JetBrains Mono, navy/sky/gold). I'll reuse existing tokens in `index.css` and add only what's missing.
+- **RLS enforced** on every new table per the role matrix.
+- **Public routes** (`/apply`, `/apply/:slug`, `/volunteer`, `/track`) bypass auth; admin/reviewer routes use existing `RouteAccess` guards.
+- **Progressive save** keyed by applicant email in `localStorage` + a draft row.
+- **QR codes** client-side via `qrcode` npm package (no external service).
+- **AI placement** via existing Lovable AI Gateway (Gemini), not Anthropic — we already have `LOVABLE_API_KEY` configured and no Anthropic key. Same JSON contract.
+- **Emails** reuse existing Gmail SMTP edge function pattern.
 
-## 3. Auth page enhancements (`src/pages/Auth.tsx`)
-- Add tab toggle Login | Signup with smooth transition (already partially present — polish with `animate-fade-in`).
-- Add Google OAuth button using managed `lovable.auth.signInWithOAuth("google", ...)` (call `supabase--configure_social_auth` first to scaffold).
-- Read `?mode=` query param to preselect tab.
-- Signup tab: replace simple form with the multi-step onboarding form below.
-- Glassmorphism card styling.
+## Phased delivery
 
-## 4. Multi-step Signup (`src/components/SignupWizard.tsx`)
-Steps with progress indicator + smooth transitions:
-1. Account — email, password, full name
-2. Personal — DOB (reject <15), phone w/ country code (`react-phone-number-input` already-style; use simple country code select), faction (DYP/SHI/TECK/MINDUP)
-3. Origin — country/state/city (dependent dropdowns via existing `country-state-city` package, with `City.getCitiesOfState`)
-4. Residence — same dropdowns
-5. Membership — date joined DIT (month required, year required, day optional, "best of knowledge" checkbox)
-6. Employment — radio (employed/self-employed/unemployed); if employed → employer name
-7. Education — toggle student y/n
-   - Student: school, course, level (incl. "Jambite")
-   - Non-student: academic background, year of graduation
-8. Review & Submit
+### Phase 1 — Foundation (this turn)
+1. **Migration**: all 12 tables + enums + RLS + GRANTs + indexes + `applications.reference_number` auto-generator + helper functions (`has_faction_role`, etc.).
+2. **Routing**: add all 7 new routes to `App.tsx` as stubs so navigation works.
+3. **Seed**: insert default universal + 4 faction membership form templates into `form_templates`.
 
-Validation with `zod`. On submit:
-- `supabase.auth.signUp` with all extra fields in `options.data`.
-- Profile trigger inserts base fields; remaining fields written via a follow-up `update` on `profiles` once the session is created.
+### Phase 2 — Applicant flows
+4. Membership wizard `/apply` + `/apply/:factionSlug` (Steps 1–11, progressive save, faction pre-selection, faction-branded header).
+5. Volunteer flow `/volunteer`.
+6. Tracking portal `/track`.
 
-Google flow: after OAuth callback, if profile missing required fields → redirect to `/complete-profile` which renders steps 2-7 of the wizard.
+### Phase 3 — Intelligence & reviewer tools
+7. Edge function `on-application-submit` (AI placement via Lovable AI, acknowledgement email, reviewer notification).
+8. Reviewer dashboard `/dashboard/applications` (3-panel, realtime, all review actions, interview scheduler modal).
+9. Share Registration Link panel (copy + QR PNG download + campaign generator) — embedded in reviewer dashboard + form builder.
 
-## 5. Database migration
-Add columns to `profiles` (nullable so existing rows unaffected):
-- `origin_country, origin_state, origin_city`
-- `residence_country, residence_state, residence_city`
-- `date_joined_month`, `date_joined_year`, `date_joined_day` (smallint nullable), `date_joined_approx` (boolean)
-- `employment_status` text, `employer_name` text
-- `is_student` boolean, `school` text, `course` text, `level` text
-- `academic_background` text, `graduation_year` smallint
-- `profile_completed` boolean default false
-
-Update `handle_new_user()` to also map any of these fields if present in `raw_user_meta_data`. RLS unchanged (already allows users to update own profile).
-
-## 6. Complete-profile page (`src/pages/CompleteProfile.tsx`)
-Protected route. Renders SignupWizard in "complete" mode (skips email/password steps). Redirects to `/dashboard` on completion. Used by Google signups and any account where `profile_completed = false`.
-
-Add a check in `App.tsx` ProtectedRoute: if logged in & `profile_completed=false` & path != `/complete-profile` → redirect.
-
-## 7. Branding/contact constants
-New `src/config/contact.ts` exporting email, phones, socials. Used in Landing footer + Auth footer.
+### Phase 4 — Builders & admin
+10. Form builder `/faction/forms` + `/admin/forms` with question library.
+11. Direct BoE appointment `/admin/appoint` (invite → registration → approve).
+12. Admin controls (lock duration, notification recipients, AI toggle, link management).
+13. Email templates for all 7 trigger points.
+14. Dashboard widgets (notification badge + review queue) + profile onboarding progress.
 
 ## Technical notes
-- Floating "10" uses `requestAnimationFrame`, position state in ref to avoid re-renders; collision = invert vx/vy.
-- Countdown target = `2026-05-31T00:00:00`. Recompute every second with `setInterval`.
-- All animations CSS-based or RAF; no new heavy libs.
-- New deps: none required (country-state-city, zod, react-hook-form already present).
 
-## Files
-- New: `src/pages/Landing.tsx`, `src/pages/CompleteProfile.tsx`, `src/components/SignupWizard.tsx`, `src/components/FloatingAnniversaryLogo.tsx`, `src/components/CountdownTimer.tsx`, `src/config/contact.ts`
-- Edit: `src/App.tsx`, `src/pages/Auth.tsx`, `src/hooks/useAuth.tsx` (add `signInWithGoogle`, expose `profileCompleted`), `src/index.css`, `tailwind.config.ts`
-- Migration: add profile columns + update trigger
+- New enums: `application_type`, `application_status`, `document_type`, `review_action`, `interview_channel`, `interview_outcome`, `form_type`, `question_type`, `notification_type`, `delivery_status`.
+- `reference_number` generated via sequence + trigger in format `DIT-YYYY-XXXX`.
+- `applications.application_count` on `application_links` incremented via trigger on `applications` insert when `ref_campaign` matches.
+- AI placement: prompt unchanged in spirit; model swapped to `google/gemini-2.5-pro` with `response_format: json_object` (Anthropic would require user-supplied secret).
+- Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.applications;`
+- New dep: `qrcode` (client-side QR generation).
+
+## Confirmation needed
+
+Reply **"go phase 1"** (or just "go") and I'll ship the migration + routes + seed in this turn. After you approve the migration and verify the stubs render, I'll proceed to Phase 2.
+
+If you'd prefer Anthropic Claude specifically for AI placement instead of Lovable AI Gemini, say so and I'll request your `ANTHROPIC_API_KEY` before Phase 3.
