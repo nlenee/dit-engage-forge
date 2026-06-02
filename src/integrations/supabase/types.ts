@@ -107,6 +107,53 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_placement_results: {
+        Row: {
+          application_id: string
+          created_at: string
+          faction_reasoning: Json | null
+          faction_scores: Json
+          flag_reason: string | null
+          id: string
+          model_version: string | null
+          placement_flag: boolean
+          primary_faction: string | null
+          role_suggestions: Json | null
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          faction_reasoning?: Json | null
+          faction_scores?: Json
+          flag_reason?: string | null
+          id?: string
+          model_version?: string | null
+          placement_flag?: boolean
+          primary_faction?: string | null
+          role_suggestions?: Json | null
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          faction_reasoning?: Json | null
+          faction_scores?: Json
+          flag_reason?: string | null
+          id?: string
+          model_version?: string | null
+          placement_flag?: boolean
+          primary_faction?: string | null
+          role_suggestions?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_placement_results_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           created_at: string
@@ -136,6 +183,257 @@ export type Database = {
           target_id?: string | null
           target_type?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      application_documents: {
+        Row: {
+          application_id: string
+          document_type: Database["public"]["Enums"]["app_document_type"]
+          file_name: string | null
+          id: string
+          storage_path: string
+          uploaded_at: string
+        }
+        Insert: {
+          application_id: string
+          document_type: Database["public"]["Enums"]["app_document_type"]
+          file_name?: string | null
+          id?: string
+          storage_path: string
+          uploaded_at?: string
+        }
+        Update: {
+          application_id?: string
+          document_type?: Database["public"]["Enums"]["app_document_type"]
+          file_name?: string | null
+          id?: string
+          storage_path?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_links: {
+        Row: {
+          application_count: number
+          created_at: string
+          created_by: string | null
+          faction: string | null
+          id: string
+          is_active: boolean
+          link_slug: string
+          ref_campaign: string | null
+        }
+        Insert: {
+          application_count?: number
+          created_at?: string
+          created_by?: string | null
+          faction?: string | null
+          id?: string
+          is_active?: boolean
+          link_slug: string
+          ref_campaign?: string | null
+        }
+        Update: {
+          application_count?: number
+          created_at?: string
+          created_by?: string | null
+          faction?: string | null
+          id?: string
+          is_active?: boolean
+          link_slug?: string
+          ref_campaign?: string | null
+        }
+        Relationships: []
+      }
+      application_responses: {
+        Row: {
+          application_id: string
+          created_at: string
+          id: string
+          question_key: string
+          question_text: string | null
+          response_value: Json | null
+          section: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          id?: string
+          question_key: string
+          question_text?: string | null
+          response_value?: Json | null
+          section: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          id?: string
+          question_key?: string
+          question_text?: string | null
+          response_value?: Json | null
+          section?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_responses_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_reviews: {
+        Row: {
+          action: Database["public"]["Enums"]["review_action"]
+          application_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          reviewer_id: string
+          reviewer_role: string | null
+          target_faction: string | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["review_action"]
+          application_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          reviewer_id: string
+          reviewer_role?: string | null
+          target_faction?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["review_action"]
+          application_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          reviewer_id?: string
+          reviewer_role?: string | null
+          target_faction?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_reviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_status_log: {
+        Row: {
+          application_id: string
+          changed_by: string | null
+          changed_by_role: string | null
+          created_at: string
+          id: string
+          new_status: string
+          note: string | null
+          previous_status: string | null
+        }
+        Insert: {
+          application_id: string
+          changed_by?: string | null
+          changed_by_role?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          note?: string | null
+          previous_status?: string | null
+        }
+        Update: {
+          application_id?: string
+          changed_by?: string | null
+          changed_by_role?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          note?: string | null
+          previous_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_status_log_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          ai_role_suggestions: Json | null
+          ai_suggested_faction: string | null
+          ai_suggestion_accepted: boolean | null
+          applicant_email: string
+          applicant_name: string
+          applicant_user_id: string | null
+          application_type: Database["public"]["Enums"]["application_type"]
+          created_at: string
+          final_faction: string | null
+          id: string
+          link_slug: string | null
+          placement_flag: boolean
+          reapply_after: string | null
+          ref_campaign: string | null
+          reference_number: string
+          selected_faction: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          updated_at: string
+        }
+        Insert: {
+          ai_role_suggestions?: Json | null
+          ai_suggested_faction?: string | null
+          ai_suggestion_accepted?: boolean | null
+          applicant_email: string
+          applicant_name: string
+          applicant_user_id?: string | null
+          application_type?: Database["public"]["Enums"]["application_type"]
+          created_at?: string
+          final_faction?: string | null
+          id?: string
+          link_slug?: string | null
+          placement_flag?: boolean
+          reapply_after?: string | null
+          ref_campaign?: string | null
+          reference_number?: string
+          selected_faction?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+        }
+        Update: {
+          ai_role_suggestions?: Json | null
+          ai_suggested_faction?: string | null
+          ai_suggestion_accepted?: boolean | null
+          applicant_email?: string
+          applicant_name?: string
+          applicant_user_id?: string | null
+          application_type?: Database["public"]["Enums"]["application_type"]
+          created_at?: string
+          final_faction?: string | null
+          id?: string
+          link_slug?: string | null
+          placement_flag?: boolean
+          reapply_after?: string | null
+          ref_campaign?: string | null
+          reference_number?: string
+          selected_faction?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
         }
         Relationships: []
@@ -697,6 +995,48 @@ export type Database = {
         }
         Relationships: []
       }
+      form_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          faction: string | null
+          form_description: string | null
+          form_name: string
+          form_type: Database["public"]["Enums"]["form_type"]
+          id: string
+          is_active: boolean
+          last_edited_by: string | null
+          sections: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          faction?: string | null
+          form_description?: string | null
+          form_name: string
+          form_type: Database["public"]["Enums"]["form_type"]
+          id?: string
+          is_active?: boolean
+          last_edited_by?: string | null
+          sections?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          faction?: string | null
+          form_description?: string | null
+          form_name?: string
+          form_type?: Database["public"]["Enums"]["form_type"]
+          id?: string
+          is_active?: boolean
+          last_edited_by?: string | null
+          sections?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fundraising_campaigns: {
         Row: {
           contributors_count: number
@@ -741,6 +1081,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      interviews: {
+        Row: {
+          applicant_notified: boolean | null
+          application_id: string
+          channel: Database["public"]["Enums"]["interview_channel"]
+          channel_address: string | null
+          channel_link: string | null
+          created_at: string
+          id: string
+          interview_date: string
+          interview_time: string | null
+          interviewer_ids: string[] | null
+          notes: string | null
+          outcome: Database["public"]["Enums"]["interview_outcome"]
+          scheduled_by: string | null
+        }
+        Insert: {
+          applicant_notified?: boolean | null
+          application_id: string
+          channel: Database["public"]["Enums"]["interview_channel"]
+          channel_address?: string | null
+          channel_link?: string | null
+          created_at?: string
+          id?: string
+          interview_date: string
+          interview_time?: string | null
+          interviewer_ids?: string[] | null
+          notes?: string | null
+          outcome?: Database["public"]["Enums"]["interview_outcome"]
+          scheduled_by?: string | null
+        }
+        Update: {
+          applicant_notified?: boolean | null
+          application_id?: string
+          channel?: Database["public"]["Enums"]["interview_channel"]
+          channel_address?: string | null
+          channel_link?: string | null
+          created_at?: string
+          id?: string
+          interview_date?: string
+          interview_time?: string | null
+          interviewer_ids?: string[] | null
+          notes?: string | null
+          outcome?: Database["public"]["Enums"]["interview_outcome"]
+          scheduled_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       letter_templates: {
         Row: {
@@ -1004,6 +1400,47 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications_log: {
+        Row: {
+          application_id: string | null
+          body: string | null
+          delivery_status: Database["public"]["Enums"]["delivery_status"]
+          id: string
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          recipient_email: string
+          sent_at: string
+          subject: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          body?: string | null
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          id?: string
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          recipient_email: string
+          sent_at?: string
+          subject?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          body?: string | null
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          id?: string
+          notification_type?: Database["public"]["Enums"]["notification_type"]
+          recipient_email?: string
+          sent_at?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_log_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       password_reset_requests: {
         Row: {
           email: string
@@ -1166,6 +1603,78 @@ export type Database = {
           updated_at?: string
           user_id?: string
           xp?: number
+        }
+        Relationships: []
+      }
+      question_library: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_by_faction: string | null
+          id: string
+          is_global: boolean
+          options: Json | null
+          question_text: string
+          question_type: Database["public"]["Enums"]["question_type"]
+          scale_labels: Json | null
+          scale_max: number | null
+          scale_min: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_by_faction?: string | null
+          id?: string
+          is_global?: boolean
+          options?: Json | null
+          question_text: string
+          question_type: Database["public"]["Enums"]["question_type"]
+          scale_labels?: Json | null
+          scale_max?: number | null
+          scale_min?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_by_faction?: string | null
+          id?: string
+          is_global?: boolean
+          options?: Json | null
+          question_text?: string
+          question_type?: Database["public"]["Enums"]["question_type"]
+          scale_labels?: Json | null
+          scale_max?: number | null
+          scale_min?: number | null
+        }
+        Relationships: []
+      }
+      reapplication_locks: {
+        Row: {
+          applicant_email: string
+          id: string
+          lock_duration_days: number
+          locked_at: string
+          reason: string | null
+          set_by: string | null
+          unlock_at: string
+        }
+        Insert: {
+          applicant_email: string
+          id?: string
+          lock_duration_days?: number
+          locked_at?: string
+          reason?: string | null
+          set_by?: string | null
+          unlock_at: string
+        }
+        Update: {
+          applicant_email?: string
+          id?: string
+          lock_duration_days?: number
+          locked_at?: string
+          reason?: string | null
+          set_by?: string | null
+          unlock_at?: string
         }
         Relationships: []
       }
@@ -1420,6 +1929,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      gen_application_reference: { Args: never; Returns: string }
       get_leaderboard: {
         Args: { _faction?: string; _limit?: number }
         Returns: {
@@ -1484,7 +1994,10 @@ export type Database = {
           }
       has_role_text: { Args: { role_name: string }; Returns: boolean }
       is_executive_secretary: { Args: { _user_id: string }; Returns: boolean }
+      is_org_leader: { Args: { _user_id: string }; Returns: boolean }
+      is_reviewer: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      user_faction: { Args: { _user_id: string }; Returns: string }
       validate_invitation_token: {
         Args: { _token: string }
         Returns: {
@@ -1496,6 +2009,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_document_type: "profile_photo" | "cv" | "portfolio" | "other"
       app_role:
         | "admin"
         | "user"
@@ -1507,7 +2021,46 @@ export type Database = {
         | "chief_executive_director"
         | "executive_director"
         | "executive_assistant"
+      application_status:
+        | "submitted"
+        | "under_review"
+        | "interview_scheduled"
+        | "approved"
+        | "rejected"
+        | "reassigned"
+        | "withdrawn"
+        | "reapply_pending"
+      application_type:
+        | "membership"
+        | "volunteer"
+        | "program"
+        | "boe_appointment"
+      delivery_status: "sent" | "delivered" | "failed"
+      form_type: "membership" | "volunteer" | "program" | "custom"
+      interview_channel: "video_call" | "voice_call" | "in_person"
+      interview_outcome: "pending" | "passed" | "failed" | "deferred"
       letter_status: "draft" | "downloaded" | "sent"
+      notification_type:
+        | "acknowledgement"
+        | "status_update"
+        | "interview_invite"
+        | "decision"
+        | "reapply_unlock"
+      question_type:
+        | "text"
+        | "textarea"
+        | "radio"
+        | "checkbox"
+        | "scale"
+        | "file_upload"
+        | "date"
+      review_action:
+        | "approved"
+        | "rejected"
+        | "reassigned"
+        | "interview_requested"
+        | "flagged"
+        | "commented"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1635,6 +2188,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_document_type: ["profile_photo", "cv", "portfolio", "other"],
       app_role: [
         "admin",
         "user",
@@ -1647,7 +2201,51 @@ export const Constants = {
         "executive_director",
         "executive_assistant",
       ],
+      application_status: [
+        "submitted",
+        "under_review",
+        "interview_scheduled",
+        "approved",
+        "rejected",
+        "reassigned",
+        "withdrawn",
+        "reapply_pending",
+      ],
+      application_type: [
+        "membership",
+        "volunteer",
+        "program",
+        "boe_appointment",
+      ],
+      delivery_status: ["sent", "delivered", "failed"],
+      form_type: ["membership", "volunteer", "program", "custom"],
+      interview_channel: ["video_call", "voice_call", "in_person"],
+      interview_outcome: ["pending", "passed", "failed", "deferred"],
       letter_status: ["draft", "downloaded", "sent"],
+      notification_type: [
+        "acknowledgement",
+        "status_update",
+        "interview_invite",
+        "decision",
+        "reapply_unlock",
+      ],
+      question_type: [
+        "text",
+        "textarea",
+        "radio",
+        "checkbox",
+        "scale",
+        "file_upload",
+        "date",
+      ],
+      review_action: [
+        "approved",
+        "rejected",
+        "reassigned",
+        "interview_requested",
+        "flagged",
+        "commented",
+      ],
     },
   },
 } as const
