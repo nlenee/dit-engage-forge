@@ -25,6 +25,13 @@ import AnniversaryHub from "./pages/AnniversaryHub";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ApplyPage from "./pages/applications/ApplyPage";
+import VolunteerPage from "./pages/applications/VolunteerPage";
+import TrackPage from "./pages/applications/TrackPage";
+import AppointPage from "./pages/applications/AppointPage";
+import ApplicationsReviewPage from "./pages/applications/ApplicationsReviewPage";
+import FactionFormsPage from "./pages/applications/FactionFormsPage";
+import AdminFormsPage from "./pages/applications/AdminFormsPage";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +108,16 @@ const App = () => (
             <Route path="/summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
             <Route path="/executive-summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
             <Route path="/register" element={<MemberRegister />} />
+            {/* Public application portals */}
+            <Route path="/apply" element={<ApplyPage />} />
+            <Route path="/apply/:factionSlug" element={<ApplyPage />} />
+            <Route path="/volunteer" element={<VolunteerPage />} />
+            <Route path="/track" element={<TrackPage />} />
+            {/* Protected reviewer / admin routes */}
+            <Route path="/admin/appoint" element={<ProtectedRoute><AppointPage /></ProtectedRoute>} />
+            <Route path="/dashboard/applications" element={<ProtectedRoute><ApplicationsReviewPage /></ProtectedRoute>} />
+            <Route path="/faction/forms" element={<ProtectedRoute><FactionFormsPage /></ProtectedRoute>} />
+            <Route path="/admin/forms" element={<ProtectedRoute><AdminFormsPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
