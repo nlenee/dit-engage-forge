@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import RouteAccess from "@/components/RouteAccess";
+import { AccessDenied } from "@/components/RouteAccess";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, UserPlus } from "lucide-react";
@@ -16,7 +16,7 @@ const FACTIONS = ["shi","dyp","teck","mindup"];
 const ROLES = ["chief_executive_director","executive_secretary","community_manager","chief_finance_officer","executive_director","executive_assistant"];
 
 const AppointPage = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, isCED, isExecutiveSecretary } = useAuth();
   const [form, setForm] = useState({
     full_name: "", email: "", phone: "",
     role: "executive_director", faction: "shi", note: "",
@@ -61,7 +61,7 @@ const AppointPage = () => {
   };
 
   return (
-    <RouteAccess allow={["admin","chief_executive_director","executive_secretary"]}>
+    !(isAdmin || isCED || isExecutiveSecretary) ? <AccessDenied /> : (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto px-4 py-10 max-w-2xl">
@@ -91,7 +91,7 @@ const AppointPage = () => {
           </Card>
         </main>
       </div>
-    </RouteAccess>
+    )
   );
 };
 
