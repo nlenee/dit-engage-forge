@@ -1,4 +1,4 @@
-import { FileText, LayoutDashboard, LogOut, Plus, Shield, Users, Megaphone, User, Activity, DollarSign, ClipboardList, IdCard, Sparkles, BarChart3, Home } from "lucide-react";
+import { FileText, LayoutDashboard, LogOut, Plus, Shield, Users, Megaphone, User, Activity, DollarSign, ClipboardList, IdCard, Sparkles, BarChart3, Home, ClipboardCheck } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ const Header = () => {
     ...(isCFO || isAdmin ? [{ path: "/finance", label: "Finance", icon: DollarSign }] : []),
     ...(isAdminOrES ? [{ path: "/executive-summary", label: "Summary", icon: ClipboardList }] : []),
     ...(isAdmin || isCED ? [{ path: "/analytics", label: "Analytics", icon: BarChart3 }] : []),
+    ...(isAdmin || isCED || isExecutiveSecretary || isCommunityManager ? [{ path: "/dashboard/applications", label: "Applications", icon: ClipboardCheck }] : []),
     ...(isAdminOrES ? [{ path: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
