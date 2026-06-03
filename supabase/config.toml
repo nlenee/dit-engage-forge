@@ -1,5 +1,8 @@
 project_id = "ronzkdtrxaxrzjznyckr"
 
+[functions.on-application-submit]
+verify_jwt = false
+
 [functions.email-webhook]
 verify_jwt = false
 
