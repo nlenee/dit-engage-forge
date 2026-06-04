@@ -169,6 +169,22 @@ const ApplicationsReviewPage = () => {
                   </div>
                 )}
 
+                {(selected.ai_about_ai_score != null || selected.ai_why_ai_score != null) && (
+                  <div className="rounded-md border bg-muted/30 p-3 text-xs grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="font-medium mb-0.5">About-you content</p>
+                      <p>AI likelihood: <strong>{Math.round((selected.ai_about_ai_score || 0) * 100)}%</strong></p>
+                      <p>Human likelihood: <strong>{Math.round((selected.ai_about_human_score || 0) * 100)}%</strong></p>
+                    </div>
+                    <div>
+                      <p className="font-medium mb-0.5">Why-DIT content</p>
+                      <p>AI likelihood: <strong>{Math.round((selected.ai_why_ai_score || 0) * 100)}%</strong></p>
+                      <p>Human likelihood: <strong>{Math.round((selected.ai_why_human_score || 0) * 100)}%</strong></p>
+                    </div>
+                    <p className="col-span-2 text-muted-foreground italic">Advisory only — never auto-reject based on these scores.</p>
+                  </div>
+                )}
+
                 <div>
                   <h3 className="font-medium mb-2 text-sm uppercase tracking-wide text-muted-foreground">Responses</h3>
                   <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2">
