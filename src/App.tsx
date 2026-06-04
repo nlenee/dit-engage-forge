@@ -113,6 +113,11 @@ const App = () => (
             <Route path="/apply/:factionSlug" element={<ApplyPage />} />
             <Route path="/volunteer" element={<VolunteerPage />} />
             <Route path="/track" element={<TrackPage />} />
+            {/* Legacy onboarding routes — unified into /apply */}
+            <Route path="/join" element={<Navigate to="/apply" replace />} />
+            <Route path="/signup" element={<Navigate to="/apply" replace />} />
+            <Route path="/invite" element={<Navigate to="/apply" replace />} />
+            <Route path="/member-register" element={<Navigate to="/register" replace />} />
             {/* Protected reviewer / admin routes */}
             <Route path="/admin/appoint" element={<ProtectedRoute><AppointPage /></ProtectedRoute>} />
             <Route path="/dashboard/applications" element={<ProtectedRoute><ApplicationsReviewPage /></ProtectedRoute>} />

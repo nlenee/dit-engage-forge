@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,53 +10,43 @@ import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowLeft, ArrowRight, UserPlus, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const FACTIONS = [
-  { slug: "shi", label: "SHI — Sustainable Humanitarian Initiative" },
-  { slug: "dyp", label: "DYP — Divine Youth Programme" },
-  { slug: "teck", label: "TECK — Technology, Engineering & Creative Knowledge" },
-  { slug: "mindup", label: "MindUp — Mindset & Personal Growth" },
+  { slug: "shi", label: "SHI — Secured Health Initiative (Health & Humanitarian)" },
+  { slug: "mindup", label: "MindUp — Education Faction" },
+  { slug: "teck", label: "Tecknallogy — Technology Faction" },
+  { slug: "dyp", label: "DYP — Discover Your Purpose" },
   { slug: "unsure", label: "I'm not sure — let DIT recommend one" },
 ];
 
+const FACTION_ALIASES: Record<string, string> = {
+  shi: "shi", mindup: "mindup", teck: "teck", tecknallogy: "teck", dyp: "dyp",
+};
+const normalizeFaction = (v?: string | null) =>
+  v ? FACTION_ALIASES[v.toLowerCase()] || "" : "";
+
+const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+
 const STEP_LABELS = [
-  "Welcome",
-  "About you",
-  "Contact",
-  "Background",
-  "Faction preference",
-  "Skills & strengths",
-  "Why DIT",
-  "Commitment",
-  "Attachments",
-  "Review",
-  "Submit",
+  "Welcome", "About you", "Contact", "Background", "Faction preference",
+  "Skills & strengths", "Why DIT", "Commitment", "Attachments", "Review", "Submit",
 ];
 
 type Draft = {
-  full_name: string;
-  email: string;
-  phone: string;
-  date_of_birth: string;
-  country: string;
-  city: string;
-  occupation: string;
-  education: string;
-  faction: string;
-  skills: string;
-  strengths: string;
-  why_dit: string;
-  hours_per_week: string;
-  values_alignment: string;
-  cv_url: string;
-  photo_url: string;
+  full_name: string; email: string; phone: string; date_of_birth: string;
+  country: string; city: string; occupation: string; education: string;
+  faction: string; skills: string; strengths: string;
+  about_yourself: string; why_dit: string;
+  hours_per_week: string; values_alignment: string;
+  cv_url: string; photo_url: string;
 };
 
 const EMPTY: Draft = {
   full_name: "", email: "", phone: "", date_of_birth: "",
   country: "", city: "", occupation: "", education: "",
-  faction: "", skills: "", strengths: "", why_dit: "",
+  faction: "", skills: "", strengths: "", about_yourself: "", why_dit: "",
   hours_per_week: "", values_alignment: "", cv_url: "", photo_url: "",
 };
 
@@ -64,29 +54,28 @@ const ApplyPage = () => {
   const { factionSlug } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<{ ref: string } | null>(null);
+  const [proxyMode, setProxyMode] = useState(false);
   const refCampaign = params.get("ref") || undefined;
+  const referredByUserId = params.get("ref_user") || params.get("recruiter") || undefined;
+  const queryFaction = normalizeFaction(params.get("faction"));
+  const initialFaction = normalizeFaction(factionSlug) || queryFaction;
 
-  const draftKey = useMemo(
-    () => `dit_apply_draft:${draft.email || "anon"}`,
-    [draft.email]
-  );
+  const draftKey = useMemo(() => `dit_apply_draft:${draft.email || "anon"}`, [draft.email]);
 
-  // Load draft on mount (anon key) and any saved entry once email is provided
   useEffect(() => {
     const anon = localStorage.getItem("dit_apply_draft:anon");
-    if (anon) {
-      try { setDraft({ ...EMPTY, ...JSON.parse(anon) }); } catch {}
+    if (anon) { try { setDraft({ ...EMPTY, ...JSON.parse(anon) }); } catch {} }
+    if (initialFaction && FACTIONS.find(f => f.slug === initialFaction)) {
+      setDraft(d => ({ ...d, faction: initialFaction }));
     }
-    if (factionSlug && FACTIONS.find(f => f.slug === factionSlug)) {
-      setDraft(d => ({ ...d, faction: factionSlug }));
-    }
-  }, [factionSlug]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Persist progressively
   useEffect(() => {
     if (submitted) return;
     localStorage.setItem(draftKey, JSON.stringify(draft));
@@ -99,10 +88,7 @@ const ApplyPage = () => {
   const uploadFile = async (file: File, kind: "cv" | "photo") => {
     const path = `public/${Date.now()}-${kind}-${file.name.replace(/[^\w.-]/g, "_")}`;
     const { error } = await supabase.storage.from("application-documents").upload(path, file);
-    if (error) {
-      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-      return;
-    }
+    if (error) { toast({ title: "Upload failed", description: error.message, variant: "destructive" }); return; }
     update(kind === "cv" ? "cv_url" : "photo_url", path);
     toast({ title: "Uploaded", description: file.name });
   };
@@ -113,7 +99,10 @@ const ApplyPage = () => {
         full_name: z.string().trim().min(2, "Full name required"),
         date_of_birth: z.string().min(4, "Date of birth required"),
       }).safeParse(draft);
-      return r.success ? null : Object.values(r.error.flatten().fieldErrors)[0]?.[0] || "Invalid";
+      if (!r.success) return Object.values(r.error.flatten().fieldErrors)[0]?.[0] || "Invalid";
+      const w = wordCount(draft.about_yourself);
+      if (w < 100) return `Tell us about yourself — at least 100 words (currently ${w}).`;
+      if (w > 1000) return `About yourself must be 1000 words or fewer (currently ${w}).`;
     }
     if (step === 2) {
       const r = z.object({
@@ -123,15 +112,31 @@ const ApplyPage = () => {
       return r.success ? null : Object.values(r.error.flatten().fieldErrors)[0]?.[0] || "Invalid";
     }
     if (step === 4 && !draft.faction) return "Please select a faction (or 'not sure').";
-    if (step === 6 && draft.why_dit.trim().length < 30) return "Please share at least a sentence or two.";
+    if (step === 6) {
+      const w = wordCount(draft.why_dit);
+      if (w < 100) return `Please share at least 100 words (currently ${w}).`;
+      if (w > 1000) return `Limit your answer to 1000 words (currently ${w}).`;
+    }
     return null;
   };
 
-  const next = () => {
+  const checkDuplicateEmail = async (): Promise<string | null> => {
+    if (!draft.email) return null;
+    try {
+      const { data } = await supabase.rpc("application_email_status", { _email: draft.email });
+      const row = Array.isArray(data) ? data[0] : (data as any);
+      if (row?.has_active_member) return "This email is already registered as an active DIT member. Please log in instead.";
+      if (row?.has_pending) return "An application with this email is already in review.";
+    } catch { /* non-blocking */ }
+    return null;
+  };
+
+  const next = async () => {
     const err = validateStep();
-    if (err) {
-      toast({ title: "Please complete this step", description: err, variant: "destructive" });
-      return;
+    if (err) { toast({ title: "Please complete this step", description: err, variant: "destructive" }); return; }
+    if (step === 2) {
+      const dup = await checkDuplicateEmail();
+      if (dup) { toast({ title: "Duplicate detected", description: dup, variant: "destructive" }); return; }
     }
     setStep(s => Math.min(STEP_LABELS.length - 1, s + 1));
   };
@@ -140,6 +145,8 @@ const ApplyPage = () => {
   const submit = async () => {
     setSubmitting(true);
     try {
+      const dup = await checkDuplicateEmail();
+      if (dup) { toast({ title: "Duplicate detected", description: dup, variant: "destructive" }); setSubmitting(false); return; }
       const selectedFaction = draft.faction === "unsure" ? null : draft.faction;
       const { data: app, error } = await supabase
         .from("applications")
@@ -149,8 +156,12 @@ const ApplyPage = () => {
           applicant_name: draft.full_name,
           selected_faction: selectedFaction,
           ref_campaign: refCampaign,
-          link_slug: factionSlug,
-        })
+          link_slug: factionSlug || queryFaction || null,
+          about_yourself: draft.about_yourself,
+          why_join_dit: draft.why_dit,
+          referred_by_user_id: referredByUserId || null,
+          referred_faction: selectedFaction,
+        } as any)
         .select("id, reference_number")
         .single();
       if (error) throw error;
@@ -158,20 +169,16 @@ const ApplyPage = () => {
       const responses = Object.entries(draft)
         .filter(([k]) => !["cv_url", "photo_url"].includes(k))
         .map(([k, v]) => ({
-          application_id: app.id,
-          section: stepForKey(k),
-          question_key: k,
-          question_text: humanLabel(k),
-          response_value: { value: v },
+          application_id: app.id, section: stepForKey(k), question_key: k,
+          question_text: humanLabel(k), response_value: { value: v },
         }));
       await supabase.from("application_responses").insert(responses);
 
-      const docs = [];
-      if (draft.cv_url) docs.push({ application_id: app.id, document_type: "cv" as const, storage_path: draft.cv_url, file_name: "cv" });
-      if (draft.photo_url) docs.push({ application_id: app.id, document_type: "profile_photo" as const, storage_path: draft.photo_url, file_name: "photo" });
+      const docs: any[] = [];
+      if (draft.cv_url) docs.push({ application_id: app.id, document_type: "cv", storage_path: draft.cv_url, file_name: "cv" });
+      if (draft.photo_url) docs.push({ application_id: app.id, document_type: "profile_photo", storage_path: draft.photo_url, file_name: "photo" });
       if (docs.length) await supabase.from("application_documents").insert(docs);
 
-      // Fire-and-forget AI placement + emails
       supabase.functions.invoke("on-application-submit", { body: { application_id: app.id } }).catch(() => {});
 
       localStorage.removeItem(draftKey);
@@ -179,9 +186,7 @@ const ApplyPage = () => {
       setSubmitted({ ref: app.reference_number });
     } catch (e: any) {
       toast({ title: "Submission failed", description: e.message, variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   if (submitted) {
@@ -206,11 +211,41 @@ const ApplyPage = () => {
     );
   }
 
+  if (user && !proxyMode) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Card className="max-w-lg w-full p-8 text-center space-y-5">
+          <h1 className="font-display text-2xl font-semibold">You're already signed in</h1>
+          <p className="text-muted-foreground text-sm">
+            Choose how you'd like to continue. Members often help prospects apply during
+            outreaches, conferences, or campus events — that's fully supported here.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Button asChild size="lg">
+              <Link to="/dashboard"><LayoutDashboard className="w-4 h-4 mr-2"/>Continue to Dashboard</Link>
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => setProxyMode(true)}>
+              <UserPlus className="w-4 h-4 mr-2"/>Apply for someone else
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   const progress = ((step + 1) / STEP_LABELS.length) * 100;
+  const aboutWords = wordCount(draft.about_yourself);
+  const whyWords = wordCount(draft.why_dit);
 
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-10 max-w-2xl">
+        {proxyMode && (
+          <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs flex items-center justify-between">
+            <span>You are submitting on behalf of a prospect. Their details — not yours — will be saved.</span>
+            <Button size="sm" variant="ghost" onClick={() => navigate("/dashboard")}>Cancel</Button>
+          </div>
+        )}
         <div className="mb-6">
           <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
             DIT Membership · Step {step + 1} of {STEP_LABELS.length}
@@ -234,6 +269,12 @@ const ApplyPage = () => {
             <>
               <Field label="Full name"><Input value={draft.full_name} onChange={e=>update("full_name", e.target.value)} maxLength={120}/></Field>
               <Field label="Date of birth"><Input type="date" value={draft.date_of_birth} onChange={e=>update("date_of_birth", e.target.value)}/></Field>
+              <Field label="Tell us about yourself (100–1000 words)">
+                <Textarea rows={7} value={draft.about_yourself} onChange={e=>update("about_yourself", e.target.value)} placeholder="Who are you? What's your story?" />
+                <p className={`text-xs mt-1 ${aboutWords < 100 || aboutWords > 1000 ? "text-destructive" : "text-muted-foreground"}`}>
+                  {aboutWords} words · 100 minimum · 1000 maximum
+                </p>
+              </Field>
             </>
           )}
           {step === 2 && (
@@ -269,8 +310,11 @@ const ApplyPage = () => {
             </>
           )}
           {step === 6 && (
-            <Field label="Why do you want to join DIT?">
-              <Textarea rows={6} value={draft.why_dit} onChange={e=>update("why_dit", e.target.value)} maxLength={2000} placeholder="Share what draws you to our mission…"/>
+            <Field label="Why do you want to join DIT? (100–1000 words)">
+              <Textarea rows={8} value={draft.why_dit} onChange={e=>update("why_dit", e.target.value)} placeholder="Share what draws you to our mission…"/>
+              <p className={`text-xs mt-1 ${whyWords < 100 || whyWords > 1000 ? "text-destructive" : "text-muted-foreground"}`}>
+                {whyWords} words · 100 minimum · 1000 maximum
+              </p>
             </Field>
           )}
           {step === 7 && (
@@ -306,9 +350,9 @@ const ApplyPage = () => {
             <div className="space-y-4">
               <p>By submitting, you confirm your responses are accurate and you agree to be contacted by the DIT membership team.</p>
               <p className="text-sm text-muted-foreground">
-                After submission, our intelligent placement engine will produce a faction
-                suggestion for the review team. This is always treated as a recommendation,
-                never a final decision.
+                After submission, our intelligent placement engine produces a faction
+                suggestion and an AI-content advisory score for reviewers. These are
+                recommendations only, never final decisions.
               </p>
               <Button onClick={submit} disabled={submitting} className="w-full" size="lg">
                 {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : null}
@@ -345,7 +389,7 @@ function humanLabel(k: string) {
 }
 
 function stepForKey(k: string) {
-  if (["full_name", "date_of_birth"].includes(k)) return "about";
+  if (["full_name", "date_of_birth", "about_yourself"].includes(k)) return "about";
   if (["email", "phone", "country", "city"].includes(k)) return "contact";
   if (["occupation", "education"].includes(k)) return "background";
   if (k === "faction") return "faction";

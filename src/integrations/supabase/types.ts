@@ -232,6 +232,7 @@ export type Database = {
           is_active: boolean
           link_slug: string
           ref_campaign: string | null
+          target_url: string | null
         }
         Insert: {
           application_count?: number
@@ -242,6 +243,7 @@ export type Database = {
           is_active?: boolean
           link_slug: string
           ref_campaign?: string | null
+          target_url?: string | null
         }
         Update: {
           application_count?: number
@@ -252,6 +254,7 @@ export type Database = {
           is_active?: boolean
           link_slug?: string
           ref_campaign?: string | null
+          target_url?: string | null
         }
         Relationships: []
       }
@@ -377,9 +380,14 @@ export type Database = {
       }
       applications: {
         Row: {
+          about_yourself: string | null
+          ai_about_ai_score: number | null
+          ai_about_human_score: number | null
           ai_role_suggestions: Json | null
           ai_suggested_faction: string | null
           ai_suggestion_accepted: boolean | null
+          ai_why_ai_score: number | null
+          ai_why_human_score: number | null
           applicant_email: string
           applicant_name: string
           applicant_user_id: string | null
@@ -392,14 +400,22 @@ export type Database = {
           reapply_after: string | null
           ref_campaign: string | null
           reference_number: string
+          referred_by_user_id: string | null
+          referred_faction: string | null
           selected_faction: string | null
           status: Database["public"]["Enums"]["application_status"]
           updated_at: string
+          why_join_dit: string | null
         }
         Insert: {
+          about_yourself?: string | null
+          ai_about_ai_score?: number | null
+          ai_about_human_score?: number | null
           ai_role_suggestions?: Json | null
           ai_suggested_faction?: string | null
           ai_suggestion_accepted?: boolean | null
+          ai_why_ai_score?: number | null
+          ai_why_human_score?: number | null
           applicant_email: string
           applicant_name: string
           applicant_user_id?: string | null
@@ -412,14 +428,22 @@ export type Database = {
           reapply_after?: string | null
           ref_campaign?: string | null
           reference_number?: string
+          referred_by_user_id?: string | null
+          referred_faction?: string | null
           selected_faction?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
+          why_join_dit?: string | null
         }
         Update: {
+          about_yourself?: string | null
+          ai_about_ai_score?: number | null
+          ai_about_human_score?: number | null
           ai_role_suggestions?: Json | null
           ai_suggested_faction?: string | null
           ai_suggestion_accepted?: boolean | null
+          ai_why_ai_score?: number | null
+          ai_why_human_score?: number | null
           applicant_email?: string
           applicant_name?: string
           applicant_user_id?: string | null
@@ -432,9 +456,12 @@ export type Database = {
           reapply_after?: string | null
           ref_campaign?: string | null
           reference_number?: string
+          referred_by_user_id?: string | null
+          referred_faction?: string | null
           selected_faction?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
+          why_join_dit?: string | null
         }
         Relationships: []
       }
@@ -1929,6 +1956,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      application_email_status: {
+        Args: { _email: string }
+        Returns: {
+          has_active_member: boolean
+          has_pending: boolean
+        }[]
+      }
       gen_application_reference: { Args: never; Returns: string }
       get_leaderboard: {
         Args: { _faction?: string; _limit?: number }

@@ -58,7 +58,7 @@ const Landing = () => {
                 <Link to="/auth?mode=login">Login</Link>
               </Button>
               <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
-                <Link to="/auth?mode=signup">Join DIT</Link>
+                <Link to="/apply">Join DIT</Link>
               </Button>
             </>
           )}
@@ -105,7 +105,7 @@ const Landing = () => {
             size="lg"
             className="bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:opacity-90 text-white font-semibold rounded-full px-8 py-6 text-base shadow-2xl hover:scale-105 transition-transform animate-glow-pulse"
           >
-            <Link to="/auth?mode=signup">
+            <Link to="/apply">
               <Sparkles className="w-4 h-4 mr-2" /> Join DIT
             </Link>
           </Button>
