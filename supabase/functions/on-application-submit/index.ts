@@ -33,29 +33,30 @@ serve(async (req) => {
       .from("application_responses").select("section, question_key, question_text, response_value")
       .eq("application_id", application_id);
 
-    // -------- AI placement (Lovable AI / Gemini) --------
     let suggestedFaction: string | null = app.selected_faction || null;
-    let suggestionConfidence: number | null = null;
+    let factionScores: Record<string, number> = {};
+    let factionReasoning: any = {};
     let roleSuggestions: any[] = [];
     let placementFlag = false;
+    let flagReason: string | null = null;
+    let aboutScore = { human: 0.8, ai: 0.2 };
+    let whyScore = { human: 0.8, ai: 0.2 };
+
+    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
 
     try {
-      const lovableKey = Deno.env.get("LOVABLE_API_KEY");
       if (lovableKey && app.application_type === "membership") {
-        const summary = (responses || []).map(r =>
+        const summary = (responses || []).map((r: any) =>
           `${r.question_text || r.question_key}: ${typeof r.response_value === "object" ? r.response_value?.value ?? "" : r.response_value}`
         ).join("\n");
 
         const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${lovableKey}`,
-          },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${lovableKey}` },
           body: JSON.stringify({
             model: "google/gemini-2.5-flash",
             messages: [
-              { role: "system", content: `You are DIT's placement assistant. Given an applicant's responses, suggest the best faction from this list: ${FACTIONS.join(", ")}. Respond as strict JSON: {"faction": "shi|dyp|teck|mindup", "confidence": 0..1, "reasoning": "short", "roles": ["..."], "flag": boolean }. Set flag=true if applicant seems unsuited or red flags appear.` },
+              { role: "system", content: `You are DIT's placement assistant. Factions: shi (Secured Health Initiative — health & humanitarian), mindup (Education), teck (Tecknallogy — technology), dyp (Discover Your Purpose). Return strict JSON: {"primary_faction":"shi|mindup|teck|dyp","scores":{"shi":0..1,"mindup":0..1,"teck":0..1,"dyp":0..1},"reasoning":"short paragraph","roles":["role1","role2"],"flag":boolean,"flag_reason":"string or null"}. Set flag=true only if red flags appear (incoherent answers, mismatch, abuse).` },
               { role: "user", content: `Applicant: ${app.applicant_name}\nSelected preference: ${app.selected_faction || "none"}\n\nResponses:\n${summary}` },
             ],
             response_format: { type: "json_object" },
@@ -67,23 +68,50 @@ serve(async (req) => {
           if (content) {
             try {
               const parsed = JSON.parse(content);
-              if (FACTIONS.includes(parsed.faction)) suggestedFaction = parsed.faction;
-              suggestionConfidence = parsed.confidence ?? null;
+              if (FACTIONS.includes(parsed.primary_faction)) suggestedFaction = parsed.primary_faction;
+              factionScores = parsed.scores || {};
+              factionReasoning = { reasoning: parsed.reasoning };
               roleSuggestions = parsed.roles || [];
               placementFlag = !!parsed.flag;
-
-              await supabase.from("ai_placement_results").insert({
-                application_id,
-                suggested_faction: suggestedFaction,
-                confidence: suggestionConfidence,
-                reasoning: parsed.reasoning || null,
-                role_suggestions: roleSuggestions,
-                flagged: placementFlag,
-                raw_response: j,
-              });
-            } catch (_) { /* ignore parse errors */ }
+              flagReason = parsed.flag_reason || null;
+            } catch { /* ignore */ }
           }
         }
+
+        // AI-content advisory scoring for the two long-form fields
+        if (app.about_yourself || app.why_join_dit) {
+          const scoreResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${lovableKey}` },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash-lite",
+              messages: [
+                { role: "system", content: `Estimate the probability that each passage was AI-generated vs human-written. Return strict JSON: {"about":{"human":0..1,"ai":0..1},"why":{"human":0..1,"ai":0..1}}. Be conservative — only flag obvious AI patterns.` },
+                { role: "user", content: `ABOUT:\n${app.about_yourself || "(empty)"}\n\nWHY:\n${app.why_join_dit || "(empty)"}` },
+              ],
+              response_format: { type: "json_object" },
+            }),
+          });
+          if (scoreResp.ok) {
+            const j = await scoreResp.json();
+            try {
+              const p = JSON.parse(j.choices?.[0]?.message?.content || "{}");
+              if (p.about) aboutScore = { human: Number(p.about.human) || 0, ai: Number(p.about.ai) || 0 };
+              if (p.why) whyScore = { human: Number(p.why.human) || 0, ai: Number(p.why.ai) || 0 };
+            } catch { /* ignore */ }
+          }
+        }
+
+        await supabase.from("ai_placement_results").insert({
+          application_id,
+          primary_faction: suggestedFaction,
+          faction_scores: factionScores,
+          faction_reasoning: factionReasoning,
+          role_suggestions: roleSuggestions,
+          placement_flag: placementFlag,
+          flag_reason: flagReason,
+          model_version: "gemini-2.5-flash",
+        });
       }
     } catch (e) {
       console.error("AI placement failed:", e);
@@ -93,10 +121,13 @@ serve(async (req) => {
       ai_suggested_faction: suggestedFaction,
       ai_role_suggestions: roleSuggestions,
       placement_flag: placementFlag,
+      ai_about_human_score: aboutScore.human,
+      ai_about_ai_score: aboutScore.ai,
+      ai_why_human_score: whyScore.human,
+      ai_why_ai_score: whyScore.ai,
       status: "under_review",
     }).eq("id", application_id);
 
-    // -------- Acknowledgement email --------
     try {
       const gmailUser = Deno.env.get("GMAIL_USER");
       const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
@@ -112,7 +143,7 @@ serve(async (req) => {
           content: "auto",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px;">
-              <h1 style="color:#0a1f44">Thank you, ${app.applicant_name.split(" ")[0]}!</h1>
+              <h1 style="color:#0a1f44">Thank you, ${(app.applicant_name || "").split(" ")[0]}!</h1>
               <p>We've received your application to the Divine Intelligence Team and our review panel will be in touch soon.</p>
               <p>Your reference number is: <strong style="font-size:18px;color:#c9a84c">${app.reference_number}</strong></p>
               <p>You can track progress at any time using your reference number and email address.</p>
@@ -134,9 +165,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({
-      ok: true,
-      suggested_faction: suggestedFaction,
-      flagged: placementFlag,
+      ok: true, suggested_faction: suggestedFaction, flagged: placementFlag,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e.message }), {
