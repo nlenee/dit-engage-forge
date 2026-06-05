@@ -2031,6 +2031,13 @@ export type Database = {
       is_org_leader: { Args: { _user_id: string }; Returns: boolean }
       is_reviewer: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      submit_public_application: {
+        Args: { _payload: Json }
+        Returns: {
+          id: string
+          reference_number: string
+        }[]
+      }
       user_faction: { Args: { _user_id: string }; Returns: string }
       validate_invitation_token: {
         Args: { _token: string }
