@@ -148,42 +148,42 @@ const ApplyPage = () => {
       const dup = await checkDuplicateEmail();
       if (dup) { toast({ title: "Duplicate detected", description: dup, variant: "destructive" }); setSubmitting(false); return; }
       const selectedFaction = draft.faction === "unsure" ? null : draft.faction;
-      const { data: app, error } = await supabase
-        .from("applications")
-        .insert({
-          application_type: "membership",
-          applicant_email: draft.email,
-          applicant_name: draft.full_name,
-          selected_faction: selectedFaction,
-          ref_campaign: refCampaign,
-          link_slug: factionSlug || queryFaction || null,
-          about_yourself: draft.about_yourself,
-          why_join_dit: draft.why_dit,
-          referred_by_user_id: referredByUserId || null,
-          referred_faction: selectedFaction,
-        } as any)
-        .select("id, reference_number")
-        .single();
-      if (error) throw error;
-
       const responses = Object.entries(draft)
         .filter(([k]) => !["cv_url", "photo_url"].includes(k))
         .map(([k, v]) => ({
-          application_id: app.id, section: stepForKey(k), question_key: k,
+          section: stepForKey(k), question_key: k,
           question_text: humanLabel(k), response_value: { value: v },
         }));
-      await supabase.from("application_responses").insert(responses);
+      const documents: any[] = [];
+      if (draft.cv_url) documents.push({ document_type: "cv", storage_path: draft.cv_url, file_name: "cv" });
+      if (draft.photo_url) documents.push({ document_type: "profile_photo", storage_path: draft.photo_url, file_name: "photo" });
 
-      const docs: any[] = [];
-      if (draft.cv_url) docs.push({ application_id: app.id, document_type: "cv", storage_path: draft.cv_url, file_name: "cv" });
-      if (draft.photo_url) docs.push({ application_id: app.id, document_type: "profile_photo", storage_path: draft.photo_url, file_name: "photo" });
-      if (docs.length) await supabase.from("application_documents").insert(docs);
+      const payload = {
+        application_type: "membership",
+        applicant_email: draft.email,
+        applicant_name: draft.full_name,
+        applicant_user_id: proxyMode ? null : (user?.id ?? null),
+        selected_faction: selectedFaction,
+        ref_campaign: refCampaign ?? null,
+        link_slug: factionSlug || queryFaction || null,
+        about_yourself: draft.about_yourself,
+        why_join_dit: draft.why_dit,
+        referred_by_user_id: referredByUserId || null,
+        referred_faction: selectedFaction,
+        responses,
+        documents,
+      };
 
-      supabase.functions.invoke("on-application-submit", { body: { application_id: app.id } }).catch(() => {});
+      const { data, error } = await supabase.rpc("submit_public_application", { _payload: payload as any });
+      if (error) throw error;
+      const row: any = Array.isArray(data) ? data[0] : data;
+      if (!row?.id) throw new Error("Submission did not return a reference number.");
+
+      supabase.functions.invoke("on-application-submit", { body: { application_id: row.id } }).catch(() => {});
 
       localStorage.removeItem(draftKey);
       localStorage.removeItem("dit_apply_draft:anon");
-      setSubmitted({ ref: app.reference_number });
+      setSubmitted({ ref: row.reference_number });
     } catch (e: any) {
       toast({ title: "Submission failed", description: e.message, variant: "destructive" });
     } finally { setSubmitting(false); }
