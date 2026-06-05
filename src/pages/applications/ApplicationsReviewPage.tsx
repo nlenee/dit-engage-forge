@@ -67,6 +67,27 @@ const ApplicationsReviewPage = () => {
 
   const act = async (action: "approved" | "rejected" | "reassigned" | "interview_requested" | "flagged" | "commented", extra?: any) => {
     if (!selected || !user) return;
+
+    // Approval path: call edge function which provisions the member + sends welcome
+    if (action === "approved") {
+      const { data, error } = await supabase.functions.invoke("approve-application", {
+        body: {
+          application_id: selected.id,
+          faction_override: extra?.new_faction,
+          role_title: extra?.role_title,
+        },
+      });
+      if (error || (data as any)?.error) {
+        toast({ title: "Approval failed", description: error?.message || (data as any)?.error, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Approved", description: "Member provisioned. Welcome email sent." });
+      setComment("");
+      openApp({ ...selected, status: "approved", final_faction: (data as any)?.faction });
+      load();
+      return;
+    }
+
     const { error: revErr } = await supabase.from("application_reviews").insert({
       application_id: selected.id,
       reviewer_id: user.id,
@@ -78,7 +99,6 @@ const ApplicationsReviewPage = () => {
 
     let newStatus: string | null = null;
     let patch: any = {};
-    if (action === "approved") { newStatus = "approved"; patch.final_faction = selected.selected_faction || selected.ai_suggested_faction; }
     if (action === "rejected") newStatus = "rejected";
     if (action === "reassigned") { newStatus = "reassigned"; if (extra?.new_faction) patch.final_faction = extra.new_faction; }
     if (action === "interview_requested") newStatus = "interview_scheduled";
