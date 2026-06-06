@@ -32,6 +32,7 @@ import AppointPage from "./pages/applications/AppointPage";
 import ApplicationsReviewPage from "./pages/applications/ApplicationsReviewPage";
 import FactionFormsPage from "./pages/applications/FactionFormsPage";
 import AdminFormsPage from "./pages/applications/AdminFormsPage";
+import Troubleshooting from "./pages/Troubleshooting";
 
 const queryClient = new QueryClient();
 
@@ -123,6 +124,7 @@ const App = () => (
             <Route path="/dashboard/applications" element={<ProtectedRoute><ApplicationsReviewPage /></ProtectedRoute>} />
             <Route path="/faction/forms" element={<ProtectedRoute><FactionFormsPage /></ProtectedRoute>} />
             <Route path="/admin/forms" element={<ProtectedRoute><AdminFormsPage /></ProtectedRoute>} />
+            <Route path="/troubleshooting" element={<Troubleshooting />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
