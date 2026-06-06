@@ -101,6 +101,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // Self-heal: if refresh fails or user signs out, clear stale tokens
+        if (event === "SIGNED_OUT" || (event !== "TOKEN_REFRESHED" && !session && user)) {
+          try {
+            Object.keys(localStorage)
+              .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
+              .forEach((k) => localStorage.removeItem(k));
+          } catch {}
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -122,7 +130,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Session self-heal on app start
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (error) {
+        try { await supabase.auth.signOut(); } catch {}
+        setSession(null);
+        setUser(null);
+        setLoading(false);
+        setRolesLoading(false);
+        return;
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -136,7 +153,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Multi-tab sync: reload when auth token changes in another tab
+    const onStorage = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith("sb-") && e.key.endsWith("-auth-token")) {
+        window.location.reload();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
