@@ -23,12 +23,23 @@ function diff(target: Date) {
   return { days, hours, minutes, seconds };
 }
 
-export const NextBirthdayCountdown = () => {
+interface Props {
+  faction?: string | null;
+}
+
+export const NextBirthdayCountdown = ({ faction }: Props = {}) => {
   const { data } = useQuery({
-    queryKey: ["next-birthday"],
+    queryKey: ["next-birthday", faction || "all"],
     queryFn: async () => {
-      const { data: rows } = await supabase.rpc("get_member_directory");
-      const withBdays = (rows || []).filter((r: any) => r.date_of_birth) as any[];
+      let rows: any[] = [];
+      if (faction) {
+        const { data } = await supabase.rpc("get_faction_birthdays", { _faction: faction });
+        rows = data || [];
+      } else {
+        const { data } = await supabase.rpc("get_member_directory");
+        rows = data || [];
+      }
+      const withBdays = rows.filter((r: any) => r.date_of_birth);
       if (!withBdays.length) return null;
       const sorted = withBdays
         .map((r) => ({ ...r, _next: getNextBirthday(r.date_of_birth) }))

@@ -11,12 +11,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import ShareLinkPanel from "@/components/applications/ShareLinkPanel";
-import { Sparkles, CheckCircle2, XCircle, MessageSquare, ShieldAlert, Flag, Loader2 } from "lucide-react";
+import { Sparkles, CheckCircle2, XCircle, MessageSquare, ShieldAlert, Flag, Loader2, Lock } from "lucide-react";
 
 const STATUS_FILTERS = ["all", "submitted", "under_review", "interview_scheduled", "approved", "rejected"] as const;
 
 const ApplicationsReviewPage = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, isExecutiveSecretary, isCED, isED, isEA, rolesLoading } = useAuth();
+  const canAccess = isAdmin || isExecutiveSecretary || isCED || isED || isEA;
+  const isFactionScoped = !isAdmin && !isExecutiveSecretary && !isCED && (isED || isEA);
   const [apps, setApps] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
   const [responses, setResponses] = useState<any[]>([]);
@@ -114,6 +116,27 @@ const ApplicationsReviewPage = () => {
     load();
   };
 
+  if (rolesLoading) {
+    return (
+      <div className="min-h-screen bg-background"><Header />
+        <div className="flex justify-center py-20"><Loader2 className="animate-spin"/></div>
+      </div>
+    );
+  }
+  if (!canAccess) {
+    return (
+      <div className="min-h-screen bg-background"><Header />
+        <main className="container mx-auto px-4 py-20 max-w-lg text-center">
+          <Lock className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+          <h1 className="font-display text-2xl font-semibold mb-2">Restricted area</h1>
+          <p className="text-muted-foreground text-sm">
+            Application reviews are limited to Admin, Executive Secretary,
+            Executive Director, and Executive Assistant roles.
+          </p>
+        </main>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -121,7 +144,11 @@ const ApplicationsReviewPage = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-3xl font-semibold">Applications</h1>
-            <p className="text-muted-foreground text-sm">Review, decide, and track applicants in real time.</p>
+            <p className="text-muted-foreground text-sm">
+              {isFactionScoped
+                ? "Showing applications for your faction only."
+                : "Review, decide, and track applicants in real time."}
+            </p>
           </div>
         </div>
 
