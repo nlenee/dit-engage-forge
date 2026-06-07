@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
 import { SignupWizard } from "@/components/SignupWizard";
+import { supabase } from "@/integrations/supabase/client";
 import ditLogo from "@/assets/dit-logo.jpg";
 
 const loginSchema = z.object({
@@ -28,18 +29,28 @@ const Auth = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { toast } = useToast();
-  const { user, signIn, profileCompleted } = useAuth();
+  const { user, signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(params.get("mode") === "signup" ? "signup" : "login");
   const [showPassword, setShowPassword] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      if (profileCompleted) navigate("/dashboard");
-      else navigate("/complete-profile");
+    const err = params.get("error");
+    if (err === "not_member") {
+      setGoogleError("This account is not a registered DIT Member. Redirecting to the application form...");
+      setActiveTab("signup");
     }
-  }, [user, profileCompleted, navigate]);
+  }, [params]);
+
+  useEffect(() => {
+    if (!user) return;
+    // Google flow is handled by AuthProvider; for password sign-in just go to dashboard.
+    if ((user.app_metadata as any)?.provider !== "google") {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -63,11 +74,14 @@ const Auth = () => {
     }
   };
 
-  const handleGoogle = async () => {
+  const handleGoogle = async (intent: "login" | "signup") => {
     setOauthLoading(true);
+    setGoogleError(null);
+    sessionStorage.setItem("google_intent", intent);
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) {
       setOauthLoading(false);
+      sessionStorage.removeItem("google_intent");
       toast({ title: "Google sign-in failed", description: String(result.error.message || result.error), variant: "destructive" });
     }
     // if redirected, browser navigates away
@@ -93,7 +107,12 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="login" className="space-y-4">
-              <Button type="button" variant="outline" className="w-full" onClick={handleGoogle} disabled={oauthLoading}>
+              {googleError && (
+                <div className="rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-sm p-3">
+                  {googleError}
+                </div>
+              )}
+              <Button type="button" variant="outline" className="w-full" onClick={() => handleGoogle("login")} disabled={oauthLoading}>
                 {oauthLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GoogleIcon />} Continue with Google
               </Button>
               <div className="relative my-2"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">or</span></div></div>
@@ -127,10 +146,10 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
-              <Button type="button" variant="outline" className="w-full" onClick={handleGoogle} disabled={oauthLoading}>
+              <Button type="button" variant="outline" className="w-full" onClick={() => handleGoogle("signup")} disabled={oauthLoading}>
                 {oauthLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GoogleIcon />} Sign up with Google
               </Button>
-              <p className="text-xs text-muted-foreground text-center">After Google sign-up you'll be asked to complete your profile.</p>
+              <p className="text-xs text-muted-foreground text-center">After Google sign-up you'll be taken to the DIT application form.</p>
               <div className="relative my-2"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">or fill the form</span></div></div>
               <SignupWizard mode="signup" onDone={() => setActiveTab("login")} />
             </TabsContent>
