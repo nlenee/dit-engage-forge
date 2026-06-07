@@ -41,9 +41,9 @@ const ISSUES: Issue[] = [
   },
   {
     icon: LockKeyhole,
-    title: "Stuck on /complete-profile after sign-in",
-    cause: "Profile row missing profile_completed=true.",
-    fix: "Fill in the required fields and save. Admins can patch the profile manually from the Admin dashboard.",
+    title: "Google sign-in says 'not a registered DIT Member'",
+    cause: "The Google email has no approved member profile. Sign-in is reserved for active members only.",
+    fix: "Submit a DIT application from /apply. After approval, an admin will provision your member account and Google sign-in will work.",
   },
   {
     icon: Wifi,

@@ -31,7 +31,7 @@ const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
 const STEP_LABELS = [
   "Welcome", "About you", "Contact", "Background", "Faction preference",
-  "Skills & strengths", "Why DIT", "Commitment", "Attachments", "Review", "Submit",
+  "Skills & strengths", "Why DIT", "Commitment", "Review", "Submit",
 ];
 
 type Draft = {
@@ -40,14 +40,13 @@ type Draft = {
   faction: string; skills: string; strengths: string;
   about_yourself: string; why_dit: string;
   hours_per_week: string; values_alignment: string;
-  cv_url: string; photo_url: string;
 };
 
 const EMPTY: Draft = {
   full_name: "", email: "", phone: "", date_of_birth: "",
   country: "", city: "", occupation: "", education: "",
   faction: "", skills: "", strengths: "", about_yourself: "", why_dit: "",
-  hours_per_week: "", values_alignment: "", cv_url: "", photo_url: "",
+  hours_per_week: "", values_alignment: "",
 };
 
 const ApplyPage = () => {
@@ -62,6 +61,9 @@ const ApplyPage = () => {
   const [proxyMode, setProxyMode] = useState(false);
   const refCampaign = params.get("ref") || undefined;
   const referredByUserId = params.get("ref_user") || params.get("recruiter") || undefined;
+  const prefillEmail = params.get("email") || "";
+  const prefillName = params.get("name") || "";
+  const fromGoogle = params.get("src") === "google";
   const queryFaction = normalizeFaction(params.get("faction"));
   const initialFaction = normalizeFaction(factionSlug) || queryFaction;
 
@@ -72,6 +74,13 @@ const ApplyPage = () => {
     if (anon) { try { setDraft({ ...EMPTY, ...JSON.parse(anon) }); } catch {} }
     if (initialFaction && FACTIONS.find(f => f.slug === initialFaction)) {
       setDraft(d => ({ ...d, faction: initialFaction }));
+    }
+    if (prefillEmail || prefillName) {
+      setDraft(d => ({
+        ...d,
+        email: prefillEmail || d.email,
+        full_name: prefillName || d.full_name,
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -84,14 +93,6 @@ const ApplyPage = () => {
   }, [draft, draftKey, submitted]);
 
   const update = (k: keyof Draft, v: string) => setDraft(d => ({ ...d, [k]: v }));
-
-  const uploadFile = async (file: File, kind: "cv" | "photo") => {
-    const path = `public/${Date.now()}-${kind}-${file.name.replace(/[^\w.-]/g, "_")}`;
-    const { error } = await supabase.storage.from("application-documents").upload(path, file);
-    if (error) { toast({ title: "Upload failed", description: error.message, variant: "destructive" }); return; }
-    update(kind === "cv" ? "cv_url" : "photo_url", path);
-    toast({ title: "Uploaded", description: file.name });
-  };
 
   const validateStep = (): string | null => {
     if (step === 1) {
@@ -149,14 +150,10 @@ const ApplyPage = () => {
       if (dup) { toast({ title: "Duplicate detected", description: dup, variant: "destructive" }); setSubmitting(false); return; }
       const selectedFaction = draft.faction === "unsure" ? null : draft.faction;
       const responses = Object.entries(draft)
-        .filter(([k]) => !["cv_url", "photo_url"].includes(k))
         .map(([k, v]) => ({
           section: stepForKey(k), question_key: k,
           question_text: humanLabel(k), response_value: { value: v },
         }));
-      const documents: any[] = [];
-      if (draft.cv_url) documents.push({ document_type: "cv", storage_path: draft.cv_url, file_name: "cv" });
-      if (draft.photo_url) documents.push({ document_type: "profile_photo", storage_path: draft.photo_url, file_name: "photo" });
 
       const payload = {
         application_type: "membership",
@@ -171,7 +168,6 @@ const ApplyPage = () => {
         referred_by_user_id: referredByUserId || null,
         referred_faction: selectedFaction,
         responses,
-        documents,
       };
 
       const { data, error } = await supabase.rpc("submit_public_application", { _payload: payload as any });
@@ -324,18 +320,6 @@ const ApplyPage = () => {
             </>
           )}
           {step === 8 && (
-            <>
-              <Field label="Profile photo (optional)">
-                <Input type="file" accept="image/*" onChange={e => e.target.files?.[0] && uploadFile(e.target.files[0], "photo")} />
-                {draft.photo_url && <p className="text-xs text-muted-foreground mt-1">Uploaded ✓</p>}
-              </Field>
-              <Field label="CV / resume (optional, PDF)">
-                <Input type="file" accept=".pdf,.doc,.docx" onChange={e => e.target.files?.[0] && uploadFile(e.target.files[0], "cv")} />
-                {draft.cv_url && <p className="text-xs text-muted-foreground mt-1">Uploaded ✓</p>}
-              </Field>
-            </>
-          )}
-          {step === 9 && (
             <div className="space-y-2 text-sm">
               <p className="text-muted-foreground mb-3">Please review your details before submitting.</p>
               {(["full_name","email","phone","country","city","occupation","faction"] as const).map(k => (
@@ -346,7 +330,7 @@ const ApplyPage = () => {
               ))}
             </div>
           )}
-          {step === 10 && (
+          {step === 9 && (
             <div className="space-y-4">
               <p>By submitting, you confirm your responses are accurate and you agree to be contacted by the DIT membership team.</p>
               <p className="text-sm text-muted-foreground">

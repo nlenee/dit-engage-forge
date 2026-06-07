@@ -8,6 +8,8 @@ import { Copy, Download, QrCode } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const PUBLIC_BASE_URL = "https://dit-engage-forge.lovable.app";
+
 interface Props {
   defaultFactionSlug?: string;
   defaultCampaign?: string;
@@ -18,7 +20,7 @@ const ShareLinkPanel = ({ defaultFactionSlug = "", defaultCampaign = "" }: Props
   const [campaign, setCampaign] = useState(defaultCampaign);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const url = `${window.location.origin}/apply${slug ? "/" + slug : ""}${campaign ? "?ref=" + encodeURIComponent(campaign) : ""}`;
+  const url = `${PUBLIC_BASE_URL}/apply${slug ? "/" + slug : ""}${campaign ? "?ref=" + encodeURIComponent(campaign) : ""}`;
 
   useEffect(() => {
     if (canvasRef.current) {

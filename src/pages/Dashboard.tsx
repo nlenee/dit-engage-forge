@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
@@ -46,10 +46,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCountryName, getStateName } from "@/data/countries";
 import ditLogo from "@/assets/dit-logo.jpg";
 import { NextBirthdayCountdown } from "@/components/NextBirthdayCountdown";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAdminOrES } = useAuth();
+  const { isAdminOrES, isED, isEA, user } = useAuth();
+  const showBirthdayWidget = isED || isEA;
+  const [myFaction, setMyFaction] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!showBirthdayWidget || !user) return;
+    supabase.rpc("user_faction", { _user_id: user.id }).then(({ data }) => {
+      setMyFaction((data as any) || null);
+    });
+  }, [showBirthdayWidget, user]);
   const { letters, isLoading, deleteLetter } = useLetters();
   const { announcements, isLoading: announcementsLoading } = useAnnouncements();
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,10 +139,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Upcoming Birthday Spotlight */}
-        <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
-          <NextBirthdayCountdown />
-        </div>
+        {/* Faction-scoped Birthday Spotlight — ED / EA only */}
+        {showBirthdayWidget && myFaction && (
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
+            <NextBirthdayCountdown faction={myFaction} />
+          </div>
+        )}
 
         {/* Announcements Section */}
         {recentAnnouncements.length > 0 && (

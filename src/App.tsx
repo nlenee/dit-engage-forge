@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import CreateLetter from "./pages/CreateLetter";
@@ -17,7 +17,6 @@ import CommunityManagerDashboard from "./pages/CommunityManagerDashboard";
 import CFODashboard from "./pages/CFODashboard";
 import ExecutiveSummary from "./pages/ExecutiveSummary";
 import Landing from "./pages/Landing";
-import CompleteProfile from "./pages/CompleteProfile";
 import Welcome from "./pages/Welcome";
 import FacecardPage from "./pages/FacecardPage";
 import PublicProfile from "./pages/PublicProfile";
@@ -37,8 +36,7 @@ import Troubleshooting from "./pages/Troubleshooting";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, profileCompleted } = useAuth();
-  const location = useLocation();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -52,15 +50,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!profileCompleted && location.pathname !== "/complete-profile") {
-    return <Navigate to="/complete-profile" replace />;
-  }
-
   return <>{children}</>;
 };
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading, profileCompleted } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -71,7 +65,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (user) {
-    return <Navigate to={profileCompleted ? "/dashboard" : "/complete-profile"} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -90,7 +84,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/complete-profile" element={<Navigate to="/apply" replace />} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/facecard" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
             <Route path="/facecard/:userId" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />

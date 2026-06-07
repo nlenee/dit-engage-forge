@@ -109,6 +109,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .forEach((k) => localStorage.removeItem(k));
           } catch {}
         }
+
+        // Google-intent gate: a user signing in via Google must already be a member
+        // (login intent) — otherwise stage their info and route to /apply.
+        if (event === "SIGNED_IN" && session?.user && (session.user.app_metadata as any)?.provider === "google") {
+          (async () => {
+            const email = session.user.email || "";
+            const fullName = (session.user.user_metadata?.full_name as string)
+              || (session.user.user_metadata?.name as string) || "";
+            const intent = (sessionStorage.getItem("google_intent") as "login" | "signup") || "login";
+            sessionStorage.removeItem("google_intent");
+            try {
+              const { data: isMember } = await supabase.rpc("is_registered_member", { _email: email });
+              if (isMember) {
+                setSession(session);
+                setUser(session.user);
+                setLoading(false);
+                if (rolesLoadedForRef.current !== session.user.id) {
+                  setRolesLoading(true);
+                  setTimeout(() => checkUserRole(session.user.id), 0);
+                }
+                if (window.location.pathname === "/auth" || window.location.pathname === "/") {
+                  window.location.replace("/dashboard");
+                }
+                return;
+              }
+              // Not a member yet
+              if (intent === "signup") {
+                await supabase
+                  .from("pending_google_signups" as any)
+                  .upsert({ email, full_name: fullName } as any, { onConflict: "email" } as any);
+              }
+              await supabase.auth.signOut();
+              setSession(null);
+              setUser(null);
+              setLoading(false);
+              setRolesLoading(false);
+              if (intent === "signup") {
+                window.location.replace(
+                  `/apply?email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}&src=google`
+                );
+              } else {
+                setTimeout(() => {
+                  window.location.replace("/auth?mode=signup&error=not_member");
+                }, 2000);
+              }
+            } catch {
+              setSession(session);
+              setUser(session.user);
+              setLoading(false);
+            }
+          })();
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
