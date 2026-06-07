@@ -61,15 +61,12 @@ export default function MemberDirectory() {
         });
       }
 
-      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
-
       return (profiles || []).map((p: any) => {
-        const userRole = roles?.find((r: any) => r.user_id === p.user_id);
         const contact = contactMap[p.user_id] || { email: null, phone: null, date_of_birth: null };
         return {
           ...p,
           ...contact,
-          role: userRole?.role || "user",
+          role: p.primary_role || "user",
         } as DirectoryMember;
       });
     },
