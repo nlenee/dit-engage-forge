@@ -1504,6 +1504,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_google_signups: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           academic_background: string | null
@@ -1964,6 +1991,16 @@ export type Database = {
         }[]
       }
       gen_application_reference: { Args: never; Returns: string }
+      get_faction_birthdays: {
+        Args: { _faction: string }
+        Returns: {
+          date_of_birth: string
+          faction: string
+          full_name: string
+          headshot_url: string
+          user_id: string
+        }[]
+      }
       get_leaderboard: {
         Args: { _faction?: string; _limit?: number }
         Returns: {
@@ -2029,6 +2066,7 @@ export type Database = {
       has_role_text: { Args: { role_name: string }; Returns: boolean }
       is_executive_secretary: { Args: { _user_id: string }; Returns: boolean }
       is_org_leader: { Args: { _user_id: string }; Returns: boolean }
+      is_registered_member: { Args: { _email: string }; Returns: boolean }
       is_reviewer: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       submit_public_application: {
