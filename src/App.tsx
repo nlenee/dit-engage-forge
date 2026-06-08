@@ -36,7 +36,7 @@ import Troubleshooting from "./pages/Troubleshooting";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, profileCompleted } = useAuth();
 
   if (loading) {
     return (
@@ -48,6 +48,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Members-only gate: a signed-in user without a completed DIT profile is
+  // not yet an approved member and must not see internal pages.
+  if (!profileCompleted) {
+    return <Navigate to="/?notice=members-only" replace />;
   }
 
   return <>{children}</>;
