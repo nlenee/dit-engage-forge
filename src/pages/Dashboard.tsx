@@ -50,16 +50,19 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { isAdminOrES, isED, isEA, user } = useAuth();
+  const { isAdminOrES, isED, isEA, userRole, user } = useAuth();
   const showBirthdayWidget = isED || isEA;
   const [myFaction, setMyFaction] = useState<string | null>(null);
 
   useEffect(() => {
+    // Debug: confirm role + faction wiring for birthday widget (Section 2)
+    console.log("[Dashboard] userRole =", userRole, "isED=", isED, "isEA=", isEA);
     if (!showBirthdayWidget || !user) return;
-    supabase.rpc("user_faction", { _user_id: user.id }).then(({ data }) => {
+    supabase.rpc("user_faction", { _user_id: user.id }).then(({ data, error }) => {
+      console.log("[Dashboard] user_faction →", data, error);
       setMyFaction((data as any) || null);
     });
-  }, [showBirthdayWidget, user]);
+  }, [showBirthdayWidget, user, userRole, isED, isEA]);
   const { letters, isLoading, deleteLetter } = useLetters();
   const { announcements, isLoading: announcementsLoading } = useAnnouncements();
   const [searchQuery, setSearchQuery] = useState("");
@@ -140,9 +143,9 @@ const Dashboard = () => {
         </div>
 
         {/* Faction-scoped Birthday Spotlight — ED / EA only */}
-        {showBirthdayWidget && myFaction && (
+        {showBirthdayWidget && (
           <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
-            <NextBirthdayCountdown faction={myFaction} />
+            <NextBirthdayCountdown faction={myFaction || undefined} />
           </div>
         )}
 
