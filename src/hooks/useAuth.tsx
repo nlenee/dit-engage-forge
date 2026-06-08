@@ -140,6 +140,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   .from("pending_google_signups" as any)
                   .upsert({ email, full_name: fullName } as any, { onConflict: "email" } as any);
               }
+              // Anti-pollution: destroy the auto-created auth.users record BEFORE signing out
+              // (we still have the session token to authenticate the cleanup call).
+              try {
+                await supabase.functions.invoke("cleanup-non-member", { body: {} });
+              } catch (e) {
+                console.warn("[auth] cleanup-non-member failed", e);
+              }
               await supabase.auth.signOut();
               setSession(null);
               setUser(null);
