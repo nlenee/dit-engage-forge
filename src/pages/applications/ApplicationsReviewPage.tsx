@@ -90,12 +90,13 @@ const ApplicationsReviewPage = () => {
       return;
     }
 
+    // Only persist columns that exist on application_reviews. Extras like
+    // new_faction / role_title are used to patch the application itself below.
     const { error: revErr } = await supabase.from("application_reviews").insert({
       application_id: selected.id,
       reviewer_id: user.id,
       action,
       comment: comment || null,
-      ...(extra || {}),
     });
     if (revErr) { toast({ title: "Failed", description: revErr.message, variant: "destructive" }); return; }
 
