@@ -72,6 +72,8 @@ import { useAdminData } from "@/hooks/useAdminData";
 import type { AdminAppRole } from "@/hooks/useAdminData";
 import { PROTECTED_ADMIN_EMAIL } from "@/hooks/useAdminData";
 import PendingXpReviews from "@/components/PendingXpReviews";
+import ExecutiveBoardPanel from "@/components/admin/ExecutiveBoardPanel";
+import OfficesManager from "@/components/admin/OfficesManager";
 import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -300,6 +302,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="xp-reviews" className="gap-2">
               <Trophy className="h-4 w-4" />
               XP Reviews
+            </TabsTrigger>
+            <TabsTrigger value="board" className="gap-2">
+              <Crown className="h-4 w-4" />
+              Executive Board
+            </TabsTrigger>
+            <TabsTrigger value="offices" className="gap-2">
+              <Shield className="h-4 w-4" />
+              Offices
             </TabsTrigger>
           </TabsList>
 
