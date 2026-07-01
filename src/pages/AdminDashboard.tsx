@@ -598,6 +598,14 @@ const AdminDashboard = () => {
           <TabsContent value="xp-reviews">
             <PendingXpReviews />
           </TabsContent>
+
+          <TabsContent value="board">
+            <ExecutiveBoardPanel />
+          </TabsContent>
+
+          <TabsContent value="offices">
+            <OfficesManager />
+          </TabsContent>
         </Tabs>
       </main>
 
