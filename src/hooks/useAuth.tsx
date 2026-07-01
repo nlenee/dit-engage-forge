@@ -33,6 +33,8 @@ interface AuthContextType {
   isGlobalLeader: boolean;
   userRole: AppRole | null;
   profileCompleted: boolean;
+  permissions: string[];
+  hasPermission: (key: string) => boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string, extra?: { phone?: string; date_of_birth?: string; faction?: string }) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -48,6 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [allRoles, setAllRoles] = useState<AppRole[]>([]);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(true);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const roleRequestRef = useRef(0);
   const rolesLoadedForRef = useRef<string | null>(null);
 
@@ -87,12 +90,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle();
       if (roleRequestRef.current !== requestId) return;
       setProfileCompleted(prof?.profile_completed ?? false);
+
+      try {
+        const { data: perms } = await supabase.rpc("user_permissions", { _user_id: userId });
+        if (roleRequestRef.current !== requestId) return;
+        setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
+      } catch {
+        if (roleRequestRef.current === requestId) setPermissions([]);
+      }
     } catch {
       if (roleRequestRef.current !== requestId) return;
       rolesLoadedForRef.current = userId;
       setAllRoles(["user"]);
       setUserRole("user");
       setProfileCompleted(true);
+      setPermissions([]);
     } finally {
       if (roleRequestRef.current === requestId) setRolesLoading(false);
     }
@@ -257,7 +269,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading: loading || rolesLoading, authReady: !loading && !rolesLoading, rolesLoading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO, isAdminOrES, isCED, isED, isEA, isGlobalLeader, userRole, profileCompleted, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{
+      user, session,
+      loading: loading || rolesLoading,
+      authReady: !loading && !rolesLoading,
+      rolesLoading, isAdmin, isExecutiveSecretary, isCommunityManager, isCFO,
+      isAdminOrES, isCED, isED, isEA, isGlobalLeader, userRole, profileCompleted,
+      permissions,
+      hasPermission: (key: string) => permissions.includes("*") || permissions.includes(key),
+      signIn, signUp, signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );

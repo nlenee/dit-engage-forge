@@ -1468,6 +1468,103 @@ export type Database = {
           },
         ]
       }
+      office_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          office_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          office_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          office_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_assignments_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      office_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          office_id: string
+          permission_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          office_id: string
+          permission_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          office_id?: string
+          permission_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_permissions_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offices: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          faction: string | null
+          id: string
+          kpis: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          faction?: string | null
+          id?: string
+          kpis?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          faction?: string | null
+          id?: string
+          kpis?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       password_reset_requests: {
         Row: {
           email: string
@@ -2077,6 +2174,7 @@ export type Database = {
         }[]
       }
       user_faction: { Args: { _user_id: string }; Returns: string }
+      user_permissions: { Args: { _user_id: string }; Returns: string[] }
       validate_invitation_token: {
         Args: { _token: string }
         Returns: {
