@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import ShareLinkPanel from "@/components/applications/ShareLinkPanel";
+import ScheduleInterviewDialog from "@/components/applications/ScheduleInterviewDialog";
 import { Sparkles, CheckCircle2, XCircle, MessageSquare, ShieldAlert, Flag, Loader2, Lock } from "lucide-react";
 
 const STATUS_FILTERS = ["all", "submitted", "under_review", "interview_scheduled", "approved", "rejected"] as const;
@@ -273,7 +274,15 @@ const ApplicationsReviewPage = () => {
                 <div className="grid grid-cols-2 gap-2">
                   <Button size="sm" onClick={()=>act("approved")} className="w-full"><CheckCircle2 className="w-3.5 h-3.5 mr-1"/>Approve</Button>
                   <Button size="sm" variant="destructive" onClick={()=>act("rejected")} className="w-full"><XCircle className="w-3.5 h-3.5 mr-1"/>Reject</Button>
-                  <Button size="sm" variant="outline" onClick={()=>act("interview_requested")} className="w-full"><MessageSquare className="w-3.5 h-3.5 mr-1"/>Interview</Button>
+                  <div className="w-full">
+                    <ScheduleInterviewDialog
+                      applicationId={selected.id}
+                      applicantName={selected.applicant_name}
+                      applicantEmail={selected.applicant_email}
+                      onScheduled={() => { openApp({ ...selected, status: "interview_scheduled" }); load(); }}
+                      trigger={<Button size="sm" variant="outline" className="w-full"><MessageSquare className="w-3.5 h-3.5 mr-1"/>Schedule Interview</Button>}
+                    />
+                  </div>
                   <Button size="sm" variant="outline" onClick={()=>act("flagged")} className="w-full"><Flag className="w-3.5 h-3.5 mr-1"/>Flag</Button>
                   <Button size="sm" variant="outline" onClick={()=>act("commented")} className="w-full col-span-2"><ShieldAlert className="w-3.5 h-3.5 mr-1"/>Add comment only</Button>
                 </div>
