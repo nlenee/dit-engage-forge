@@ -1473,6 +1473,7 @@ export type Database = {
           assigned_at: string
           assigned_by: string | null
           id: string
+          is_active: boolean
           office_id: string
           user_id: string
         }
@@ -1480,6 +1481,7 @@ export type Database = {
           assigned_at?: string
           assigned_by?: string | null
           id?: string
+          is_active?: boolean
           office_id: string
           user_id: string
         }
@@ -1487,6 +1489,7 @@ export type Database = {
           assigned_at?: string
           assigned_by?: string | null
           id?: string
+          is_active?: boolean
           office_id?: string
           user_id?: string
         }
@@ -1531,6 +1534,7 @@ export type Database = {
       }
       offices: {
         Row: {
+          abbreviation: string | null
           code: string
           created_at: string
           created_by: string | null
@@ -1538,10 +1542,12 @@ export type Database = {
           faction: string | null
           id: string
           kpis: Json
+          tier: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          abbreviation?: string | null
           code: string
           created_at?: string
           created_by?: string | null
@@ -1549,10 +1555,12 @@ export type Database = {
           faction?: string | null
           id?: string
           kpis?: Json
+          tier?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          abbreviation?: string | null
           code?: string
           created_at?: string
           created_by?: string | null
@@ -1560,6 +1568,7 @@ export type Database = {
           faction?: string | null
           id?: string
           kpis?: Json
+          tier?: string | null
           title?: string
           updated_at?: string
         }
@@ -1645,6 +1654,8 @@ export type Database = {
           email: string | null
           employer_name: string | null
           employment_status: string | null
+          executive_role: string | null
+          executive_role_abbr: string | null
           faction: string | null
           favourite_quote: string | null
           full_name: string | null
@@ -1687,6 +1698,8 @@ export type Database = {
           email?: string | null
           employer_name?: string | null
           employment_status?: string | null
+          executive_role?: string | null
+          executive_role_abbr?: string | null
           faction?: string | null
           favourite_quote?: string | null
           full_name?: string | null
@@ -1729,6 +1742,8 @@ export type Database = {
           email?: string | null
           employer_name?: string | null
           employment_status?: string | null
+          executive_role?: string | null
+          executive_role_abbr?: string | null
           faction?: string | null
           favourite_quote?: string | null
           full_name?: string | null

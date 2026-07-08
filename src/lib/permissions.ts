@@ -13,6 +13,26 @@ export const PERMISSION_CATALOG: Array<{ key: string; label: string; group: stri
   { key: "faction.manage",       group: "Faction",     label: "Manage own faction",         description: "Faction-scoped leadership actions" },
   { key: "offices.manage",       group: "Governance",  label: "Manage offices",             description: "Create/edit offices and assignments" },
   { key: "admin.settings",       group: "Governance",  label: "Admin settings",             description: "Global admin configuration" },
+  { key: "view_all_members",     group: "Executive",   label: "View all members",           description: "See every member record across factions" },
+  { key: "edit_members",         group: "Executive",   label: "Edit members",               description: "Modify member records" },
+  { key: "approve_members",      group: "Executive",   label: "Approve members",            description: "Approve pending members" },
+  { key: "manage_roles",         group: "Executive",   label: "Manage roles",               description: "Assign executive roles" },
+  { key: "view_financials",      group: "Executive",   label: "View financials",            description: "Read financial data" },
+  { key: "edit_financials",      group: "Executive",   label: "Edit financials",            description: "Modify financial data" },
+  { key: "view_programs",        group: "Executive",   label: "View programs",              description: "Read program data" },
+  { key: "edit_programs",        group: "Executive",   label: "Edit programs",              description: "Modify programs" },
+  { key: "manage_escalations",   group: "Executive",   label: "Manage escalations",         description: "Handle escalated cases" },
+  { key: "view_reports",         group: "Executive",   label: "View reports",               description: "Access reports" },
+  { key: "export_data",          group: "Executive",   label: "Export data",                description: "Export datasets" },
+  { key: "manage_events",        group: "Executive",   label: "Manage events",              description: "Create and manage events" },
+  { key: "send_announcements",   group: "Executive",   label: "Send announcements",         description: "Push announcements" },
+  { key: "view_executive_system",group: "Executive",   label: "View executive system",      description: "Access executive board view" },
+  { key: "manage_succession",    group: "Executive",   label: "Manage succession",          description: "Plan and record successors" },
+  { key: "approve_annual_plans", group: "Executive",   label: "Approve annual plans",       description: "Approve yearly plans" },
+  { key: "manage_faction_shi",   group: "Faction",     label: "Manage SHI faction",         description: "Faction ops — SHI" },
+  { key: "manage_faction_dyp",   group: "Faction",     label: "Manage DYP faction",         description: "Faction ops — DYP" },
+  { key: "manage_faction_teck",  group: "Faction",     label: "Manage TECK faction",        description: "Faction ops — TECK" },
+  { key: "manage_faction_mindup",group: "Faction",     label: "Manage MindUp faction",      description: "Faction ops — MindUp" },
 ];
 
 export const PERMISSION_KEYS = PERMISSION_CATALOG.map(p => p.key);
@@ -34,3 +54,16 @@ export const LEADERSHIP_SEATS: Array<{ role: string; title: string; perFaction?:
 ];
 
 export const FACTIONS = ["SHI", "MindUp", "Tecknallogy", "DYP"] as const;
+
+export const FACTION_COLORS: Record<string, string> = {
+  SHI: "#16a34a",
+  DYP: "#2563eb",
+  TECK: "#9333ea",
+  MindUp: "#d97706",
+  BoE: "#c9a84c",
+};
+
+export function factionColor(faction?: string | null, tier?: string | null): string {
+  if (tier === "boe" || !faction) return FACTION_COLORS.BoE;
+  return FACTION_COLORS[faction] || FACTION_COLORS.BoE;
+}
