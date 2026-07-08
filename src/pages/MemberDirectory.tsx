@@ -61,11 +61,22 @@ export default function MemberDirectory() {
         });
       }
 
+      // Executive role labels for everyone (public columns)
+      const { data: execRows } = await supabase
+        .from("profiles")
+        .select("user_id, executive_role, executive_role_abbr");
+      const execMap: Record<string, { executive_role: string | null; executive_role_abbr: string | null }> = {};
+      (execRows || []).forEach((r: any) => {
+        execMap[r.user_id] = { executive_role: r.executive_role, executive_role_abbr: r.executive_role_abbr };
+      });
+
       return (profiles || []).map((p: any) => {
         const contact = contactMap[p.user_id] || { email: null, phone: null, date_of_birth: null };
+        const exec = execMap[p.user_id] || { executive_role: null, executive_role_abbr: null };
         return {
           ...p,
           ...contact,
+          ...exec,
           role: p.primary_role || "user",
         } as DirectoryMember;
       });
@@ -163,7 +174,12 @@ export default function MemberDirectory() {
                       <CardTitle className="text-lg truncate">{member.full_name || "—"}</CardTitle>
                       <p className="text-sm text-primary font-medium flex items-center gap-1">
                         <Shield className="h-3 w-3" />
-                        {getRoleLabel(member.role)}
+                        {(member as any).executive_role || getRoleLabel(member.role)}
+                        {(member as any).executive_role_abbr && (
+                          <Badge variant="outline" className="ml-1 text-[10px]">
+                            {(member as any).executive_role_abbr}
+                          </Badge>
+                        )}
                       </p>
                     </div>
                     {member.faction && (
