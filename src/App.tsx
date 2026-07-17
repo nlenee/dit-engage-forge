@@ -32,6 +32,7 @@ import ApplicationsReviewPage from "./pages/applications/ApplicationsReviewPage"
 import FactionFormsPage from "./pages/applications/FactionFormsPage";
 import AdminFormsPage from "./pages/applications/AdminFormsPage";
 import Troubleshooting from "./pages/Troubleshooting";
+import OfflineIndicator from "./components/pwa/OfflineIndicator";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <OfflineIndicator />
       <BrowserRouter>
         <AuthProvider>
           <Routes>

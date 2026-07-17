@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ditLogo from "@/assets/dit-logo.jpg";
+import InstallButton from "@/components/pwa/InstallButton";
 
 const Header = () => {
   const location = useLocation();
@@ -68,6 +69,8 @@ const Header = () => {
               );
             })}
           </nav>
+
+          <InstallButton />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
