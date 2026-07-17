@@ -2162,6 +2162,13 @@ export type Database = {
           xp: number
         }[]
       }
+      get_reapplication_lock_status: {
+        Args: { _email: string }
+        Returns: {
+          is_locked: boolean
+          unlock_at: string
+        }[]
+      }
       has_any_global_role: { Args: { _user_id: string }; Returns: boolean }
       has_role:
         | {

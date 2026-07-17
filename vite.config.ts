@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api/, /\/functions\//],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2}"],
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.hostname.endsWith(".supabase.co"),
