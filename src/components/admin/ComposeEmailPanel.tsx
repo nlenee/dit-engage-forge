@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
   Mail,
@@ -445,8 +445,8 @@ export default function ComposeEmailPanel() {
               </TableHeader>
               <TableBody>
                 {emails.map((e) => (
-                  <>
-                    <TableRow key={e.id}>
+                  <Fragment key={e.id}>
+                    <TableRow>
                       <TableCell className="font-medium max-w-[240px] truncate">{e.subject}</TableCell>
                       <TableCell>
                         {e.recipient_count}
@@ -481,7 +481,7 @@ export default function ComposeEmailPanel() {
                       </TableCell>
                     </TableRow>
                     {expanded === e.id && (
-                      <TableRow key={`${e.id}-details`}>
+                      <TableRow>
                         <TableCell colSpan={5} className="bg-muted/30">
                           <div className="max-h-64 overflow-y-auto space-y-1">
                             {recipients.map((r) => (
@@ -509,7 +509,7 @@ export default function ComposeEmailPanel() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 ))}
                 {emails.length === 0 && (
                   <TableRow>
