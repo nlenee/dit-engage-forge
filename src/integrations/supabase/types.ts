@@ -977,6 +977,39 @@ export type Database = {
         }
         Relationships: []
       }
+      factions: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financial_transactions: {
         Row: {
           amount: number
@@ -1105,6 +1138,135 @@ export type Database = {
           start_date?: string
           status?: string
           target_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      internal_email_recipients: {
+        Row: {
+          created_at: string
+          email_id: string
+          error_message: string | null
+          faction_id: string | null
+          field: string
+          id: string
+          member_user_id: string | null
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string | null
+          source: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email_id: string
+          error_message?: string | null
+          faction_id?: string | null
+          field?: string
+          id?: string
+          member_user_id?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          source?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email_id?: string
+          error_message?: string | null
+          faction_id?: string | null
+          field?: string
+          id?: string
+          member_user_id?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          source?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_email_recipients_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "internal_emails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_email_recipients_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_emails: {
+        Row: {
+          bcc_emails: string[]
+          body_html: string
+          cc_emails: string[]
+          created_at: string
+          created_by: string
+          error_message: string | null
+          faction_ids: string[]
+          failed_count: number
+          id: string
+          member_ids: string[]
+          raw_to_emails: string[]
+          recipient_count: number
+          recipient_modes: string[]
+          scheduled_at: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          subject: string
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          bcc_emails?: string[]
+          body_html: string
+          cc_emails?: string[]
+          created_at?: string
+          created_by: string
+          error_message?: string | null
+          faction_ids?: string[]
+          failed_count?: number
+          id?: string
+          member_ids?: string[]
+          raw_to_emails?: string[]
+          recipient_count?: number
+          recipient_modes?: string[]
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject: string
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bcc_emails?: string[]
+          body_html?: string
+          cc_emails?: string[]
+          created_at?: string
+          created_by?: string
+          error_message?: string | null
+          faction_ids?: string[]
+          failed_count?: number
+          id?: string
+          member_ids?: string[]
+          raw_to_emails?: string[]
+          recipient_count?: number
+          recipient_modes?: string[]
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject?: string
+          timezone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1657,6 +1819,7 @@ export type Database = {
           executive_role: string | null
           executive_role_abbr: string | null
           faction: string | null
+          faction_id: string | null
           favourite_quote: string | null
           full_name: string | null
           graduation_year: number | null
@@ -1701,6 +1864,7 @@ export type Database = {
           executive_role?: string | null
           executive_role_abbr?: string | null
           faction?: string | null
+          faction_id?: string | null
           favourite_quote?: string | null
           full_name?: string | null
           graduation_year?: number | null
@@ -1745,6 +1909,7 @@ export type Database = {
           executive_role?: string | null
           executive_role_abbr?: string | null
           faction?: string | null
+          faction_id?: string | null
           favourite_quote?: string | null
           full_name?: string | null
           graduation_year?: number | null
@@ -1770,7 +1935,15 @@ export type Database = {
           user_id?: string
           xp?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_faction_id_fkey"
+            columns: ["faction_id"]
+            isOneToOne: false
+            referencedRelation: "factions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       question_library: {
         Row: {
