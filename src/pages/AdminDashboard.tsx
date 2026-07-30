@@ -74,6 +74,8 @@ import { PROTECTED_ADMIN_EMAIL } from "@/hooks/useAdminData";
 import PendingXpReviews from "@/components/PendingXpReviews";
 import ExecutiveBoardPanel from "@/components/admin/ExecutiveBoardPanel";
 import OfficesManager from "@/components/admin/OfficesManager";
+import FactionsManager from "@/components/admin/FactionsManager";
+import ComposeEmailPanel from "@/components/admin/ComposeEmailPanel";
 import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -310,6 +312,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="offices" className="gap-2">
               <Shield className="h-4 w-4" />
               Offices
+            </TabsTrigger>
+            <TabsTrigger value="factions" className="gap-2">
+              <Users className="h-4 w-4" />
+              Factions
+            </TabsTrigger>
+            <TabsTrigger value="compose" className="gap-2">
+              <Send className="h-4 w-4" />
+              Compose Email
             </TabsTrigger>
           </TabsList>
 
@@ -605,6 +615,14 @@ const AdminDashboard = () => {
 
           <TabsContent value="offices">
             <OfficesManager />
+          </TabsContent>
+
+          <TabsContent value="factions">
+            <FactionsManager />
+          </TabsContent>
+
+          <TabsContent value="compose">
+            <ComposeEmailPanel />
           </TabsContent>
         </Tabs>
       </main>
