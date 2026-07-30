@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.register-member]
 verify_jwt = false
+
+[functions.send-internal-email]
+verify_jwt = false
