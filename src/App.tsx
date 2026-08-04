@@ -82,8 +82,17 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const StyledLanding = () => {
+  const { designSystem } = useDesignSystem();
+  return designSystem === "dit-dark" ? <LandingDIT /> : <Landing />;
+};
+
+const StyledMemberProfile = () => {
+  const { designSystem } = useDesignSystem();
+  return designSystem === "pure-white" ? <MemberProfileWhite /> : <PublicProfile />;
+};
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
