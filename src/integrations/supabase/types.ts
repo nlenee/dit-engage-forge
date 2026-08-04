@@ -1736,6 +1736,36 @@ export type Database = {
         }
         Relationships: []
       }
+      page_styles: {
+        Row: {
+          created_at: string
+          design_system: string
+          id: string
+          label: string
+          route: string
+          tokens: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          design_system?: string
+          id?: string
+          label: string
+          route: string
+          tokens?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          design_system?: string
+          id?: string
+          label?: string
+          route?: string
+          tokens?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       password_reset_requests: {
         Row: {
           email: string
