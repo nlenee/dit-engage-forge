@@ -39,7 +39,12 @@ export default function StyleDashboard() {
 
   if (!authReady || rolesLoading) return <PageLoader />;
   if (!["admin", "super_admin"].includes(role))
-    return <AccessDenied title="Style Dashboard" message="Only administrators can manage page design systems." />;
+    return (
+      <AccessDenied
+        title="Style Dashboard"
+        description="Only administrators can manage page design systems."
+      />
+    );
 
   const rows = (data ?? []) as PageStyleRow[];
 
