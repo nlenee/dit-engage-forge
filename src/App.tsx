@@ -17,6 +17,10 @@ import CommunityManagerDashboard from "./pages/CommunityManagerDashboard";
 import CFODashboard from "./pages/CFODashboard";
 import ExecutiveSummary from "./pages/ExecutiveSummary";
 import Landing from "./pages/Landing";
+import LandingDIT from "./pages/LandingDIT";
+import MemberProfileWhite from "./pages/MemberProfileWhite";
+import StyleDashboard from "./pages/admin/StyleDashboard";
+import { DesignSystemProvider, useDesignSystem } from "./design/DesignSystemProvider";
 import Welcome from "./pages/Welcome";
 import FacecardPage from "./pages/FacecardPage";
 import PublicProfile from "./pages/PublicProfile";
@@ -86,8 +90,9 @@ const App = () => (
       <OfflineIndicator />
       <BrowserRouter>
         <AuthProvider>
+        <DesignSystemProvider>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<StyledLanding />} />
             <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -96,7 +101,8 @@ const App = () => (
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/facecard" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
             <Route path="/facecard/:userId" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
-            <Route path="/u/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
+            <Route path="/u/:userId" element={<ProtectedRoute><StyledMemberProfile /></ProtectedRoute>} />
+            <Route path="/members/:slug" element={<ProtectedRoute><StyledMemberProfile /></ProtectedRoute>} />
             <Route path="/anniversary" element={<ProtectedRoute><AnniversaryHub /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
             <Route path="/create" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
@@ -126,9 +132,11 @@ const App = () => (
             <Route path="/dashboard/applications" element={<ProtectedRoute><ApplicationsReviewPage /></ProtectedRoute>} />
             <Route path="/faction/forms" element={<ProtectedRoute><FactionFormsPage /></ProtectedRoute>} />
             <Route path="/admin/forms" element={<ProtectedRoute><AdminFormsPage /></ProtectedRoute>} />
+            <Route path="/admin/styles" element={<ProtectedRoute><StyleDashboard /></ProtectedRoute>} />
             <Route path="/troubleshooting" element={<Troubleshooting />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+        </DesignSystemProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
