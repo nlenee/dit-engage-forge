@@ -277,6 +277,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isAdminOrES, isCED, isED, isEA, isGlobalLeader, userRole, profileCompleted,
       permissions,
       hasPermission: (key: string) => permissions.includes("*") || permissions.includes(key),
+      canAny: (keys: string[]) =>
+        permissions.includes("*") || keys.some((k) => permissions.includes(k)),
       signIn, signUp, signOut,
     }}>
       {children}
