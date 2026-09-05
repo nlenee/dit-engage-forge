@@ -1589,6 +1589,60 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_messages: {
+        Row: {
+          approval_token: string
+          approved_at: string | null
+          body_html: string
+          created_at: string
+          error_message: string | null
+          failed_count: number
+          id: string
+          month_key: string
+          recipient_count: number
+          rejected_at: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          approval_token?: string
+          approved_at?: string | null
+          body_html: string
+          created_at?: string
+          error_message?: string | null
+          failed_count?: number
+          id?: string
+          month_key: string
+          recipient_count?: number
+          rejected_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          approval_token?: string
+          approved_at?: string | null
+          body_html?: string
+          created_at?: string
+          error_message?: string | null
+          failed_count?: number
+          id?: string
+          month_key?: string
+          recipient_count?: number
+          rejected_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications_log: {
         Row: {
           application_id: string | null
