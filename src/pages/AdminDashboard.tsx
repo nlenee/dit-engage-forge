@@ -76,6 +76,7 @@ import ExecutiveBoardPanel from "@/components/admin/ExecutiveBoardPanel";
 import OfficesManager from "@/components/admin/OfficesManager";
 import FactionsManager from "@/components/admin/FactionsManager";
 import ComposeEmailPanel from "@/components/admin/ComposeEmailPanel";
+import MonthlyMessagePanel from "@/components/admin/MonthlyMessagePanel";
 import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -320,6 +321,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="compose" className="gap-2">
               <Send className="h-4 w-4" />
               Compose Email
+            </TabsTrigger>
+            <TabsTrigger value="monthly" className="gap-2">
+              <Send className="h-4 w-4" />
+              Monthly Message
             </TabsTrigger>
           </TabsList>
 
@@ -623,6 +628,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="compose">
             <ComposeEmailPanel />
+          </TabsContent>
+
+          <TabsContent value="monthly">
+            <MonthlyMessagePanel />
           </TabsContent>
         </Tabs>
       </main>
