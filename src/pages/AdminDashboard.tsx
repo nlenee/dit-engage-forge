@@ -100,7 +100,7 @@ const ROLE_LABEL: Record<string, string> = Object.fromEntries(ROLE_OPTIONS.map((
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, isAdminOrES, loading } = useAuth();
+  const { isAdmin, isAdminOrES, canAny, loading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const {
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
 
   if (loading) return <PageLoader />;
 
-  if (!isAdminOrES) {
+  if (!isAdminOrES && !canAny(["admin.settings", "offices.manage"])) {
     return <AccessDenied description="Admin tools are available to Admin, Chief Executive Director, and Executive Secretary roles only." />;
   }
 

@@ -32,6 +32,7 @@ import ApplicationsReviewPage from "./pages/applications/ApplicationsReviewPage"
 import FactionFormsPage from "./pages/applications/FactionFormsPage";
 import AdminFormsPage from "./pages/applications/AdminFormsPage";
 import Troubleshooting from "./pages/Troubleshooting";
+import OrgStructure from "./pages/OrgStructure";
 import OfflineIndicator from "./components/pwa/OfflineIndicator";
 
 const queryClient = new QueryClient();
@@ -103,6 +104,8 @@ const App = () => (
             <Route path="/edit/:id" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/members" element={<ProtectedRoute><MemberDirectory /></ProtectedRoute>} />
+            <Route path="/structure" element={<ProtectedRoute><OrgStructure /></ProtectedRoute>} />
+            <Route path="/organogram" element={<Navigate to="/structure" replace />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />

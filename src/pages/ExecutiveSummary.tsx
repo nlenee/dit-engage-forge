@@ -18,7 +18,7 @@ import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
 
 const ExecutiveSummary = () => {
-  const { isAdmin, isAdminOrES, loading } = useAuth();
+  const { isAdmin, isAdminOrES, canAny, loading } = useAuth();
   const { events, attendance } = useEvents();
   const { engagementLogs } = useEngagement();
   const { transactions, totalFunds, monthlyIncome, monthlyExpenses, budgets, campaigns, budgetUtilization } = useFinance();
@@ -36,7 +36,7 @@ const ExecutiveSummary = () => {
   });
 
   if (loading) return <PageLoader />;
-  if (!isAdminOrES) return <AccessDenied description="Executive summaries are available to Admin, Chief Executive Director, and Executive Secretary roles only." />;
+  if (!isAdminOrES && !canAny(["view_reports", "view_executive_system"])) return <AccessDenied description="Executive summaries are available to Admin, Chief Executive Director, and Executive Secretary roles only." />;
 
   const currentMonth = format(new Date(), "MMMM yyyy");
   const totalMembers = profiles.length;
