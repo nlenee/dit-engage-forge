@@ -11,7 +11,7 @@ import { format, subDays } from "date-fns";
 const FACTION_COLORS = ["#4f46e5", "#22d3ee", "#f59e0b", "#ec4899", "#10b981"];
 
 export default function AdminAnalytics() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, loading , canAny } = useAuth();
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["analytics-profiles"],
@@ -22,7 +22,7 @@ export default function AdminAnalytics() {
   });
 
   if (loading) return <PageLoader />;
-  if (!isAdmin) return <AccessDenied description="Analytics are available to Admin users only." />;
+  if (!isAdmin && !canAny(["view_reports", "export_data"])) return <AccessDenied description="Analytics are available to Admin users and offices granted reporting access." />;
 
   // Per-faction
   const factionCounts = profiles.reduce<Record<string, number>>((acc, p: any) => {

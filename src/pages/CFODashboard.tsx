@@ -25,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFinance } from "@/hooks/useFinance";
 
 const CFODashboard = () => {
-  const { isCFO, isAdmin, loading } = useAuth();
+  const { isCFO, isAdmin, canAny, loading } = useAuth();
   const {
     transactions, transactionsLoading,
     budgets, budgetsLoading,
@@ -42,7 +42,7 @@ const CFODashboard = () => {
   const [campaignForm, setCampaignForm] = useState({ name: "", description: "", target_amount: "", start_date: format(new Date(), "yyyy-MM-dd"), end_date: "" });
 
   if (loading) return <PageLoader />;
-  if (!isCFO && !isAdmin) return <AccessDenied description="Finance tools are available to Chief Finance Officer and Admin roles only." />;
+  if (!isCFO && !isAdmin && !canAny(["finance.view", "finance.manage", "view_financials"])) return <AccessDenied description="Finance tools are available to Chief Finance Officer and Admin roles only." />;
 
   const handleCreateTx = async () => {
     await createTransaction.mutateAsync({

@@ -12,13 +12,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import ShareLinkPanel from "@/components/applications/ShareLinkPanel";
 import ScheduleInterviewDialog from "@/components/applications/ScheduleInterviewDialog";
-import { Sparkles, CheckCircle2, XCircle, MessageSquare, ShieldAlert, Flag, Loader2, Lock } from "lucide-react";
+import { Sparkles, CheckCircle2, XCircle, MessageSquare, ShieldAlert, Flag, Loader2, Lock, Mail, ArrowRightLeft } from "lucide-react";
+import { FACTIONS } from "@/lib/permissions";
 
 const STATUS_FILTERS = ["all", "submitted", "under_review", "interview_scheduled", "approved", "rejected"] as const;
 
 const ApplicationsReviewPage = () => {
-  const { user, isAdmin, isExecutiveSecretary, isCED, isED, isEA, rolesLoading } = useAuth();
-  const canAccess = isAdmin || isExecutiveSecretary || isCED || isED || isEA;
+  const { user, isAdmin, isExecutiveSecretary, isCED, isED, isEA, canAny, rolesLoading } = useAuth();
+  const canAccess = isAdmin || isExecutiveSecretary || isCED || isED || isEA || canAny(["applications.review"]);
   const isFactionScoped = !isAdmin && !isExecutiveSecretary && !isCED && (isED || isEA);
   const [apps, setApps] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
