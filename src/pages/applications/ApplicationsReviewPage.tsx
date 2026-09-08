@@ -12,13 +12,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import ShareLinkPanel from "@/components/applications/ShareLinkPanel";
 import ScheduleInterviewDialog from "@/components/applications/ScheduleInterviewDialog";
-import { Sparkles, CheckCircle2, XCircle, MessageSquare, ShieldAlert, Flag, Loader2, Lock } from "lucide-react";
+import { Sparkles, CheckCircle2, XCircle, MessageSquare, ShieldAlert, Flag, Loader2, Lock, Mail, ArrowRightLeft } from "lucide-react";
+import { FACTIONS } from "@/lib/permissions";
 
 const STATUS_FILTERS = ["all", "submitted", "under_review", "interview_scheduled", "approved", "rejected"] as const;
 
 const ApplicationsReviewPage = () => {
-  const { user, isAdmin, isExecutiveSecretary, isCED, isED, isEA, rolesLoading } = useAuth();
-  const canAccess = isAdmin || isExecutiveSecretary || isCED || isED || isEA;
+  const { user, isAdmin, isExecutiveSecretary, isCED, isED, isEA, canAny, rolesLoading } = useAuth();
+  const canAccess = isAdmin || isExecutiveSecretary || isCED || isED || isEA || canAny(["applications.review"]);
   const isFactionScoped = !isAdmin && !isExecutiveSecretary && !isCED && (isED || isEA);
   const [apps, setApps] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
@@ -28,6 +29,7 @@ const ApplicationsReviewPage = () => {
   const [search, setSearch] = useState("");
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const load = async () => {
     const { data } = await supabase
@@ -116,6 +118,34 @@ const ApplicationsReviewPage = () => {
     setComment("");
     openApp({ ...selected, ...patch });
     load();
+  };
+
+  const sendLetter = async (kind: "offer" | "transfer" | "rejection", factionOverride?: string) => {
+    if (!selected) return;
+    setSending(true);
+    const { data, error } = await supabase.functions.invoke("send-application-letter", {
+      body: {
+        application_id: selected.id,
+        kind,
+        faction: factionOverride || selected.final_faction || selected.selected_faction,
+        message: comment || null,
+      },
+    });
+    setSending(false);
+    if (error || (data as any)?.error) {
+      toast({ title: "Letter not sent", description: error?.message || (data as any)?.error, variant: "destructive" });
+      return false;
+    }
+    toast({ title: "Letter sent", description: `Delivered to ${selected.applicant_email}.` });
+    return true;
+  };
+
+  const transfer = async (faction: string) => {
+    if (!selected) return;
+    setSending(true);
+    await act("reassigned", { new_faction: faction });
+    setSending(false);
+    await sendLetter("transfer", faction);
   };
 
   if (rolesLoading) {
@@ -287,13 +317,36 @@ const ApplicationsReviewPage = () => {
                   <Button size="sm" variant="outline" onClick={()=>act("commented")} className="w-full col-span-2"><ShieldAlert className="w-3.5 h-3.5 mr-1"/>Add comment only</Button>
                 </div>
                 <div className="pt-3 border-t space-y-1.5">
-                  <p className="text-xs text-muted-foreground">Reassign to faction</p>
-                  <div className="flex gap-1.5">
-                    {["shi","dyp","teck","mindup"].map(f => (
-                      <Button key={f} size="sm" variant="outline" className="flex-1 text-xs"
-                        onClick={()=>act("reassigned", { new_faction: f })}>{f}</Button>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <ArrowRightLeft className="w-3 h-3" /> Transfer to faction
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {FACTIONS.map(f => (
+                      <Button key={f} size="sm" variant="outline" className="text-xs"
+                        disabled={sending}
+                        onClick={()=>transfer(f)}>{f}</Button>
                     ))}
                   </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    The applicant is notified by letter each time a transfer is recorded.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t space-y-1.5">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Mail className="w-3 h-3" /> Send official letter
+                  </p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <Button size="sm" variant="secondary" className="text-xs" disabled={sending}
+                      onClick={()=>sendLetter("offer")}>Admission</Button>
+                    <Button size="sm" variant="secondary" className="text-xs" disabled={sending}
+                      onClick={()=>sendLetter("transfer")}>Transfer</Button>
+                    <Button size="sm" variant="secondary" className="text-xs" disabled={sending}
+                      onClick={()=>sendLetter("rejection")}>Outcome</Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    The comment box above is included in the letter when filled.
+                  </p>
                 </div>
               </>
             )}

@@ -72,7 +72,7 @@ function BirthdayCountdown({ targetDate }: { targetDate: Date }) {
 }
 
 const CommunityManagerDashboard = () => {
-  const { isCommunityManager, isAdmin, isAdminOrES, loading } = useAuth();
+  const { isCommunityManager, isAdmin, isAdminOrES, canAny, loading } = useAuth();
   const { events, isLoading: eventsLoading, createEvent, updateEvent, attendance, getEventAttendance } = useEvents();
   const { engagementLogs, isLoading: engLoading, createLog } = useEngagement();
   const { feedback, isLoading: fbLoading, updateFeedbackStatus } = useFeedback();
@@ -128,7 +128,7 @@ const CommunityManagerDashboard = () => {
   const todayBirthdays = upcomingBirthdays.filter((b) => b.daysUntil === 0);
 
   if (loading) return <PageLoader />;
-  if (!isCommunityManager && !isAdmin) return <AccessDenied description="Community tools are available to Community Manager and Admin roles only." />;
+  if (!isCommunityManager && !isAdmin && !canAny(["members.manage", "directory.manage", "view_all_members"])) return <AccessDenied description="Community tools are available to Community Manager and Admin roles only." />;
 
   const totalMembers = profiles.length;
   const activeMembers = profiles.filter((p) => p.status === "active").length;

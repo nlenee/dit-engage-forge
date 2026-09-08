@@ -15,7 +15,7 @@ import InstallButton from "@/components/pwa/InstallButton";
 
 const Header = () => {
   const location = useLocation();
-  const { user, isAdmin, isExecutiveSecretary, isAdminOrES, isCommunityManager, isCFO, isCED, signOut } = useAuth();
+  const { user, isAdmin, isExecutiveSecretary, isAdminOrES, isCommunityManager, isCFO, isCED, canAny, signOut } = useAuth();
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -23,13 +23,13 @@ const Header = () => {
     { path: "/members", label: "Directory", icon: Users },
     { path: "/facecard", label: "Facecard", icon: IdCard },
     { path: "/announcements", label: "Announcements", icon: Megaphone },
-    ...(isAdminOrES ? [{ path: "/create", label: "New Letter", icon: Plus }] : []),
-    ...(isCommunityManager || isAdmin ? [{ path: "/community", label: "Community", icon: Activity }] : []),
-    ...(isCFO || isAdmin ? [{ path: "/finance", label: "Finance", icon: DollarSign }] : []),
-    ...(isAdminOrES ? [{ path: "/executive-summary", label: "Summary", icon: ClipboardList }] : []),
-    ...(isAdmin || isCED ? [{ path: "/analytics", label: "Analytics", icon: BarChart3 }] : []),
-    ...(isAdmin || isCED || isExecutiveSecretary || isCommunityManager ? [{ path: "/dashboard/applications", label: "Applications", icon: ClipboardCheck }] : []),
-    ...(isAdminOrES ? [{ path: "/admin", label: "Admin", icon: Shield }] : []),
+    ...(isAdminOrES || canAny(["letters.create"]) ? [{ path: "/create", label: "New Letter", icon: Plus }] : []),
+    ...(isCommunityManager || isAdmin || canAny(["members.manage", "directory.manage", "view_all_members"]) ? [{ path: "/community", label: "Community", icon: Activity }] : []),
+    ...(isCFO || isAdmin || canAny(["finance.view", "finance.manage", "view_financials"]) ? [{ path: "/finance", label: "Finance", icon: DollarSign }] : []),
+    ...(isAdminOrES || canAny(["view_reports", "view_executive_system"]) ? [{ path: "/executive-summary", label: "Summary", icon: ClipboardList }] : []),
+    ...(isAdmin || isCED || canAny(["view_reports", "export_data"]) ? [{ path: "/analytics", label: "Analytics", icon: BarChart3 }] : []),
+    ...(isAdmin || isCED || isExecutiveSecretary || isCommunityManager || canAny(["applications.review"]) ? [{ path: "/dashboard/applications", label: "Applications", icon: ClipboardCheck }] : []),
+    ...(isAdminOrES || canAny(["admin.settings", "offices.manage"]) ? [{ path: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";

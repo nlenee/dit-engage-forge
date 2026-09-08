@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.send-internal-email]
 verify_jwt = false
+
+[functions.monthly-new-month-email]
+verify_jwt = false

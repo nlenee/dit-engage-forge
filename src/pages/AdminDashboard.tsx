@@ -76,6 +76,7 @@ import ExecutiveBoardPanel from "@/components/admin/ExecutiveBoardPanel";
 import OfficesManager from "@/components/admin/OfficesManager";
 import FactionsManager from "@/components/admin/FactionsManager";
 import ComposeEmailPanel from "@/components/admin/ComposeEmailPanel";
+import MonthlyMessagePanel from "@/components/admin/MonthlyMessagePanel";
 import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -100,7 +101,7 @@ const ROLE_LABEL: Record<string, string> = Object.fromEntries(ROLE_OPTIONS.map((
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, isAdminOrES, loading } = useAuth();
+  const { isAdmin, isAdminOrES, canAny, loading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const {
@@ -127,7 +128,7 @@ const AdminDashboard = () => {
 
   if (loading) return <PageLoader />;
 
-  if (!isAdminOrES) {
+  if (!isAdminOrES && !canAny(["admin.settings", "offices.manage"])) {
     return <AccessDenied description="Admin tools are available to Admin, Chief Executive Director, and Executive Secretary roles only." />;
   }
 
@@ -320,6 +321,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="compose" className="gap-2">
               <Send className="h-4 w-4" />
               Compose Email
+            </TabsTrigger>
+            <TabsTrigger value="monthly" className="gap-2">
+              <Send className="h-4 w-4" />
+              Monthly Message
             </TabsTrigger>
           </TabsList>
 
@@ -623,6 +628,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="compose">
             <ComposeEmailPanel />
+          </TabsContent>
+
+          <TabsContent value="monthly">
+            <MonthlyMessagePanel />
           </TabsContent>
         </Tabs>
       </main>

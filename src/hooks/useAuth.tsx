@@ -35,6 +35,7 @@ interface AuthContextType {
   profileCompleted: boolean;
   permissions: string[];
   hasPermission: (key: string) => boolean;
+  canAny: (keys: string[]) => boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string, extra?: { phone?: string; date_of_birth?: string; faction?: string }) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
