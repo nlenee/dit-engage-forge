@@ -2384,23 +2384,37 @@ export type Database = {
       get_member_directory: {
         Args: never
         Returns: {
+          academic_background: string
           avatar_url: string
           bio: string
+          course: string
           created_at: string
           custom_role_title: string
           date_joined_year: number
           date_of_birth: string
           email: string
+          employer_name: string
+          employment_status: string
+          executive_role: string
+          executive_role_abbr: string
           faction: string
           full_name: string
+          graduation_year: number
           headshot_url: string
           id: string
+          member_level: number
+          origin_city: string
           origin_country: string
           origin_state: string
           phone: string
           primary_role: string
+          residence_city: string
+          residence_country: string
+          residence_state: string
+          school: string
           status: string
           user_id: string
+          xp: number
         }[]
       }
       get_public_profile: {
@@ -2445,6 +2459,13 @@ export type Database = {
       is_registered_member: { Args: { _email: string }; Returns: boolean }
       is_reviewer: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      role_title: {
+        Args: { _role: string }
+        Returns: {
+          abbr: string
+          title: string
+        }[]
+      }
       submit_public_application: {
         Args: { _payload: Json }
         Returns: {

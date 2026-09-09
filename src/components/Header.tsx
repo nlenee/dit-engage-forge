@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ditLogo from "@/assets/dit-logo.jpg";
 import InstallButton from "@/components/pwa/InstallButton";
+import { roleTitle } from "@/lib/roleLabels";
 
 const Header = () => {
   const location = useLocation();
@@ -33,7 +34,14 @@ const Header = () => {
   ];
 
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
-  const roleLabel = isCED ? "Chief Executive Director" : isAdmin ? "Admin" : isExecutiveSecretary ? "Executive Secretary" : isCommunityManager ? "Community Manager" : isCFO ? "Chief Finance Officer" : "Member";
+  const roleLabel = roleTitle(
+    isCED ? "chief_executive_director"
+      : isAdmin ? "admin"
+      : isExecutiveSecretary ? "executive_secretary"
+      : isCommunityManager ? "community_manager"
+      : isCFO ? "chief_finance_officer"
+      : "user"
+  );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card/80 backdrop-blur-xl">

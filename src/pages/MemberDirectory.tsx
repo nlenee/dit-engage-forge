@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
+import { memberTitle, memberAbbr } from "@/lib/roleLabels";
 import { format } from "date-fns";
 
 interface DirectoryMember {
@@ -97,18 +98,6 @@ export default function MemberDirectory() {
     return name.split(" ").map((n) => n[0]).join("").toUpperCase().substring(0, 2);
   };
 
-  const getRoleLabel = (role?: string) => {
-    switch (role) {
-      case "admin": return "Admin";
-      case "chief_executive_director": return "Chief Executive Director";
-      case "executive_secretary": return "Executive Secretary";
-      case "community_manager": return "Community Manager";
-      case "chief_finance_officer": return "Chief Financial Officer";
-      case "executive_director": return "Executive Director";
-      case "executive_assistant": return "Executive Assistant";
-      default: return "Member";
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -174,10 +163,10 @@ export default function MemberDirectory() {
                       <CardTitle className="text-lg truncate">{member.full_name || "—"}</CardTitle>
                       <p className="text-sm text-primary font-medium flex items-center gap-1">
                         <Shield className="h-3 w-3" />
-                        {(member as any).executive_role || getRoleLabel(member.role)}
-                        {(member as any).executive_role_abbr && (
+                        {memberTitle(member as any)}
+                        {memberAbbr(member as any) && (
                           <Badge variant="outline" className="ml-1 text-[10px]">
-                            {(member as any).executive_role_abbr}
+                            {memberAbbr(member as any)}
                           </Badge>
                         )}
                       </p>
