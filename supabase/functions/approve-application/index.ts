@@ -56,6 +56,39 @@ serve(async (req) => {
       comment: "Auto-provisioned member account.",
     });
 
+
+    // Pull the applicant's submitted answers so their record is identical platform-wide
+    const { data: respRows } = await admin
+      .from("application_responses")
+      .select("question_key, response_value")
+      .eq("application_id", application_id);
+    const answers: Record<string, string> = {};
+    (respRows || []).forEach((r: any) => {
+      const v = r?.response_value?.value ?? r?.response_value;
+      if (typeof v === "string" && v.trim()) answers[r.question_key] = v.trim();
+    });
+
+    const isoDate = (v?: string) => {
+      if (!v) return null;
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+    };
+
+    const syncedProfile: Record<string, unknown> = {
+      full_name: fullName,
+      email,
+      faction: finalFaction,
+      pending_role_assignment: false,
+    };
+    if (answers.phone) syncedProfile.phone = answers.phone;
+    if (isoDate(answers.date_of_birth)) syncedProfile.date_of_birth = isoDate(answers.date_of_birth);
+    if (answers.country) { syncedProfile.origin_country = answers.country; syncedProfile.residence_country = answers.country; }
+    if (answers.city) { syncedProfile.origin_city = answers.city; syncedProfile.residence_city = answers.city; }
+    if (answers.education) syncedProfile.academic_background = answers.education;
+    if (answers.occupation) { syncedProfile.employment_status = answers.occupation; syncedProfile.employer_name = answers.occupation; }
+    if (app.about_yourself) syncedProfile.bio = String(app.about_yourself).slice(0, 500);
+    syncedProfile.date_joined_year = new Date().getFullYear();
+
     // 2. Check if user already exists in auth
     let targetUserId: string | null = null;
     const { data: existingProfile } = await admin
@@ -65,9 +98,8 @@ serve(async (req) => {
       targetUserId = existingProfile.user_id;
       // Patch faction/role on existing profile
       await admin.from("profiles").update({
-        faction: finalFaction,
+        ...syncedProfile,
         custom_role_title: role_title || "Member",
-        pending_role_assignment: false,
       }).eq("user_id", targetUserId);
     } else {
       // 3. Invite the user (creates auth.users row -> handle_new_user creates profile)
@@ -90,8 +122,8 @@ serve(async (req) => {
       // Patch profile with custom role title after trigger runs
       if (targetUserId) {
         await admin.from("profiles").update({
+          ...syncedProfile,
           custom_role_title: role_title || "Member",
-          faction: finalFaction,
         }).eq("user_id", targetUserId);
       }
     }
