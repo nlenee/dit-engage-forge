@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { memberTitle } from "@/lib/roleLabels";
 
 export interface Member {
   id: string;
@@ -26,15 +27,6 @@ export interface Member {
   updated_at: string;
 }
 
-const ROLE_LABEL: Record<string, string> = {
-  user: "Member",
-  community_manager: "Community Manager",
-  chief_finance_officer: "Chief Financial Officer",
-  executive_secretary: "Executive Secretary",
-  executive_assistant: "Executive Assistant",
-  executive_director: "Executive Director",
-  chief_executive_director: "Chief Executive Director",
-};
 
 export const useMembers = () => {
   const { user, isAdminOrES } = useAuth();
@@ -58,8 +50,7 @@ export const useMembers = () => {
         country: r.origin_country || null,
         state: r.origin_state || null,
         faction: r.faction || null,
-        role_in_dit:
-          r.custom_role_title || ROLE_LABEL[r.primary_role] || "Member",
+        role_in_dit: memberTitle(r),
         previous_roles: null,
         bio: r.bio || null,
         testimony: null,

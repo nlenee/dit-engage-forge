@@ -12,22 +12,13 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { memberTitle } from "@/lib/roleLabels";
 
 const FACTION_LABELS: Record<string, string> = {
   SHI: "Secured Health Initiative",
   TECK: "Technology",
   MINDUP: "Mind Up",
   DYP: "Discover Your Purpose",
-};
-const ROLE_LABEL: Record<string, string> = {
-  admin: "Admin",
-  chief_executive_director: "Chief Executive Director",
-  executive_secretary: "Executive Secretary",
-  community_manager: "Community Manager",
-  chief_finance_officer: "CFO",
-  executive_director: "Executive Director",
-  executive_assistant: "Executive Assistant",
-  user: "Member",
 };
 
 type Preset = { id: string; label: string; w: number; h: number };
@@ -238,7 +229,7 @@ export default function FacecardPage() {
       : p.date_joined_year
       ? String(p.date_joined_year)
       : "—";
-  const roleLabel = ROLE_LABEL[data.role || "user"];
+  const roleLabel = memberTitle({ ...(data.profile as any), role: data.role || "user" });
   const factionLabel = p.faction ? FACTION_LABELS[p.faction] || p.faction : null;
 
   const cardProps = {
