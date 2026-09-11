@@ -1589,6 +1589,56 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          read_at: string | null
+          recipient_deleted: boolean
+          recipient_id: string
+          sender_deleted: boolean
+          sender_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          read_at?: string | null
+          recipient_deleted?: boolean
+          recipient_id: string
+          sender_deleted?: boolean
+          sender_id: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          read_at?: string | null
+          recipient_deleted?: boolean
+          recipient_id?: string
+          sender_deleted?: boolean
+          sender_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_messages: {
         Row: {
           approval_token: string
