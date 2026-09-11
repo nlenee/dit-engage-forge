@@ -79,6 +79,10 @@ serve(async (req) => {
       email,
       faction: finalFaction,
       pending_role_assignment: false,
+      // Approved applicants are full members immediately — an incomplete flag
+      // would make the sign-in membership check bounce them to the form again.
+      profile_completed: true,
+      status: "active",
     };
     if (answers.phone) syncedProfile.phone = answers.phone;
     if (isoDate(answers.date_of_birth)) syncedProfile.date_of_birth = isoDate(answers.date_of_birth);
@@ -109,7 +113,7 @@ serve(async (req) => {
           full_name: fullName,
           faction: finalFaction,
           pending_role_assignment: false,
-          profile_completed: false,
+          profile_completed: true,
         },
         redirectTo,
       });
