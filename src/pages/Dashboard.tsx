@@ -53,6 +53,7 @@ import { useMessages } from "@/hooks/useMessages";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { isAdminOrES, isED, isEA, userRole, user } = useAuth();
+  const { inbox, unreadCount } = useMessages();
   const showBirthdayWidget = isED || isEA;
   const [myFaction, setMyFaction] = useState<string | null>(null);
 
@@ -110,9 +111,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
         {/* Hero Section */}
-        <div className="dit-gradient-hero rounded-2xl p-8 mb-8 relative overflow-hidden animate-fade-in">
+        <div className="dit-gradient-hero rounded-2xl p-5 sm:p-8 mb-6 sm:mb-8 relative overflow-hidden animate-fade-in">
           <div className="absolute top-4 right-4 opacity-10">
             <img src={ditLogo} alt="" className="h-32 w-32 object-contain" />
           </div>
