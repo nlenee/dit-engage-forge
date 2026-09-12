@@ -103,7 +103,7 @@ export default function MemberDirectory() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
             <Users className="h-8 w-8 text-primary" />

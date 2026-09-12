@@ -85,7 +85,7 @@ export default function AnniversaryHub() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8 max-w-6xl">
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold flex items-center gap-3">
             <Sparkles className="h-8 w-8 text-primary" /> Anniversary Hub

@@ -210,7 +210,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>

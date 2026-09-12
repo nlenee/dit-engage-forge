@@ -64,7 +64,7 @@ const OrgStructure = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8 max-w-6xl">
         <header className="mb-8">
           <p className="text-xs uppercase tracking-[0.2em] text-primary">Divine Intelligence Team</p>
           <h1 className="font-display text-3xl font-bold text-foreground">Organisational Structure</h1>

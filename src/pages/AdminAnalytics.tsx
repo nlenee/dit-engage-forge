@@ -61,7 +61,7 @@ export default function AdminAnalytics() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8 max-w-7xl">
         <h1 className="font-display text-3xl font-bold flex items-center gap-3 mb-8">
           <BarChart3 className="h-8 w-8 text-primary" /> Admin Analytics
         </h1>

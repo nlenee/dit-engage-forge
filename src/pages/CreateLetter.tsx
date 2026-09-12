@@ -231,7 +231,7 @@ const CreateLetter = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
         <div className="mb-8 animate-fade-in">
           <h1 className="font-display text-3xl font-bold text-foreground">
             {id ? "Edit Letter of Engagement" : "Create Letter of Engagement"}
