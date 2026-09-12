@@ -18,6 +18,7 @@ import {
   Loader2,
   Megaphone,
   Users,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,7 @@ import { getCountryName, getStateName } from "@/data/countries";
 import ditLogo from "@/assets/dit-logo.jpg";
 import { NextBirthdayCountdown } from "@/components/NextBirthdayCountdown";
 import { supabase } from "@/integrations/supabase/client";
+import { useMessages } from "@/hooks/useMessages";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -123,16 +125,27 @@ const Dashboard = () => {
               Your community dashboard — stay connected, view announcements, and manage your activities.
             </p>
             
-            <div className="flex gap-3">
-              <Link to="/members">
-                <Button variant="outline" className="gap-2">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              <Link to="/members" className="flex-1 sm:flex-none">
+                <Button variant="outline" className="w-full gap-2 sm:w-auto">
                   <Users className="h-4 w-4" />
                   Member Directory
                 </Button>
               </Link>
+              <Link to="/messages" className="flex-1 sm:flex-none">
+                <Button variant="outline" className="w-full gap-2 sm:w-auto">
+                  <MessageSquare className="h-4 w-4" />
+                  Messages
+                  {unreadCount > 0 && (
+                    <span className="rounded-full bg-destructive px-2 text-[11px] font-semibold leading-5 text-destructive-foreground">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
               {isAdminOrES && (
-                <Link to="/create">
-                  <Button className="bg-primary hover:bg-primary/90 shadow-soft gap-2">
+                <Link to="/create" className="flex-1 sm:flex-none">
+                  <Button className="w-full bg-primary hover:bg-primary/90 shadow-soft gap-2 sm:w-auto">
                     <Plus className="h-4 w-4" />
                     Create Letter
                   </Button>
@@ -141,6 +154,46 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Messages */}
+        <Card className="mb-8 animate-fade-in">
+          <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0 pb-3">
+            <div className="min-w-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                My messages
+              </CardTitle>
+              <CardDescription className="text-xs">
+                {unreadCount > 0
+                  ? `${unreadCount} unread message${unreadCount > 1 ? "s" : ""} waiting`
+                  : "Message anyone on the platform"}
+              </CardDescription>
+            </div>
+            <Link to="/messages" className="shrink-0">
+              <Button size="sm" variant={unreadCount > 0 ? "default" : "outline"}>
+                Open
+              </Button>
+            </Link>
+          </CardHeader>
+          {!!inbox.length && (
+            <CardContent className="space-y-2 pt-0">
+              {inbox.slice(0, 3).map((m) => (
+                <Link
+                  key={m.id}
+                  to="/messages"
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border/60 p-3 transition-colors hover:bg-accent/40"
+                >
+                  <span className="min-w-0">
+                    <span className={`block truncate text-sm ${m.read_at ? "" : "font-semibold"}`}>{m.subject}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{m.body}</span>
+                  </span>
+                  {!m.read_at && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />}
+                </Link>
+              ))}
+            </CardContent>
+          )}
+        </Card>
+
 
         {/* Faction-scoped Birthday Spotlight — ED / EA only */}
         {showBirthdayWidget && (
