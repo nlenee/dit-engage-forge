@@ -363,3 +363,45 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
+
+/* ---- Mobile flexibility: no horizontal overflow, no overlap, safe tap targets ---- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Long words, emails and URLs wrap instead of pushing the layout sideways */
+  h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, label {
+    overflow-wrap: anywhere;
+  }
+
+  /* Media never exceeds its container */
+  img, svg, video, canvas {
+    max-width: 100%;
+  }
+
+  @media (max-width: 767px) {
+    /* Comfortable tap targets on touch screens */
+    button, [role="button"], a[href], select, summary {
+      min-height: 44px;
+    }
+    button.h-4, button.h-5, button.h-6, button.h-7, button.h-8,
+    [role="button"].h-4, [role="button"].h-5, [role="button"].h-6,
+    [role="button"].h-7, [role="button"].h-8 {
+      min-height: 0;
+    }
+    /* Inputs at 16px avoid iOS zoom-on-focus */
+    input, select, textarea {
+      font-size: 16px;
+    }
+    /* Tables scroll inside their card instead of stretching the page */
+    table {
+      min-width: 100%;
+    }
+  }
+}
