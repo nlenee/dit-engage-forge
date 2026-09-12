@@ -105,7 +105,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8 max-w-2xl">
         <h1 className="font-display text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
           <User className="h-8 w-8 text-primary" />
           My Profile

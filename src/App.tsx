@@ -34,6 +34,7 @@ import AdminFormsPage from "./pages/applications/AdminFormsPage";
 import Troubleshooting from "./pages/Troubleshooting";
 import OrgStructure from "./pages/OrgStructure";
 import OfflineIndicator from "./components/pwa/OfflineIndicator";
+import MessagesPage from "./pages/MessagesPage";
 
 const queryClient = new QueryClient();
 
@@ -52,11 +53,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Members-only gate: a signed-in user without a completed DIT profile is
-  // not yet an approved member and must not see internal pages.
+  // A signed-in member whose record is missing details finishes their profile
+  // instead of being bounced back to the public application form.
   if (!profileCompleted) {
-    return <Navigate to="/?notice=members-only" replace />;
+    return <Navigate to="/complete-profile" replace />;
   }
+
+  return <>{children}</>;
+};
+
+/** Signed-in only — no profile-completion gate (used by the finish-profile step). */
+const SignedInRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/auth" replace />;
 
   return <>{children}</>;
 };
@@ -93,7 +111,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/complete-profile" element={<Navigate to="/apply" replace />} />
+            <Route path="/complete-profile" element={<SignedInRoute><ProfilePage /></SignedInRoute>} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/facecard" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
             <Route path="/facecard/:userId" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
@@ -109,6 +127,7 @@ const App = () => (
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><CommunityManagerDashboard /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute><CFODashboard /></ProtectedRoute>} />
             <Route path="/summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />

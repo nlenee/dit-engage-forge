@@ -33,7 +33,7 @@ const AdminFormsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8 max-w-5xl">
         <h1 className="font-display text-3xl font-semibold mb-2">Admin Forms & Links</h1>
         <p className="text-muted-foreground mb-6">Manage every faction's form template and registration campaign.</p>
         <ShareLinkPanel />
