@@ -52,19 +52,20 @@ export const useMessages = () => {
 
   // Live updates + installed-app icon badge
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
+    const userId = user.id;
     const channel = supabase
-      .channel("messages-live")
+      .channel(`messages-live-${userId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "messages" },
-        () => queryClient.invalidateQueries({ queryKey: ["messages", user.id] }),
+        () => queryClient.invalidateQueries({ queryKey: ["messages", userId] }),
       )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [user, queryClient]);
+  }, [user?.id, queryClient]);
 
   useEffect(() => {
     if (user) setBadge(unreadCount);
