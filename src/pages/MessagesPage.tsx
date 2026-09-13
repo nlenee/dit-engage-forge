@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Inbox, Send, Mail, MailOpen, Search, Loader2, CheckCheck } from "lucide-react";
 import Header from "@/components/Header";
@@ -26,6 +27,8 @@ const initials = (name: string) =>
   name.split(" ").filter(Boolean).slice(0, 2).map((n) => n[0]?.toUpperCase()).join("") || "?";
 
 const MessagesPage = () => {
+  const { messageId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { inbox, sent, unreadCount, isLoading, sendMessage, markRead, markAllRead } = useMessages();
   const { members } = useMembers();
@@ -45,6 +48,13 @@ const MessagesPage = () => {
           `${m.full_name} ${m.faction ?? ""} ${m.role_in_dit ?? ""}`
             .toLowerCase()
             .includes(search.toLowerCase()),
+
+  useEffect(() => {
+    if (messageId && (inbox.length > 0 || sent.length > 0) && !open) {
+      const msg = inbox.find((m) => m.id === messageId) || sent.find((m) => m.id === messageId);
+      if (msg) setOpen(msg);
+    }
+  }, [messageId, inbox, sent, open]);
         ),
     [members, search, user?.id],
   );
