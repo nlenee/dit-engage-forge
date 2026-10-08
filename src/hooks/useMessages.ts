@@ -50,19 +50,31 @@ export const useMessages = () => {
   const sent = messages.filter((m) => m.sender_id === user?.id);
   const unreadCount = inbox.filter((m) => !m.read_at).length;
 
-  // Live updates + installed-app icon badge
+  // Live updates scoped to this user's own messages (as recipient or sender).
+  // All callbacks are registered before subscribe(); a unique channel name per
+  // mount avoids "callbacks after subscribe" errors when several screens mount.
   useEffect(() => {
     if (!user?.id) return;
     const userId = user.id;
+    let disposed = false;
+    const refresh = () => {
+      if (!disposed) queryClient.invalidateQueries({ queryKey: ["messages", userId] });
+    };
     const channel = supabase
       .channel(`messages-live-${userId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "messages" },
-        () => queryClient.invalidateQueries({ queryKey: ["messages", userId] }),
+        { event: "*", schema: "public", table: "messages", filter: `recipient_id=eq.${userId}` },
+        refresh,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages", filter: `sender_id=eq.${userId}` },
+        refresh,
       )
       .subscribe();
     return () => {
+      disposed = true;
       void supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);
