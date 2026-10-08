@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { safeNext, consumeNext } from "@/lib/authRedirect";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { lazy, Suspense } from "react";
 import Landing from "./pages/Landing";
@@ -43,6 +44,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, profileCompleted } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -53,7 +55,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    const next = safeNext(location.pathname + location.search + location.hash);
+    return <Navigate to={next ? `/auth?next=${encodeURIComponent(next)}` : "/auth"} replace />;
   }
 
   // A signed-in member whose record is missing details finishes their profile
@@ -84,6 +87,7 @@ const SignedInRoute = ({ children }: { children: React.ReactNode }) => {
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -94,7 +98,8 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    const dest = safeNext(new URLSearchParams(location.search).get("next")) || consumeNext();
+    return <Navigate to={dest} replace />;
   }
 
   return <>{children}</>;

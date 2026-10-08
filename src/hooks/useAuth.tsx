@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, useRef, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { consumeNext } from "@/lib/authRedirect";
 
 type AppRole = "admin" | "user" | "executive_secretary" | "community_manager" | "chief_finance_officer" | "chief_executive_director" | "executive_director" | "executive_assistant";
 
@@ -84,21 +85,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const top = ROLE_PRIORITY.find((r) => resolvedRoles.includes(r)) || "user";
       setUserRole(top);
 
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("profile_completed")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // Profile and permission reads are independent — run them together.
+      const [profRes, permsRes] = await Promise.all([
+        supabase.from("profiles").select("profile_completed").eq("user_id", userId).maybeSingle(),
+        supabase.rpc("user_permissions", { _user_id: userId }).then(
+          (r) => r,
+          () => ({ data: null }),
+        ),
+      ]);
       if (roleRequestRef.current !== requestId) return;
-      setProfileCompleted(prof?.profile_completed ?? false);
-
-      try {
-        const { data: perms } = await supabase.rpc("user_permissions", { _user_id: userId });
-        if (roleRequestRef.current !== requestId) return;
-        setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
-      } catch {
-        if (roleRequestRef.current === requestId) setPermissions([]);
-      }
+      setProfileCompleted(profRes.data?.profile_completed ?? false);
+      const perms = (permsRes as { data: unknown }).data;
+      setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
     } catch {
       if (roleRequestRef.current !== requestId) return;
       rolesLoadedForRef.current = userId;
@@ -143,7 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   setTimeout(() => checkUserRole(session.user.id), 0);
                 }
                 if (window.location.pathname === "/auth" || window.location.pathname === "/") {
-                  window.location.replace("/dashboard");
+                  window.location.replace(consumeNext());
                 }
                 return;
               }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { safeNext, storeNext, consumeNext } from "@/lib/authRedirect";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,9 +49,9 @@ const Auth = () => {
     if (!user) return;
     // Google flow is handled by AuthProvider; for password sign-in just go to dashboard.
     if ((user.app_metadata as any)?.provider !== "google") {
-      navigate("/dashboard");
+      navigate(safeNext(params.get("next")) || consumeNext(), { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, params]);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -78,6 +79,7 @@ const Auth = () => {
     setOauthLoading(true);
     setGoogleError(null);
     sessionStorage.setItem("google_intent", intent);
+    storeNext(params.get("next"));
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) {
       setOauthLoading(false);
