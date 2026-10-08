@@ -2467,6 +2467,17 @@ export type Database = {
           xp: number
         }[]
       }
+      get_message_recipients: {
+        Args: never
+        Returns: {
+          faction: string
+          full_name: string
+          headshot_url: string
+          role_abbr: string
+          role_title: string
+          user_id: string
+        }[]
+      }
       get_public_profile: {
         Args: { _user_id: string }
         Returns: {
