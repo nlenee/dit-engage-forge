@@ -108,6 +108,7 @@ const App = () => (
       <OfflineIndicator />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<PageLoader message="Loading…" />}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
@@ -154,6 +155,7 @@ const App = () => (
             <Route path="/troubleshooting" element={<Troubleshooting />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
