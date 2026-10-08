@@ -4,37 +4,40 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
-import Dashboard from "./pages/Dashboard";
-import CreateLetter from "./pages/CreateLetter";
-import AdminDashboard from "./pages/AdminDashboard";
+import { lazy, Suspense } from "react";
+import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import MemberRegister from "./pages/MemberRegister";
-import MemberDirectory from "./pages/MemberDirectory";
-import ProfilePage from "./pages/ProfilePage";
-import AnnouncementsPage from "./pages/AnnouncementsPage";
-import CommunityManagerDashboard from "./pages/CommunityManagerDashboard";
-import CFODashboard from "./pages/CFODashboard";
-import ExecutiveSummary from "./pages/ExecutiveSummary";
-import Landing from "./pages/Landing";
-import Welcome from "./pages/Welcome";
-import FacecardPage from "./pages/FacecardPage";
-import PublicProfile from "./pages/PublicProfile";
-import AnniversaryHub from "./pages/AnniversaryHub";
-import AdminAnalytics from "./pages/AdminAnalytics";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import ApplyPage from "./pages/applications/ApplyPage";
-import VolunteerPage from "./pages/applications/VolunteerPage";
-import TrackPage from "./pages/applications/TrackPage";
-import AppointPage from "./pages/applications/AppointPage";
-import ApplicationsReviewPage from "./pages/applications/ApplicationsReviewPage";
-import FactionFormsPage from "./pages/applications/FactionFormsPage";
-import AdminFormsPage from "./pages/applications/AdminFormsPage";
-import Troubleshooting from "./pages/Troubleshooting";
-import OrgStructure from "./pages/OrgStructure";
 import OfflineIndicator from "./components/pwa/OfflineIndicator";
-import MessagesPage from "./pages/MessagesPage";
+import { PageLoader } from "./components/RouteAccess";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const CreateLetter = lazy(() => import("./pages/CreateLetter"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const MemberRegister = lazy(() => import("./pages/MemberRegister"));
+const MemberDirectory = lazy(() => import("./pages/MemberDirectory"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const AnnouncementsPage = lazy(() => import("./pages/AnnouncementsPage"));
+const CommunityManagerDashboard = lazy(() => import("./pages/CommunityManagerDashboard"));
+const CFODashboard = lazy(() => import("./pages/CFODashboard"));
+const ExecutiveSummary = lazy(() => import("./pages/ExecutiveSummary"));
+const Welcome = lazy(() => import("./pages/Welcome"));
+const FacecardPage = lazy(() => import("./pages/FacecardPage"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const AnniversaryHub = lazy(() => import("./pages/AnniversaryHub"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ApplyPage = lazy(() => import("./pages/applications/ApplyPage"));
+const VolunteerPage = lazy(() => import("./pages/applications/VolunteerPage"));
+const TrackPage = lazy(() => import("./pages/applications/TrackPage"));
+const AppointPage = lazy(() => import("./pages/applications/AppointPage"));
+const ApplicationsReviewPage = lazy(() => import("./pages/applications/ApplicationsReviewPage"));
+const FactionFormsPage = lazy(() => import("./pages/applications/FactionFormsPage"));
+const AdminFormsPage = lazy(() => import("./pages/applications/AdminFormsPage"));
+const Troubleshooting = lazy(() => import("./pages/Troubleshooting"));
+const OrgStructure = lazy(() => import("./pages/OrgStructure"));
+const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 
 const queryClient = new QueryClient();
 
@@ -105,6 +108,7 @@ const App = () => (
       <OfflineIndicator />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<PageLoader message="Loading…" />}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
@@ -151,6 +155,7 @@ const App = () => (
             <Route path="/troubleshooting" element={<Troubleshooting />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
