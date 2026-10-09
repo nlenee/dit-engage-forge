@@ -48,6 +48,10 @@ const os2Modules = {
   announcements: { title: "Announcements", description: "Organizational updates and notices.", oldPath: "/announcements", component: AnnouncementsPage },
   finance: { title: "Finance", description: "Existing authorized financial operations.", oldPath: "/finance", component: CFODashboard },
   community: { title: "Community Management", description: "Existing team management workflows.", oldPath: "/community", component: CommunityManagerDashboard },
+  letters: { title: "Official Letters", description: "Prepare correspondence using the existing letter editor.", oldPath: "/create", component: CreateLetter },
+  applications: { title: "Application Reviews", description: "Review submitted applications.", oldPath: "/dashboard/applications", component: ApplicationsReviewPage },
+  executive: { title: "Executive Summary", description: "Leadership reports and operations.", oldPath: "/executive-summary", component: ExecutiveSummary },
+  admin: { title: "Administration", description: "Manage DIT system operations.", oldPath: "/admin", component: AdminDashboard },
 };
 
 const queryClient = new QueryClient();
