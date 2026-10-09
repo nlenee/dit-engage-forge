@@ -21,7 +21,7 @@ export default function OS2Shell({ children, title, description }: Props) {
     { id: "management", title: "MANAGEMENT" }
   ] as const;
   const closeMenu = () => setMobileOpen(false);
-  const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community" } as Record<string, string>)[path] || path;
+  const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community", "/create": "/os2-preview/letters", "/dashboard/applications": "/os2-preview/applications", "/executive-summary": "/os2-preview/executive", "/admin": "/os2-preview/admin" } as Record<string, string>)[path] || path;
   const nav = (
     <>
       <Link to="/os2-preview" className="os2-brand" onClick={closeMenu}>
