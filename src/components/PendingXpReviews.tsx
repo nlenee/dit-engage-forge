@@ -66,12 +66,12 @@ export default function PendingXpReviews() {
         ) : (
           <div className="space-y-3">
             {pending.map((p: any) => (
-              <div key={p.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                <div className="flex-1">
+              <div key={p.id} className="flex min-w-0 flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-start">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold">{p.profile?.full_name || "Unknown"}</span>
+                    <span className="font-semibold break-words">{p.profile?.full_name || "Unknown"}</span>
                     <span className="text-sm text-muted-foreground">completed</span>
-                    <span className="font-medium">{p.task?.title || "—"}</span>
+                    <span className="font-medium break-words">{p.task?.title || "—"}</span>
                     <Badge>+{p.task?.points || 0} XP</Badge>
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
@@ -84,11 +84,11 @@ export default function PendingXpReviews() {
                   )}
                   {p.notes && <p className="text-xs italic mt-1">"{p.notes}"</p>}
                 </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => review.mutate({ id: p.id, status: "approved" })}>
+                <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                  <Button size="sm" variant="outline" className="min-h-10 flex-1 sm:flex-none" onClick={() => review.mutate({ id: p.id, status: "approved" })}>
                     <CheckCircle2 className="h-4 w-4 mr-1 text-green-600" /> Approve
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => {
+                  <Button size="sm" variant="outline" className="min-h-10 flex-1 sm:flex-none" onClick={() => {
                     const reason = window.prompt("Rejection reason (optional)") || undefined;
                     review.mutate({ id: p.id, status: "rejected", reason });
                   }}>

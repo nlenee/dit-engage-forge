@@ -70,12 +70,12 @@ const Landing = () => {
     <div className="min-h-screen bg-background text-foreground">
       {/* NAV */}
       <header className="sticky top-0 z-40 bg-[#0e1829]/95 backdrop-blur border-b border-white/10 text-white">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
-          <Link to="/" className="flex items-center gap-2.5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 px-3 sm:px-6 py-3">
+          <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
             <img src={ditLogo} alt="DIT" className="w-9 h-9 rounded-md" />
             <div className="leading-tight">
               <div className="text-sm font-bold tracking-wide">DIT</div>
-              <div className="text-[10px] uppercase tracking-[0.25em] text-white/60">Divine Intelligence Team</div>
+              <div className="hidden sm:block text-[10px] uppercase tracking-[0.25em] text-white/60">Divine Intelligence Team</div>
             </div>
           </Link>
           <nav className="hidden md:flex items-center gap-1 text-sm">
@@ -85,17 +85,17 @@ const Landing = () => {
             <button onClick={scrollTo("values")} className="px-3 py-2 rounded hover:bg-white/10">Values</button>
             <button onClick={scrollTo("factions")} className="px-3 py-2 rounded hover:bg-white/10">Factions</button>
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             {user ? (
-              <Button asChild size="sm" className="bg-white text-[#0e1829] hover:bg-white/90 font-semibold">
+              <Button asChild size="sm" className="bg-white text-[#0e1829] hover:bg-white/90 font-semibold px-2.5 sm:px-3 text-xs sm:text-sm">
                 <Link to="/dashboard">Dashboard</Link>
               </Button>
             ) : (
-              <Button asChild size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                <Link to="/auth?mode=login">Member Login</Link>
+              <Button asChild size="sm" variant="ghost" className="text-white hover:bg-white/10 px-2.5 sm:px-3 text-xs sm:text-sm">
+                <Link to="/auth?mode=login"><span className="sm:hidden">Login</span><span className="hidden sm:inline">Member Login</span></Link>
               </Button>
             )}
-            <Button asChild size="sm" className="bg-[#3a7bbf] hover:bg-[#2d6aac] text-white font-semibold">
+            <Button asChild size="sm" className="bg-[#3a7bbf] hover:bg-[#2d6aac] text-white font-semibold px-2.5 sm:px-3 text-xs sm:text-sm">
               <Link to="/apply">Apply to Join</Link>
             </Button>
           </div>
@@ -113,14 +113,14 @@ const Landing = () => {
             backgroundSize: "48px 48px",
           }}
         />
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-24 sm:py-32 text-center">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-32 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs uppercase tracking-[0.25em] mb-8">
             <ShieldCheck className="w-3.5 h-3.5" /> Since 2016
           </div>
-          <h1 className="font-display text-5xl sm:text-7xl font-bold leading-[1.05] tracking-tight">
+          <h1 className="font-display text-[clamp(2.6rem,10vw,4.8rem)] sm:text-7xl font-bold leading-[1.07] tracking-tight break-words">
             Divine Intelligence Team
           </h1>
-          <p className="mt-5 font-mono text-xs sm:text-sm tracking-[0.3em] uppercase text-[#b8ddf5]">
+          <p className="mt-5 font-mono text-[11px] sm:text-sm tracking-[0.13em] sm:tracking-[0.3em] uppercase text-[#b8ddf5]">
             The Game Changers — For the Kingdom, For the Generation
           </p>
           <p className="mt-8 max-w-2xl mx-auto text-base sm:text-lg text-white/80 leading-relaxed">

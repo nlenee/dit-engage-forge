@@ -163,6 +163,23 @@ const CFODashboard = () => {
               ) : transactions.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">No transactions yet.</div>
               ) : (
+                <>
+                <div className="md:hidden space-y-2 p-3" aria-label="Transactions">
+                  {transactions.map(tx => (
+                    <article key={tx.id} className="rounded-lg border p-3 space-y-2">
+                      <div className="flex justify-between items-start gap-3">
+                        <p className="min-w-0 font-semibold break-words">{tx.description}</p>
+                        <strong className={`shrink-0 text-sm ${tx.type === "income" ? "text-green-700" : "text-red-700"}`}>{tx.type === "income" ? "+" : "-"}{formatCurrency(Number(tx.amount))}</strong>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span>{format(new Date(tx.transaction_date), "d MMM yyyy")}</span>
+                        <Badge variant="outline" className="capitalize">{tx.type}</Badge>
+                        {tx.category && <span className="break-words">{tx.category}</span>}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -192,6 +209,8 @@ const CFODashboard = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
+                </>
               )}
             </div>
           </TabsContent>

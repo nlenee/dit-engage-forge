@@ -82,18 +82,18 @@ const OrgStructure = () => {
               if (!list.length) return null;
               return (
                 <section key={tier.key}>
-                  <div className="flex items-baseline gap-3 mb-4">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
                     <h2 className="font-display text-xl font-semibold">{tier.label}</h2>
                     <span className="text-xs text-muted-foreground">{tier.caption}</span>
                     <span className="ml-auto text-xs text-muted-foreground">{list.length} offices</span>
                   </div>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {list.map((office) => {
                       const holders = data?.holders?.[office.id] || [];
                       const permKeys = data?.perms?.[office.id] || [];
                       const color = factionColor(office.faction, office.tier);
                       return (
-                        <Card key={office.id} className="p-4 space-y-3 border-l-4" style={{ borderLeftColor: color }}>
+                        <Card key={office.id} className="p-3 sm:p-4 space-y-2 sm:space-y-3 border-l-4" style={{ borderLeftColor: color }}>
                           <div className="flex items-start gap-2">
                             <Building2 className="w-4 h-4 mt-0.5 shrink-0" style={{ color }} />
                             <div className="min-w-0">
@@ -117,7 +117,7 @@ const OrgStructure = () => {
                                 {holders.map((h: any) => (
                                   <li key={h.user_id} className="flex items-center gap-2">
                                     <User2 className="w-3.5 h-3.5 text-muted-foreground" />
-                                    <span className="truncate">{h.profile?.full_name || "Member"}</span>
+                                    <span className="min-w-0 break-words">{h.profile?.full_name || "Member"}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -131,16 +131,14 @@ const OrgStructure = () => {
                               <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1.5 flex items-center gap-1">
                                 <ShieldCheck className="w-3 h-3" /> Access rights
                               </p>
-                              <div className="flex flex-wrap gap-1">
-                                {permKeys.slice(0, 6).map((k) => (
-                                  <Badge key={k} variant="outline" className="text-[10px] font-normal">
-                                    {permLabel(k)}
-                                  </Badge>
-                                ))}
-                                {permKeys.length > 6 && (
-                                  <Badge variant="outline" className="text-[10px]">+{permKeys.length - 6} more</Badge>
-                                )}
-                              </div>
+                              <details className="group">
+                                <summary className="cursor-pointer list-none rounded-md border px-3 py-2 text-xs font-medium text-primary focus-visible:outline focus-visible:outline-2">
+                                  View {permKeys.length} access {permKeys.length === 1 ? "right" : "rights"} <span className="text-muted-foreground group-open:hidden">▾</span><span className="hidden text-muted-foreground group-open:inline">▴</span>
+                                </summary>
+                                <div className="mt-2 flex flex-wrap gap-1.5" aria-label={`Permissions for ${office.title}`}>
+                                  {permKeys.map(k => <Badge key={k} variant="outline" className="max-w-full whitespace-normal break-words text-[11px] font-normal">{permLabel(k)}</Badge>)}
+                                </div>
+                              </details>
                             </div>
                           )}
                         </Card>

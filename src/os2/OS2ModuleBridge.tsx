@@ -23,6 +23,6 @@ export default function OS2ModuleBridge({ modules }: Props) {
   if (!allowed) return <OS2Shell title="Access restricted"><div className="os2-panel os2-access-denied"><ShieldAlert size={25}/><p>Your account is not authorized for this module.</p><Link to="/os2-preview">Return to workspace</Link></div></OS2Shell>;
   const Component = config.component;
   return <OS2Shell title={config.title} description={config.description}>
-    <div className="os2-legacy-module"><Component/></div>
+    <div className={`os2-legacy-module os2-module-${key}`}><Component/></div>
   </OS2Shell>;
 }

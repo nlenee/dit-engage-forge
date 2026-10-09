@@ -116,14 +116,14 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8 max-w-2xl">
-        <h1 className="font-display text-3xl font-bold text-foreground mb-6 flex items-center gap-3">
+        <h1 className="font-display text-xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
           <User className="h-8 w-8 text-primary" />
           My Profile
         </h1>
 
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-4 mb-2">
+            <div className="flex min-w-0 flex-col items-start gap-3 mb-2 sm:flex-row sm:items-center sm:gap-4">
               <ImageUploader
                 bucket="headshots"
                 userId={user!.id}
@@ -132,12 +132,12 @@ export default function ProfilePage() {
                 shape="circle"
                 label="Upload photo"
               />
-              <div className="flex-1 space-y-2">
+              <div className="w-full min-w-0 flex-1 space-y-2">
                 <Label className="text-muted-foreground">Full Name</Label>
                 <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" />
               </div>
             </div>
-            <CardTitle>{fullName || "—"}</CardTitle>
+            <CardTitle className="break-words text-lg sm:text-xl">{fullName || "—"}</CardTitle>
             <CardDescription className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="gap-1">
                 <Shield className="h-3 w-3" />

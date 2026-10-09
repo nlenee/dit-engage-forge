@@ -295,10 +295,33 @@ export const MemberManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Members Table */}
+      {/* Members Table: dedicated compact mobile records, full desktop table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <div className="md:hidden space-y-2 p-3" aria-label="Members">
+            {filteredMembers.length === 0 && <p className="text-sm text-muted-foreground p-4 text-center">No members found</p>}
+            {filteredMembers.map(member => {
+              const data = member as any;
+              return <article key={member.id} className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold break-words">{member.full_name || "Unnamed member"}</p>
+                    <p className="text-xs text-muted-foreground break-all">{member.email}</p>
+                  </div>
+                  {data.faction && <Badge variant="secondary" className="shrink-0">{data.faction}</Badge>}
+                </div>
+                <p className="text-xs text-muted-foreground break-words">{data.role_in_dit || "Member"} · {data.registered_at ? "Registered" : data.invitation_sent_at ? "Invited" : "Manual"}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" className="min-h-10" onClick={() => {setViewingMember(member); setIsDetailDialogOpen(true);}}><Users className="h-4 w-4 mr-1"/>Details</Button>
+                  <Button size="sm" variant="outline" className="min-h-10" onClick={() => handleOpenDialog(member)}><Edit className="h-4 w-4 mr-1"/>Edit</Button>
+                  {isAdmin && <Button size="sm" variant="outline" className="min-h-10" onClick={() => handleToggleLock(member)}>{data.locked_by_admin ? <Unlock className="h-4 w-4 mr-1"/> : <Lock className="h-4 w-4 mr-1"/>}{data.locked_by_admin ? "Unlock" : "Lock"}</Button>}
+                  <Button size="sm" variant="outline" className="min-h-10 text-destructive" onClick={() => setDeleteId(member.user_id || member.id)}><Trash2 className="h-4 w-4 mr-1"/>Delete</Button>
+                </div>
+              </article>;
+            })}
+          </div>
+          <div className="hidden md:block">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -426,6 +449,7 @@ export const MemberManagement = () => {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

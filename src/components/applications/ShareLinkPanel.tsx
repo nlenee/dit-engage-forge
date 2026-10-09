@@ -55,11 +55,13 @@ const ShareLinkPanel = ({ defaultFactionSlug = "", defaultCampaign = "" }: Props
   };
 
   return (
-    <Card className="p-5 space-y-4">
-      <div className="flex items-center gap-2">
-        <QrCode className="w-4 h-4 text-primary" />
-        <h3 className="font-display text-lg font-semibold">Share registration link</h3>
-      </div>
+    <Card className="p-3 sm:p-5">
+      <details className="group">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md text-sm font-semibold text-primary focus-visible:outline focus-visible:outline-2">
+          <QrCode className="h-4 w-4 shrink-0" /> Share registration link
+          <span className="ml-auto text-xs text-muted-foreground group-open:hidden">Expand ▾</span><span className="ml-auto hidden text-xs text-muted-foreground group-open:inline">Collapse ▴</span>
+        </summary>
+        <div className="space-y-4 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label className="text-xs">Faction slug (optional)</Label>
@@ -76,7 +78,9 @@ const ShareLinkPanel = ({ defaultFactionSlug = "", defaultCampaign = "" }: Props
         <Button size="sm" variant="outline" onClick={download}><Download className="w-3.5 h-3.5 mr-1"/>Download QR</Button>
         {campaign && <Button size="sm" onClick={persist}>Save campaign</Button>}
       </div>
-      <div className="flex justify-center pt-2"><canvas ref={canvasRef} className="rounded-md border" /></div>
+      <div className="flex justify-center pt-2"><canvas ref={canvasRef} className="max-w-full rounded-md border" /></div>
+        </div>
+      </details>
     </Card>
   );
 };

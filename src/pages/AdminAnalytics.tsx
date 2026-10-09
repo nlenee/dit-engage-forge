@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { BarChart3, Users, TrendingUp, Cake } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import Header from "@/components/Header";
 import { AccessDenied, PageLoader } from "@/components/RouteAccess";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,7 +66,7 @@ export default function AdminAnalytics() {
           <BarChart3 className="h-8 w-8 text-primary" /> Admin Analytics
         </h1>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6">
           {[
             { label: "Total Members", value: profiles.length, icon: Users },
             { label: "Factions", value: Object.keys(factionCounts).length, icon: TrendingUp },
@@ -81,7 +81,7 @@ export default function AdminAnalytics() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid min-w-0 lg:grid-cols-2 gap-3 sm:gap-6">
           <Card><CardHeader><CardTitle>Signup Growth (last 30 days)</CardTitle></CardHeader>
             <CardContent className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -91,15 +91,21 @@ export default function AdminAnalytics() {
           </Card>
 
           <Card><CardHeader><CardTitle>Members per Faction</CardTitle></CardHeader>
-            <CardContent className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
+            <CardContent className="min-h-72">
+              <div className="h-56 sm:h-64"><ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={factionData} dataKey="value" nameKey="name" outerRadius={90} label>
+                  <Pie data={factionData} dataKey="value" nameKey="name" outerRadius="78%" label={false}>
                     {factionData.map((_, i) => <Cell key={i} fill={FACTION_COLORS[i % FACTION_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip /><Legend />
+                  <Tooltip />
                 </PieChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer></div>
+              <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {factionData.map((item,i) => <li key={item.name} className="flex items-center justify-between gap-2 min-w-0">
+                  <span className="min-w-0 flex items-center gap-2"><span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{backgroundColor:FACTION_COLORS[i%FACTION_COLORS.length]}}/><span className="break-words">{item.name}</span></span>
+                  <strong className="tabular-nums">{item.value}</strong>
+                </li>)}
+              </ul>
             </CardContent>
           </Card>
 
