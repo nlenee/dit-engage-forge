@@ -16,3 +16,18 @@
 .os2-access-denied{display:flex;flex-direction:column;gap:12px;align-items:flex-start;padding:28px}
 .os2-root :focus-visible{outline:2px solid var(--os2-teal);outline-offset:2px}
 @media(max-width:750px){.os2-module-toolbar{align-items:flex-start;flex-direction:column}.os2-legacy-module>div>main{padding:8px 0 20px}}
+
+/* OS 2.0 preview controls and compact module presentation */
+.os2-preview-preference{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 16px;margin-bottom:20px;background:#eaf3f5;border:1px solid #c9e3e6;border-radius:12px}
+.os2-preview-preference>div:first-child{display:flex;flex-direction:column;gap:4px;min-width:0}
+.os2-preview-preference strong{font-size:12px;color:#19374a}
+.os2-preview-preference span{font-size:11px;line-height:1.45;color:#486775}
+.os2-preference-actions{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.os2-preference-button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #abcbd0;border-radius:8px;background:#fff;padding:8px 12px;color:#255b65;font:600 11px Inter,system-ui,sans-serif;white-space:nowrap}
+.os2-preference-current{background:#215f69;color:#fff;border-color:#215f69}
+.os2-preference-button:hover{filter:brightness(.97)}
+.os2-legacy-module .container{max-width:100%}
+.os2-legacy-module table{width:100%}
+.os2-legacy-module [role="dialog"]{max-width:min(96vw,900px)}
+.os2-menu-link:focus-visible,.os2-preference-button:focus-visible{outline:2px solid #e7c16a;outline-offset:2px}
+@media(max-width:750px){.os2-preview-preference{align-items:stretch;flex-direction:column}.os2-preference-actions{flex-wrap:wrap}.os2-legacy-module{overflow-x:auto}}
