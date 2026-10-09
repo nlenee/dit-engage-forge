@@ -27,6 +27,7 @@ const ApplicationsReviewPage = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [filter, setFilter] = useState<(typeof STATUS_FILTERS)[number]>("all");
   const [search, setSearch] = useState("");
+  const [mobilePane, setMobilePane] = useState<"list" | "details" | "actions">("list");
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -52,6 +53,7 @@ const ApplicationsReviewPage = () => {
 
   const openApp = async (a: any) => {
     setSelected(a);
+    setMobilePane("details");
     setLoading(true);
     const [{ data: rs }, { data: rv }] = await Promise.all([
       supabase.from("application_responses").select("*").eq("application_id", a.id),
@@ -186,9 +188,18 @@ const ApplicationsReviewPage = () => {
 
         <ShareLinkPanel />
 
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr_360px] gap-4 mt-6">
+        <nav aria-label="Mobile application review sections" className="mt-5 grid grid-cols-3 gap-1 rounded-xl border bg-card p-1 lg:hidden">
+          {(["list", "details", "actions"] as const).map(pane => (
+            <button key={pane} type="button" aria-current={mobilePane === pane ? "step" : undefined}
+              onClick={() => setMobilePane(pane)} disabled={pane !== "list" && !selected}
+              className={`min-h-11 rounded-lg px-2 text-xs font-semibold capitalize ${mobilePane === pane ? "bg-primary text-primary-foreground" : "text-muted-foreground"} disabled:opacity-40`}>
+              {pane === "list" ? "Applications" : pane === "details" ? "Review" : "Actions"}
+            </button>
+          ))}
+        </nav>
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)_minmax(270px,360px)] gap-4 mt-4 lg:mt-6">
           {/* Left: list */}
-          <Card className="p-3 flex flex-col">
+          <Card className={`min-w-0 p-3 flex flex-col ${mobilePane !== "list" ? "hidden lg:flex" : ""}`}>
             <Input placeholder="Search name, email, ref…" value={search} onChange={e=>setSearch(e.target.value)} className="mb-2" />
             <Tabs value={filter} onValueChange={(v)=>setFilter(v as any)}>
               <TabsList className="grid grid-cols-3 mb-2 h-auto">
@@ -222,7 +233,7 @@ const ApplicationsReviewPage = () => {
           </Card>
 
           {/* Middle: detail */}
-          <Card className="p-5">
+          <Card className={`min-w-0 p-4 sm:p-5 ${mobilePane !== "details" ? "hidden lg:block" : ""}`}>
             {!selected ? (
               <div className="text-center text-muted-foreground py-20">Select an application to review.</div>
             ) : loading ? (
@@ -294,7 +305,7 @@ const ApplicationsReviewPage = () => {
           </Card>
 
           {/* Right: actions */}
-          <Card className="p-4 space-y-3 h-fit">
+          <Card className={`min-w-0 p-4 space-y-3 h-fit ${mobilePane !== "actions" ? "hidden lg:block" : ""}`}>
             <h3 className="font-display text-lg font-semibold">Actions</h3>
             {!selected ? (
               <p className="text-sm text-muted-foreground">Pick an application first.</p>
