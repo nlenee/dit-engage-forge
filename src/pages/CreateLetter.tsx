@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Download, Eye, EyeOff, Mail, Save, Sparkles, Clock, Users, Shield, Loader2 } from "lucide-react";
+import { Download, Eye, Mail, Save, Sparkles, Clock, Users, Shield, Loader2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
