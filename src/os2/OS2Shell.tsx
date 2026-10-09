@@ -6,7 +6,7 @@ import { useMessages } from "@/hooks/useMessages";
 import ditLogo from "@/assets/dit-logo.jpg";
 import { navLinks, type AccessContext } from "./navigation";
 import "./os2.css";
-import { saveOS2Preference } from "./os2Preference";
+import { readOS2Preference, saveOS2Preference } from "./os2Preference";
 
 type Props = { children: ReactNode; title: string; description?: string; };
 export default function OS2Shell({ children, title, description }: Props) {
@@ -23,6 +23,8 @@ export default function OS2Shell({ children, title, description }: Props) {
   ] as const;
   const closeMenu = () => setMobileOpen(false);
   const switchToClassic = () => { saveOS2Preference("classic"); closeMenu(); };
+  const [previewSelected, setPreviewSelected] = useState(() => readOS2Preference() === "os2");
+  const selectPreview = () => { saveOS2Preference("os2"); setPreviewSelected(true); };
   const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community", "/create": "/os2-preview/letters", "/dashboard/applications": "/os2-preview/applications", "/executive-summary": "/os2-preview/executive", "/admin": "/os2-preview/admin" } as Record<string, string>)[path] || path;
   const nav = (
     <>
@@ -79,6 +81,15 @@ export default function OS2Shell({ children, title, description }: Props) {
       </header>
       <main id="main-content" className="os2-content">
         <div className="os2-page-heading"><div><p className="os2-eyebrow">DIT WORKSPACE</p><h1>{title}</h1>{description && <p>{description}</p>}</div><Link to="/dashboard" onClick={switchToClassic} className="os2-legacy-link"><Settings2 size={15}/> Original UI</Link></div>
+        {auth.isAdmin && (
+          <section className="os2-preview-preference" aria-label="Administrator interface preference">
+            <div><strong>Administrator UI preview</strong><span>Changes apply only to this browser. Other members keep the classic interface.</span></div>
+            <div className="os2-preference-actions">
+              <Link to="/dashboard" onClick={switchToClassic} className="os2-preference-button">Classic UI</Link>
+              <button type="button" aria-pressed={previewSelected} className="os2-preference-button os2-preference-current" onClick={selectPreview}>UI 2.0 preview</button>
+            </div>
+          </section>
+        )}
         {children}
       </main>
       <nav className="os2-mobile-bottom" aria-label="Quick navigation">
