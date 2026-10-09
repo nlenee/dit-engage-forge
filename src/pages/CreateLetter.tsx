@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Download, Eye, EyeOff, Mail, Save, Sparkles, Clock, Users, Shield, Loader2 } from "lucide-react";
+import { Download, Eye, Mail, Save, Sparkles, Clock, Users, Shield, Loader2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const CreateLetter = () => {
   const { createLetter, updateLetter, updateStatus } = useLetters();
   const { getSealForLetter } = useDigitalSeals();
   const letterRef = useRef<HTMLDivElement>(null);
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!id);
@@ -231,9 +231,9 @@ const CreateLetter = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
-        <div className="mb-8 animate-fade-in">
-          <h1 className="font-display text-3xl font-bold text-foreground">
+      <main className="container mx-auto px-3 py-5 sm:px-4 sm:py-8">
+        <div className="mb-5 sm:mb-8 animate-fade-in">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
             {id ? "Edit Letter of Engagement" : "Create Letter of Engagement"}
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -243,9 +243,13 @@ const CreateLetter = () => {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div role="tablist" aria-label="Letter editor sections" className="mb-5 grid grid-cols-2 gap-2 rounded-xl border bg-card p-1.5 lg:hidden">
+          <button type="button" role="tab" aria-selected={!showPreview} onClick={() => setShowPreview(false)} className={`min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors ${!showPreview ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Edit letter</button>
+          <button type="button" role="tab" aria-selected={showPreview} onClick={() => setShowPreview(true)} className={`min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors ${showPreview ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Preview letter</button>
+        </div>
+        <div className="flex flex-col lg:flex-row gap-5 lg:gap-8">
           {/* Form Section */}
-          <div className="flex-1 lg:max-w-xl">
+          <div className={`min-w-0 flex-1 lg:max-w-xl ${showPreview ? "hidden lg:block" : ""}`}>
             {/* Template Selector */}
             <div className="mb-6">
               <TemplateSelector 
@@ -310,7 +314,8 @@ const CreateLetter = () => {
               <Button
                 onClick={handleDownloadPDF}
                 disabled={!isFormValid || isGenerating}
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                className="hidden lg:inline-flex items-center gap-2 bg-primary hover:bg-primary/90"
+                title={!isFormValid ? "Enter recipient name, email and office to enable PDF download" : undefined}
               >
                 {isGenerating ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -365,22 +370,14 @@ const CreateLetter = () => {
                 </>
               )}
 
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 lg:hidden"
-                onClick={() => setShowPreview(!showPreview)}
-              >
-                {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {showPreview ? "Hide Preview" : "Show Preview"}
-              </Button>
             </div>
           </div>
 
           {/* Preview Section */}
           <div
-            className={`flex-1 ${showPreview ? "block" : "hidden"} lg:block`}
+            className={`min-w-0 flex-1 ${showPreview ? "block" : "hidden"} lg:block`}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <h2 className="font-display text-xl font-semibold text-foreground flex items-center gap-2">
                 <Eye className="h-5 w-5 text-primary" />
                 Letter Preview
@@ -397,12 +394,14 @@ const CreateLetter = () => {
               showSeal={existingSeal?.status === "approved"}
             />
 
+            {!isFormValid && <p className="mt-3 text-center text-xs text-muted-foreground">Complete the recipient name, email and office under Edit letter to enable PDF download.</p>}
             {/* Download Button at bottom */}
             <div className="mt-6 flex justify-center">
               <Button
                 onClick={handleDownloadPDF}
                 disabled={!isFormValid || isGenerating}
                 size="lg"
+                title={!isFormValid ? "Complete recipient name, email and office in Edit letter to enable PDF download" : undefined}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 px-8"
               >
                 {isGenerating ? (
