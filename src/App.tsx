@@ -136,6 +136,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><OS2Dashboard /></ProtectedRoute>} />
             <Route path="/classic-dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/os2-preview" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/workspace/:module" element={<ProtectedRoute><OS2ModuleBridge modules={os2Modules} /></ProtectedRoute>} />
             <Route path="/os2-preview/:module" element={<ProtectedRoute><OS2ModuleBridge modules={os2Modules} /></ProtectedRoute>} />
             <Route path="/complete-profile" element={<SignedInRoute><ProfilePage /></SignedInRoute>} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
@@ -144,20 +145,20 @@ const App = () => (
             <Route path="/u/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
             <Route path="/anniversary" element={<ProtectedRoute><AnniversaryHub /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
-            <Route path="/create" element={<Navigate to="/os2-preview/letters" replace />} />
+            <Route path="/create" element={<Navigate to="/workspace/letters" replace />} />
             <Route path="/edit/:id" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
-            <Route path="/admin" element={<Navigate to="/os2-preview/admin" replace />} />
-            <Route path="/members" element={<Navigate to="/os2-preview/members" replace />} />
+            <Route path="/admin" element={<Navigate to="/workspace/admin" replace />} />
+            <Route path="/members" element={<Navigate to="/workspace/members" replace />} />
             <Route path="/structure" element={<ProtectedRoute><OrgStructure /></ProtectedRoute>} />
             <Route path="/organogram" element={<Navigate to="/structure" replace />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/announcements" element={<Navigate to="/os2-preview/announcements" replace />} />
-            <Route path="/messages" element={<Navigate to="/os2-preview/messages" replace />} />
-            <Route path="/community" element={<Navigate to="/os2-preview/community" replace />} />
-            <Route path="/finance" element={<Navigate to="/os2-preview/finance" replace />} />
+            <Route path="/announcements" element={<Navigate to="/workspace/announcements" replace />} />
+            <Route path="/messages" element={<Navigate to="/workspace/messages" replace />} />
+            <Route path="/community" element={<Navigate to="/workspace/community" replace />} />
+            <Route path="/finance" element={<Navigate to="/workspace/finance" replace />} />
             <Route path="/summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
-            <Route path="/executive-summary" element={<Navigate to="/os2-preview/executive" replace />} />
+            <Route path="/executive-summary" element={<Navigate to="/workspace/executive" replace />} />
             <Route path="/register" element={<MemberRegister />} />
             {/* Public application portals */}
             <Route path="/apply" element={<ApplyPage />} />
@@ -171,7 +172,7 @@ const App = () => (
             <Route path="/member-register" element={<Navigate to="/register" replace />} />
             {/* Protected reviewer / admin routes */}
             <Route path="/admin/appoint" element={<ProtectedRoute><AppointPage /></ProtectedRoute>} />
-            <Route path="/dashboard/applications" element={<Navigate to="/os2-preview/applications" replace />} />
+            <Route path="/dashboard/applications" element={<Navigate to="/workspace/applications" replace />} />
             <Route path="/faction/forms" element={<ProtectedRoute><FactionFormsPage /></ProtectedRoute>} />
             <Route path="/admin/forms" element={<ProtectedRoute><AdminFormsPage /></ProtectedRoute>} />
             <Route path="/troubleshooting" element={<Troubleshooting />} />
