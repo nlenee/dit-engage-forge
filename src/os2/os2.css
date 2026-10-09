@@ -60,3 +60,18 @@
  .os2-legacy-module th,.os2-legacy-module td{white-space:normal;word-break:normal;overflow-wrap:break-word}
  .os2-legacy-module [data-slot="table-container"]{overflow-x:auto;max-width:100%}
 }
+
+/* Unified workspace: a module may keep its existing toolbar, but not a competing
+   giant page title. Its contextual actions remain available. */
+.os2-legacy-module>div>main>div:first-child h1{font-family:Inter,system-ui,sans-serif;font-size:1.3rem;line-height:1.3}
+@media(max-width:750px){
+ .os2-page-heading{margin-bottom:12px}
+ .os2-page-heading h1{font-size:1.45rem;margin:3px 0}
+ .os2-page-heading>div>p:not(.os2-eyebrow){font-size:12px}
+ .os2-legacy-module>div>main>div:first-child h1{font-size:1.05rem;line-height:1.25}
+ .os2-legacy-module>div>main>div:first-child h1+.text-muted-foreground{font-size:12px}
+ .os2-legacy-module [role="tablist"]{max-width:100%;overflow-x:auto;flex-wrap:nowrap!important;justify-content:flex-start;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+ .os2-legacy-module [role="tablist"]>[role="tab"]{flex:0 0 auto;min-height:40px;max-width:none;white-space:nowrap}
+ .os2-legacy-module [role="tabpanel"]{max-width:100%;min-width:0}
+ .os2-legacy-module :is(button,[role="button"]){touch-action:manipulation}
+}

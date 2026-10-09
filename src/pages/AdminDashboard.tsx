@@ -196,6 +196,84 @@ const AdminDashboard = () => {
     return <Badge variant="secondary">{ROLE_LABEL[role] || "Member"}</Badge>;
   };
 
+  const renderUserActions = (user: typeof users[number]) => (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" aria-label="Manage user">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/profile/${user.user_id}`)}>
+                                <Eye className="h-4 w-4 mr-2" /> View Profile
+                              </DropdownMenuItem>
+                              {isAdmin && (
+                                <>
+                                   <DropdownMenuItem
+                                     onClick={async () => {
+                                       const title = window.prompt(
+                                         "Set custom role title (e.g. 'Marketing Lead'). Leave blank to clear.",
+                                         ""
+                                       );
+                                       if (title === null) return;
+                                       const { error } = await supabase
+                                         .from("profiles")
+                                         .update({ custom_role_title: title || null } as any)
+                                         .eq("user_id", user.user_id);
+                                       if (error) {
+                                         toast({ title: "Error", description: error.message, variant: "destructive" });
+                                       } else {
+                                         toast({ title: "Custom role updated" });
+                                         queryClient.invalidateQueries({ queryKey: ["members"] });
+                                         queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+                                       }
+                                     }}
+                                   >
+                                     <Shield className="h-4 w-4 mr-2" /> Set Custom Role
+                                   </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const amount = parseInt(window.prompt("Award XP — amount:", "50") || "0", 10);
+                                      if (amount > 0) awardXp.mutate({ userId: user.user_id, amount });
+                                    }}
+                                  >
+                                    <Star className="h-4 w-4 mr-2" /> Award XP
+                                  </DropdownMenuItem>
+                                  {user.email?.toLowerCase() !== PROTECTED_ADMIN_EMAIL && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          setUserStatus.mutate({
+                                            userId: user.user_id,
+                                            status: user.status === "suspended" ? "active" : "suspended",
+                                          })
+                                        }
+                                      >
+                                        {user.status === "suspended" ? (
+                                          <><CheckIcon className="h-4 w-4 mr-2" /> Reinstate</>
+                                        ) : (
+                                          <><Ban className="h-4 w-4 mr-2" /> Suspend</>
+                                        )}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        className="text-destructive"
+                                        onClick={() =>
+                                          setConfirmDelete({
+                                            userId: user.user_id,
+                                            name: user.full_name || "this user",
+                                          })
+                                        }
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" /> Delete User
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+  );
+
   const handleRoleChange = async () => {
     if (roleChangeUser) {
       await updateUserRole.mutateAsync({
@@ -336,6 +414,25 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <>
+                <div className="md:hidden p-3 space-y-2" aria-label="Users mobile list">
+                  {filteredUsers.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">No users found.</p>}
+                  {filteredUsers.map(user => (
+                    <article key={user.id} className="rounded-lg border bg-background p-3 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0"><p className="font-semibold break-words">{user.full_name || "Unnamed member"}</p><p className="text-xs text-muted-foreground">{format(new Date(user.created_at), "d MMM yyyy")}</p></div>
+                        {renderUserActions(user)}
+                      </div>
+                      {isAdmin ? (
+                        <Select value={user.role} onValueChange={(value: AppRole) => setRoleChangeUser({userId:user.user_id,name:user.full_name||"this user",newRole:value})} disabled={user.email?.toLowerCase() === PROTECTED_ADMIN_EMAIL}>
+                          <SelectTrigger className="w-full min-h-10" aria-label={`Role for ${user.full_name || "member"}`}><SelectValue /></SelectTrigger>
+                          <SelectContent>{ROLE_OPTIONS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                      ) : getRoleBadge(user.role)}
+                    </article>
+                  ))}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -385,86 +482,14 @@ const AdminDashboard = () => {
                           {format(new Date(user.created_at), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(`/profile/${user.user_id}`)}>
-                                <Eye className="h-4 w-4 mr-2" /> View Profile
-                              </DropdownMenuItem>
-                              {isAdmin && (
-                                <>
-                                   <DropdownMenuItem
-                                     onClick={async () => {
-                                       const title = window.prompt(
-                                         "Set custom role title (e.g. 'Marketing Lead'). Leave blank to clear.",
-                                         ""
-                                       );
-                                       if (title === null) return;
-                                       const { error } = await supabase
-                                         .from("profiles")
-                                         .update({ custom_role_title: title || null } as any)
-                                         .eq("user_id", user.user_id);
-                                       if (error) {
-                                         toast({ title: "Error", description: error.message, variant: "destructive" });
-                                       } else {
-                                         toast({ title: "Custom role updated" });
-                                         queryClient.invalidateQueries({ queryKey: ["members"] });
-                                         queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-                                       }
-                                     }}
-                                   >
-                                     <Shield className="h-4 w-4 mr-2" /> Set Custom Role
-                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => {
-                                      const amount = parseInt(window.prompt("Award XP — amount:", "50") || "0", 10);
-                                      if (amount > 0) awardXp.mutate({ userId: user.user_id, amount });
-                                    }}
-                                  >
-                                    <Star className="h-4 w-4 mr-2" /> Award XP
-                                  </DropdownMenuItem>
-                                  {user.email?.toLowerCase() !== PROTECTED_ADMIN_EMAIL && (
-                                    <>
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          setUserStatus.mutate({
-                                            userId: user.user_id,
-                                            status: user.status === "suspended" ? "active" : "suspended",
-                                          })
-                                        }
-                                      >
-                                        {user.status === "suspended" ? (
-                                          <><CheckIcon className="h-4 w-4 mr-2" /> Reinstate</>
-                                        ) : (
-                                          <><Ban className="h-4 w-4 mr-2" /> Suspend</>
-                                        )}
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        className="text-destructive"
-                                        onClick={() =>
-                                          setConfirmDelete({
-                                            userId: user.user_id,
-                                            name: user.full_name || "this user",
-                                          })
-                                        }
-                                      >
-                                        <Trash2 className="h-4 w-4 mr-2" /> Delete User
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {renderUserActions(user)}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+                </div>
+                </>
               )}
             </div>
           </TabsContent>
@@ -482,6 +507,21 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <>
+                <div className="space-y-2 p-3 md:hidden" aria-label="Letters mobile list">
+                  {filteredLetters.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No letters found.</p>}
+                  {filteredLetters.map(letter => (
+                    <div key={letter.id} className="rounded-lg border bg-background p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0"><p className="font-semibold break-words">{letter.recipient_name}</p><p className="text-sm text-muted-foreground break-words">{letter.office}</p></div>
+                        <Badge variant="outline" className="capitalize shrink-0">{letter.status || "draft"}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{format(new Date(letter.created_at), "d MMM yyyy")}</p>
+                      <Button size="sm" variant="outline" className="min-h-10 w-full" onClick={() => navigate(`/edit/${letter.id}`)}><Eye className="h-4 w-4 mr-2"/>Open letter</Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -535,6 +575,8 @@ const AdminDashboard = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
+                </>
               )}
             </div>
           </TabsContent>
@@ -547,6 +589,18 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <>
+                <div className="space-y-2 p-3 md:hidden" aria-label="Email logs mobile list">
+                  {filteredEmails.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No email logs found.</p>}
+                  {filteredEmails.map(log => (
+                    <div key={log.id} className="rounded-lg border bg-background p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2"><p className="min-w-0 font-semibold break-all">{log.recipient_email}</p>{getDeliveryStatusBadge(log)}</div>
+                      <p className="text-sm break-words">{log.subject || "Untitled email"}</p>
+                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground"><span className="capitalize">{log.status}</span><span>{format(new Date(log.sent_at), "d MMM yyyy, HH:mm")}</span></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -585,6 +639,8 @@ const AdminDashboard = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
+                </>
               )}
             </div>
           </TabsContent>
