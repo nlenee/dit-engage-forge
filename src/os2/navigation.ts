@@ -9,7 +9,7 @@ export type AccessContext = {
 };
 export type NavLink = { label: string; to: string; icon: LucideIcon; section: "workspace" | "organization" | "management"; allowed?: (access: AccessContext) => boolean };
 export const navLinks: NavLink[] = [
-  { label: "My Workspace", to: "/os2-preview", icon: LayoutDashboard, section: "workspace" },
+  { label: "My Workspace", to: "/dashboard", icon: LayoutDashboard, section: "workspace" },
   { label: "Messages", to: "/messages", icon: MessagesSquare, section: "workspace" },
   { label: "My Profile", to: "/profile", icon: UserRound, section: "workspace" },
   { label: "People & Teams", to: "/members", icon: Users, section: "organization" },

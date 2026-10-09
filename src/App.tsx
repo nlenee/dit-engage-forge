@@ -52,6 +52,9 @@ const os2Modules = {
   applications: { title: "Application Reviews", description: "Review submitted applications.", oldPath: "/dashboard/applications", component: ApplicationsReviewPage },
   executive: { title: "Executive Summary", description: "Leadership reports and operations.", oldPath: "/executive-summary", component: ExecutiveSummary },
   admin: { title: "Administration", description: "Manage DIT system operations.", oldPath: "/admin", component: AdminDashboard },
+  profile: { title: "My Profile", description: "Your membership and personal details.", oldPath: "/profile", component: ProfilePage },
+  structure: { title: "Organizational Structure", description: "Understand the DIT team and structure.", oldPath: "/structure", component: OrgStructure },
+  analytics: { title: "Analytics", description: "Authorized organizational insights.", oldPath: "/analytics", component: AdminAnalytics },
 };
 
 const queryClient = new QueryClient();
@@ -133,8 +136,10 @@ const App = () => (
             <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/os2-preview" element={<ProtectedRoute><OS2Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><OS2Dashboard /></ProtectedRoute>} />
+            <Route path="/classic-dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/os2-preview" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/workspace/:module" element={<ProtectedRoute><OS2ModuleBridge modules={os2Modules} /></ProtectedRoute>} />
             <Route path="/os2-preview/:module" element={<ProtectedRoute><OS2ModuleBridge modules={os2Modules} /></ProtectedRoute>} />
             <Route path="/complete-profile" element={<SignedInRoute><ProfilePage /></SignedInRoute>} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
@@ -142,21 +147,21 @@ const App = () => (
             <Route path="/facecard/:userId" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
             <Route path="/u/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
             <Route path="/anniversary" element={<ProtectedRoute><AnniversaryHub /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><AdminAnalytics /></ProtectedRoute>} />
-            <Route path="/create" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
+            <Route path="/analytics" element={<Navigate to="/workspace/analytics" replace />} />
+            <Route path="/create" element={<Navigate to="/workspace/letters" replace />} />
             <Route path="/edit/:id" element={<ProtectedRoute><CreateLetter /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/members" element={<ProtectedRoute><MemberDirectory /></ProtectedRoute>} />
-            <Route path="/structure" element={<ProtectedRoute><OrgStructure /></ProtectedRoute>} />
+            <Route path="/admin" element={<Navigate to="/workspace/admin" replace />} />
+            <Route path="/members" element={<Navigate to="/workspace/members" replace />} />
+            <Route path="/structure" element={<Navigate to="/workspace/structure" replace />} />
             <Route path="/organogram" element={<Navigate to="/structure" replace />} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="/announcements" element={<ProtectedRoute><AnnouncementsPage /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-            <Route path="/community" element={<ProtectedRoute><CommunityManagerDashboard /></ProtectedRoute>} />
-            <Route path="/finance" element={<ProtectedRoute><CFODashboard /></ProtectedRoute>} />
+            <Route path="/profile" element={<Navigate to="/workspace/profile" replace />} />
+            <Route path="/settings" element={<Navigate to="/workspace/profile" replace />} />
+            <Route path="/announcements" element={<Navigate to="/workspace/announcements" replace />} />
+            <Route path="/messages" element={<Navigate to="/workspace/messages" replace />} />
+            <Route path="/community" element={<Navigate to="/workspace/community" replace />} />
+            <Route path="/finance" element={<Navigate to="/workspace/finance" replace />} />
             <Route path="/summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
-            <Route path="/executive-summary" element={<ProtectedRoute><ExecutiveSummary /></ProtectedRoute>} />
+            <Route path="/executive-summary" element={<Navigate to="/workspace/executive" replace />} />
             <Route path="/register" element={<MemberRegister />} />
             {/* Public application portals */}
             <Route path="/apply" element={<ApplyPage />} />
@@ -170,7 +175,7 @@ const App = () => (
             <Route path="/member-register" element={<Navigate to="/register" replace />} />
             {/* Protected reviewer / admin routes */}
             <Route path="/admin/appoint" element={<ProtectedRoute><AppointPage /></ProtectedRoute>} />
-            <Route path="/dashboard/applications" element={<ProtectedRoute><ApplicationsReviewPage /></ProtectedRoute>} />
+            <Route path="/dashboard/applications" element={<Navigate to="/workspace/applications" replace />} />
             <Route path="/faction/forms" element={<ProtectedRoute><FactionFormsPage /></ProtectedRoute>} />
             <Route path="/admin/forms" element={<ProtectedRoute><AdminFormsPage /></ProtectedRoute>} />
             <Route path="/troubleshooting" element={<Troubleshooting />} />

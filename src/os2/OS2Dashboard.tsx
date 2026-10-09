@@ -35,16 +35,16 @@ export default function OS2Dashboard() {
     { title: "Executive reports", desc: "Leadership insights", to: "/executive-summary", icon: BriefcaseBusiness, permission: auth.isAdminOrES || auth.canAny(["view_reports", "view_executive_system"]) },
     { title: "Administration", desc: "Access and controls", to: "/admin", icon: ShieldCheck, permission: auth.isAdminOrES || auth.canAny(["admin.settings", "offices.manage"]) }
   ].filter(x => x.permission !== false);
-  const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community", "/create": "/os2-preview/letters", "/dashboard/applications": "/os2-preview/applications", "/executive-summary": "/os2-preview/executive", "/admin": "/os2-preview/admin" } as Record<string, string>)[path] || path;
+  const os2Href = (path: string) => ({ "/messages": "/workspace/messages", "/members": "/workspace/members", "/announcements": "/workspace/announcements", "/finance": "/workspace/finance", "/community": "/workspace/community", "/create": "/workspace/letters", "/dashboard/applications": "/workspace/applications", "/executive-summary": "/workspace/executive", "/admin": "/workspace/admin", "/profile": "/workspace/profile", "/structure": "/workspace/structure", "/analytics": "/workspace/analytics" } as Record<string, string>)[path] || path;
   return <OS2Shell title={title} description={description}>
     <section className="os2-welcome">
       <div><p>WELCOME TO YOUR WORKSPACE</p><h2>{greeting}</h2><span>What needs your attention today?</span></div>
-      <Link to="/os2-preview/messages" className="os2-hero-action">Open inbox <ArrowRight size={16}/></Link>
+      <Link to="/workspace/messages" className="os2-hero-action">Open inbox <ArrowRight size={16}/></Link>
     </section>
     <div className="os2-stat-grid" aria-label="Workspace overview">
       <Link to="/messages" className="os2-stat"><MessagesSquare size={19}/><span>Unread messages</span><strong>{messagesLoading ? "—" : unreadCount}</strong><small>{messagesLoading ? "Loading messages…" : unreadCount ? "Waiting for your attention" : "You're all caught up"}</small></Link>
-      <Link to="/os2-preview/announcements" className="os2-stat"><Megaphone size={19}/><span>Announcements</span><strong>{announcementsLoading ? "—" : announcements.length}</strong><small>{announcementsLoading ? "Loading announcements…" : "Available to your account"}</small></Link>
-      <Link to="/os2-preview/members" className="os2-stat"><Users size={19}/><span>People</span><strong>Directory</strong><small>Connect with your team</small></Link>
+      <Link to="/workspace/announcements" className="os2-stat"><Megaphone size={19}/><span>Announcements</span><strong>{announcementsLoading ? "—" : announcements.length}</strong><small>{announcementsLoading ? "Loading announcements…" : "Available to your account"}</small></Link>
+      <Link to="/workspace/members" className="os2-stat"><Users size={19}/><span>People</span><strong>Directory</strong><small>Connect with your team</small></Link>
       <Link to="/profile" className="os2-stat"><ShieldCheck size={19}/><span>My account</span><strong>Profile</strong><small>Manage your information</small></Link>
     </div>
     <div className="os2-dashboard-grid">
