@@ -136,19 +136,22 @@ export const EmailTemplateManager = () => {
           </Card>
         ) : (
           templates.map((template) => (
-            <Card key={template.id} className="group hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
+            <Card key={template.id} className="group min-w-0 hover:shadow-md transition-shadow">
+              <CardHeader className="p-3 sm:p-5 pb-2">
+                <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {getTypeIcon(template.type)}
-                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    <CardTitle className="text-sm sm:text-base break-words">{template.name}</CardTitle>
                   </div>
                   <Badge className={getTypeBadgeColor(template.type)}>{template.type}</Badge>
                 </div>
                 <CardDescription className="line-clamp-1">{template.subject}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-4">{template.content}</p>
+              <CardContent className="p-3 sm:p-5 pt-0 sm:pt-0">
+                <details className="mb-3 rounded-lg border p-2">
+                  <summary className="cursor-pointer text-xs font-medium text-primary">Preview template</summary>
+                  <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap break-words">{template.content}</p>
+                </details>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => handleOpenDialog(template)}>
                     <Edit className="h-3 w-3 mr-1" />
@@ -175,7 +178,7 @@ export const EmailTemplateManager = () => {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Template Name *</Label>
                 <Input
