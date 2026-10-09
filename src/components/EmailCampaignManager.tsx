@@ -138,21 +138,13 @@ export const EmailCampaignManager = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {quickActions.map((action) => (
-          <Card
-            key={action.title}
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={action.action}
-          >
-            <CardHeader>
-              <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center mb-2`}>
-                <action.icon className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-lg">{action.title}</CardTitle>
-              <CardDescription>{action.description}</CardDescription>
-            </CardHeader>
-          </Card>
+      <div className="grid md:grid-cols-3 gap-2 sm:gap-4">
+        {quickActions.map(action => (
+          <button type="button" key={action.title} onClick={action.action}
+            className="flex min-h-20 w-full items-center gap-3 rounded-xl border bg-card p-3 text-left shadow-sm transition-colors hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary md:flex-col md:items-start md:p-5">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${action.color}`}><action.icon className="h-5 w-5"/></div>
+            <div className="min-w-0"><h3 className="text-sm sm:text-base font-semibold break-words">{action.title}</h3><p className="mt-1 text-xs text-muted-foreground break-words">{action.description}</p></div>
+          </button>
         ))}
       </div>
 
