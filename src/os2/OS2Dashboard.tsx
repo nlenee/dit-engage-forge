@@ -35,7 +35,7 @@ export default function OS2Dashboard() {
     { title: "Executive reports", desc: "Leadership insights", to: "/executive-summary", icon: BriefcaseBusiness, permission: auth.isAdminOrES || auth.canAny(["view_reports", "view_executive_system"]) },
     { title: "Administration", desc: "Access and controls", to: "/admin", icon: ShieldCheck, permission: auth.isAdminOrES || auth.canAny(["admin.settings", "offices.manage"]) }
   ].filter(x => x.permission !== false);
-  const os2Href = (path: string) => ({ "/messages": "/workspace/messages", "/members": "/workspace/members", "/announcements": "/workspace/announcements", "/finance": "/workspace/finance", "/community": "/workspace/community", "/create": "/workspace/letters", "/dashboard/applications": "/workspace/applications", "/executive-summary": "/workspace/executive", "/admin": "/workspace/admin" } as Record<string, string>)[path] || path;
+  const os2Href = (path: string) => ({ "/messages": "/workspace/messages", "/members": "/workspace/members", "/announcements": "/workspace/announcements", "/finance": "/workspace/finance", "/community": "/workspace/community", "/create": "/workspace/letters", "/dashboard/applications": "/workspace/applications", "/executive-summary": "/workspace/executive", "/admin": "/workspace/admin", "/profile": "/workspace/profile", "/structure": "/workspace/structure", "/analytics": "/workspace/analytics" } as Record<string, string>)[path] || path;
   return <OS2Shell title={title} description={description}>
     <section className="os2-welcome">
       <div><p>WELCOME TO YOUR WORKSPACE</p><h2>{greeting}</h2><span>What needs your attention today?</span></div>
