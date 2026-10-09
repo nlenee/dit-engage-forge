@@ -202,10 +202,10 @@ const ApplicationsReviewPage = () => {
           <Card className={`min-w-0 p-3 flex flex-col ${mobilePane !== "list" ? "hidden lg:flex" : ""}`}>
             <Input placeholder="Search name, email, ref…" value={search} onChange={e=>setSearch(e.target.value)} className="mb-2" />
             <Tabs value={filter} onValueChange={(v)=>setFilter(v as any)}>
-              <TabsList className="grid grid-cols-3 mb-2 h-auto">
-                {STATUS_FILTERS.slice(0,3).map(s => <TabsTrigger key={s} value={s} className="text-xs">{s.replace(/_/g, " ")}</TabsTrigger>)}
+              <TabsList className="grid grid-cols-3 gap-1 mb-2 h-auto p-1">
+                {STATUS_FILTERS.slice(0,3).map(s => <TabsTrigger key={s} value={s} className="min-w-0 min-h-10 px-1 text-[11px] sm:text-xs leading-tight whitespace-normal capitalize" aria-label={s.replace(/_/g, " ")}>{s === "interview_scheduled" ? "Interview" : s.replace(/_/g, " ")}</TabsTrigger>)}
               </TabsList>
-              <TabsList className="grid grid-cols-3 h-auto">
+              <TabsList className="grid grid-cols-3 gap-1 h-auto p-1">
                 {STATUS_FILTERS.slice(3).map(s => <TabsTrigger key={s} value={s} className="text-xs">{s.replace(/_/g, " ")}</TabsTrigger>)}
               </TabsList>
             </Tabs>
