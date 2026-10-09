@@ -76,7 +76,7 @@ const MonthlyMessagePanel = () => {
             Once approved, it goes out to every member immediately.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={() => generate(false)} disabled={busy === "generate"} className="gap-2">
             {busy === "generate" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             Prepare now
@@ -93,7 +93,7 @@ const MonthlyMessagePanel = () => {
         <Card className="p-8 text-center text-sm text-muted-foreground">No monthly messages yet.</Card>
       ) : (
         messages.map((m) => (
-          <Card key={m.id} className="p-5 space-y-3">
+          <Card key={m.id} className="p-3 sm:p-5 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="font-medium">{m.subject}</h4>
               {statusBadge(m.status)}
@@ -109,10 +109,15 @@ const MonthlyMessagePanel = () => {
                 </Button>
               )}
             </div>
-            <div
-              className="prose prose-sm max-w-none text-muted-foreground [&_p]:mb-2"
-              dangerouslySetInnerHTML={{ __html: m.body_html }}
-            />
+            <details className="group rounded-lg border p-3" open={m.status === "pending_approval" ? true : undefined}>
+              <summary className="cursor-pointer text-sm font-medium text-primary">
+                {m.status === "pending_approval" ? "Review message for approval" : "Read full message"}
+              </summary>
+              <div
+                className="prose prose-sm max-w-none pt-3 text-muted-foreground [&_p]:mb-2"
+                dangerouslySetInnerHTML={{ __html: m.body_html }}
+              />
+            </details>
           </Card>
         ))
       )}
