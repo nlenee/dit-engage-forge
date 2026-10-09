@@ -35,20 +35,21 @@ export default function OS2Dashboard() {
     { title: "Executive reports", desc: "Leadership insights", to: "/executive-summary", icon: BriefcaseBusiness, permission: auth.isAdminOrES || auth.canAny(["view_reports", "view_executive_system"]) },
     { title: "Administration", desc: "Access and controls", to: "/admin", icon: ShieldCheck, permission: auth.isAdminOrES || auth.canAny(["admin.settings", "offices.manage"]) }
   ].filter(x => x.permission !== false);
+  const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community" } as Record<string, string>)[path] || path;
   return <OS2Shell title={title} description={description}>
     <section className="os2-welcome">
       <div><p>WELCOME TO YOUR WORKSPACE</p><h2>{greeting}</h2><span>What needs your attention today?</span></div>
-      <Link to="/messages" className="os2-hero-action">Open inbox <ArrowRight size={16}/></Link>
+      <Link to="/os2-preview/messages" className="os2-hero-action">Open inbox <ArrowRight size={16}/></Link>
     </section>
     <div className="os2-stat-grid" aria-label="Workspace overview">
       <Link to="/messages" className="os2-stat"><MessagesSquare size={19}/><span>Unread messages</span><strong>{messagesLoading ? "—" : unreadCount}</strong><small>{messagesLoading ? "Loading messages…" : unreadCount ? "Waiting for your attention" : "You're all caught up"}</small></Link>
-      <Link to="/announcements" className="os2-stat"><Megaphone size={19}/><span>Announcements</span><strong>{announcementsLoading ? "—" : announcements.length}</strong><small>{announcementsLoading ? "Loading announcements…" : "Available to your account"}</small></Link>
-      <Link to="/members" className="os2-stat"><Users size={19}/><span>People</span><strong>Directory</strong><small>Connect with your team</small></Link>
+      <Link to="/os2-preview/announcements" className="os2-stat"><Megaphone size={19}/><span>Announcements</span><strong>{announcementsLoading ? "—" : announcements.length}</strong><small>{announcementsLoading ? "Loading announcements…" : "Available to your account"}</small></Link>
+      <Link to="/os2-preview/members" className="os2-stat"><Users size={19}/><span>People</span><strong>Directory</strong><small>Connect with your team</small></Link>
       <Link to="/profile" className="os2-stat"><ShieldCheck size={19}/><span>My account</span><strong>Profile</strong><small>Manage your information</small></Link>
     </div>
     <div className="os2-dashboard-grid">
       <section className="os2-panel"><div className="os2-panel-heading"><div><h3>Quick access</h3><p>Tools available for your role</p></div></div>
-        <div className="os2-quick-grid">{tiles.map(({ title: label, desc, to, icon: Icon }) => <Link key={to} to={to} className="os2-quick-tile"><div className="os2-tile-icon"><Icon size={19}/></div><strong>{label}</strong><span>{desc}</span><ArrowRight size={15} className="os2-tile-arrow"/></Link>)}</div>
+        <div className="os2-quick-grid">{tiles.map(({ title: label, desc, to, icon: Icon }) => <Link key={to} to={os2Href(to)} className="os2-quick-tile"><div className="os2-tile-icon"><Icon size={19}/></div><strong>{label}</strong><span>{desc}</span><ArrowRight size={15} className="os2-tile-arrow"/></Link>)}</div>
       </section>
       <div className="os2-side-panels">
         <section className="os2-panel"><div className="os2-panel-heading"><div><h3>Recent messages</h3><p>Your latest conversations</p></div><Link to="/messages">View all</Link></div>
