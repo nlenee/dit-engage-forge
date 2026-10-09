@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import OS2Shell from "./OS2Shell";
 import { navLinks } from "./navigation";
 
-type Module = "messages" | "members" | "announcements" | "finance" | "community";
+type Module = "messages" | "members" | "announcements" | "finance" | "community" | "letters" | "applications" | "executive" | "admin";
 type ModuleConfig = { title: string; description: string; oldPath: string; component: ComponentType };
 type Props = { modules: Record<Module, ModuleConfig> };
 
