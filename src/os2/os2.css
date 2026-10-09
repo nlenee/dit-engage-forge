@@ -75,3 +75,16 @@
  .os2-legacy-module [role="tabpanel"]{max-width:100%;min-width:0}
  .os2-legacy-module :is(button,[role="button"]){touch-action:manipulation}
 }
+
+/* The OS shell owns the page title; nested legacy page titles are redundant.
+   Keep the original toolbars, action buttons and module content intact. */
+.os2-legacy-module>div>main>div:first-child:has(h1) h1{display:none}
+.os2-legacy-module>div>main>div:first-child:has(h1) p.text-muted-foreground{display:none}
+.os2-legacy-module>div>main>div:first-child:has(h1){margin-bottom:clamp(8px,1.5vw,16px)}
+/* Some modules wrap their title outside <main>. Hide only the duplicate heading. */
+.os2-module-profile>div :is(h1).font-display,.os2-module-messages>div>main h1.font-display{display:none}
+@media(max-width:750px){
+ .os2-legacy-module .os2-module-toolbar{padding:0;margin:0}
+ .os2-legacy-module>div>main>div:first-child:has(h1):empty{display:none}
+ .os2-page-heading{margin-bottom:10px}
+}
