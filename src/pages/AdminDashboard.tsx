@@ -482,6 +482,20 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <div className="space-y-2 p-3 md:hidden" aria-label="Letters mobile list">
+                  {filteredLetters.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No letters found.</p>}
+                  {filteredLetters.map(letter => (
+                    <div key={letter.id} className="rounded-lg border bg-background p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0"><p className="font-semibold break-words">{letter.recipient_name}</p><p className="text-sm text-muted-foreground break-words">{letter.office}</p></div>
+                        <Badge variant="outline" className="capitalize shrink-0">{letter.status || "draft"}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{format(new Date(letter.created_at), "d MMM yyyy")}</p>
+                      <Button size="sm" variant="outline" className="min-h-10 w-full" onClick={() => navigate(`/edit/${letter.id}`)}><Eye className="h-4 w-4 mr-2"/>Open letter</Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -535,6 +549,7 @@ const AdminDashboard = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </div>
           </TabsContent>
@@ -547,6 +562,17 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <div className="space-y-2 p-3 md:hidden" aria-label="Email logs mobile list">
+                  {filteredEmails.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No email logs found.</p>}
+                  {filteredEmails.map(log => (
+                    <div key={log.id} className="rounded-lg border bg-background p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2"><p className="min-w-0 font-semibold break-all">{log.recipient_email}</p>{getDeliveryStatusBadge(log)}</div>
+                      <p className="text-sm break-words">{log.subject || "Untitled email"}</p>
+                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground"><span className="capitalize">{log.status}</span><span>{format(new Date(log.sent_at), "d MMM yyyy, HH:mm")}</span></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -585,6 +611,7 @@ const AdminDashboard = () => {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </div>
           </TabsContent>
