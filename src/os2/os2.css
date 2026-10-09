@@ -53,3 +53,10 @@
  .os2-legacy-module :is(h1,h2,h3){overflow-wrap:break-word}
  .os2-mobile-bottom{padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px #152c430b}
 }
+
+@media(max-width:750px){
+ /* shadcn Table already supplies a horizontal overflow wrapper. */
+ .os2-legacy-module table{min-width:680px;width:max(100%,680px)!important;table-layout:auto}
+ .os2-legacy-module th,.os2-legacy-module td{white-space:normal;word-break:normal;overflow-wrap:break-word}
+ .os2-legacy-module [data-slot="table-container"]{overflow-x:auto;max-width:100%}
+}
