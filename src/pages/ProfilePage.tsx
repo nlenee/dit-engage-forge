@@ -34,7 +34,7 @@ const FACTION_LABELS: Record<string, string> = {
 };
 
 export default function ProfilePage() {
-  const { user, userRole } = useAuth();
+  const { user, userRole, profileCompleted } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,17 +66,27 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile || !user) return;
+    if (!fullName.trim()) {
+      toast({ title: "Full name required", description: "Enter your full name to complete your profile.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ phone, bio, full_name: fullName, avatar_url: avatarUrl })
+      .update({ phone: phone.trim(), bio, full_name: fullName.trim(), avatar_url: avatarUrl, ...(!profileCompleted ? { profile_completed: true } : {}) })
       .eq("user_id", user!.id);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Profile updated", description: "Your profile has been saved." });
+      if (!profileCompleted) {
+        // The auth provider re-reads profile completion on a fresh page load.
+        // Avoid redirecting within this render cycle with stale auth state.
+        window.location.assign("/dashboard");
+        return;
+      }
     }
     setSaving(false);
   };
@@ -198,7 +208,7 @@ export default function ProfilePage() {
 
             <Button onClick={handleSave} disabled={saving} className="gap-2">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Save Changes
+              {profileCompleted ? "Save Changes" : "Save and Continue"}
             </Button>
           </CardContent>
         </Card>
