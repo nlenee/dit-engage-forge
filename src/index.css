@@ -405,3 +405,12 @@
     }
   }
 }
+
+
+/* Anniversary facecard editor: scale only the on-screen 760px preview.
+   The actual exported card keeps its original dimensions and artwork. */
+.dit-facecard-frame{--dit-facecard-scale:.62;width:calc(760px * var(--dit-facecard-scale));height:calc(1200px * var(--dit-facecard-scale));position:relative;flex-shrink:0;max-width:100%}
+.dit-facecard-scale{width:760px;height:1200px;transform:scale(var(--dit-facecard-scale));transform-origin:top left}
+@media(max-width:520px){.dit-facecard-frame{--dit-facecard-scale:.49}}
+@media(max-width:410px){.dit-facecard-frame{--dit-facecard-scale:.4}}
+@media(max-width:340px){.dit-facecard-frame{--dit-facecard-scale:.35}}
