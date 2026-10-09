@@ -21,7 +21,7 @@ export default function OS2Shell({ children, title, description }: Props) {
     { id: "management", title: "MANAGEMENT" }
   ] as const;
   const closeMenu = () => setMobileOpen(false);
-  const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community", "/create": "/os2-preview/letters", "/dashboard/applications": "/os2-preview/applications", "/executive-summary": "/os2-preview/executive", "/admin": "/os2-preview/admin" } as Record<string, string>)[path] || path;
+  const os2Href = (path: string) => ({ "/messages": "/workspace/messages", "/members": "/workspace/members", "/announcements": "/workspace/announcements", "/finance": "/workspace/finance", "/community": "/workspace/community", "/create": "/workspace/letters", "/dashboard/applications": "/workspace/applications", "/executive-summary": "/workspace/executive", "/admin": "/workspace/admin" } as Record<string, string>)[path] || path;
   const nav = (
     <>
       <Link to="/dashboard" className="os2-brand" onClick={closeMenu}>
@@ -69,8 +69,8 @@ export default function OS2Shell({ children, title, description }: Props) {
         <button type="button" className="os2-icon-button os2-menu-toggle" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={21}/></button>
         <div className="os2-breadcrumb"><span>DIT OS</span><ChevronRight size={15}/><strong>{title}</strong></div>
         <div className="os2-topbar-actions">
-          <Link to="/os2-preview/members" className="os2-search-link"><Search size={17}/><span>Find members</span></Link>
-          <Link to="/os2-preview/messages" className="os2-icon-button os2-bell" aria-label={`Messages: ${unreadCount} unread`}><Bell size={19}/>{unreadCount > 0 && <i/>}</Link>
+          <Link to="/workspace/members" className="os2-search-link"><Search size={17}/><span>Find members</span></Link>
+          <Link to="/workspace/messages" className="os2-icon-button os2-bell" aria-label={`Messages: ${unreadCount} unread`}><Bell size={19}/>{unreadCount > 0 && <i/>}</Link>
           <Link to="/profile" className="os2-avatar" aria-label="My profile">{auth.user?.email?.slice(0,2).toUpperCase() || "ME"}</Link>
         </div>
       </header>
@@ -80,8 +80,8 @@ export default function OS2Shell({ children, title, description }: Props) {
       </main>
       <nav className="os2-mobile-bottom" aria-label="Quick navigation">
         <Link to="/dashboard" aria-label="Workspace"><LayoutDashboard size={20}/><span>Home</span></Link>
-        <Link to="/os2-preview/messages" aria-label="Messages"><Bell size={20}/><span>Inbox</span></Link>
-        <Link to="/os2-preview/members" aria-label="Members"><Search size={20}/><span>People</span></Link>
+        <Link to="/workspace/messages" aria-label="Messages"><Bell size={20}/><span>Inbox</span></Link>
+        <Link to="/workspace/members" aria-label="Members"><Search size={20}/><span>People</span></Link>
         <button type="button" onClick={() => setMobileOpen(true)} aria-label="More navigation"><Menu size={20}/><span>More</span></button>
       </nav>
     </div>
