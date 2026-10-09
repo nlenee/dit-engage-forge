@@ -82,12 +82,12 @@ export default function OfficesManager() {
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {offices.map(o => (
-            <Card key={o.id} className="p-4 space-y-3">
+            <Card key={o.id} className="p-3 sm:p-4 space-y-2.5 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-primary"/>
-                    <h4 className="font-semibold">{o.title}</h4>
+                    <h4 className="font-semibold break-words">{o.title}</h4>
                   </div>
                   {o.faction && <div className="text-xs text-muted-foreground">Faction: {o.faction}</div>}
                 </div>
@@ -95,18 +95,18 @@ export default function OfficesManager() {
               </div>
               {o.description && <p className="text-sm text-muted-foreground">{o.description}</p>}
               {Array.isArray(o.kpis) && o.kpis.length > 0 && (
-                <div>
-                  <div className="text-xs font-medium mb-1">KPIs</div>
-                  <ul className="list-disc pl-5 text-xs space-y-0.5">{o.kpis.map((k: string, i: number) => <li key={i}>{k}</li>)}</ul>
-                </div>
+                <details className="rounded-md border p-2">
+                  <summary className="cursor-pointer text-xs font-medium">KPIs · {o.kpis.length}</summary>
+                  <ul className="mt-2 list-disc pl-5 text-xs space-y-1">{o.kpis.map((k: string, i: number) => <li key={i}>{k}</li>)}</ul>
+                </details>
               )}
-              <div>
-                <div className="text-xs font-medium mb-1">Access</div>
-                <div className="flex flex-wrap gap-1">
-                  {(perms[o.id] || []).map(p => <Badge key={p} variant="secondary" className="text-[10px]">{p}</Badge>)}
+              <details className="rounded-md border p-2">
+                <summary className="cursor-pointer text-xs font-medium">Access permissions · {(perms[o.id] || []).length}</summary>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(perms[o.id] || []).map(p => <Badge key={p} variant="secondary" className="max-w-full whitespace-normal break-all text-[11px]">{p}</Badge>)}
                   {(perms[o.id] || []).length === 0 && <span className="text-xs text-muted-foreground">No permissions granted</span>}
                 </div>
-              </div>
+              </details>
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-xs font-medium">Occupants</div>
