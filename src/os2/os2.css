@@ -31,3 +31,32 @@
 .os2-legacy-module [role="dialog"]{max-width:min(96vw,900px)}
 .os2-menu-link:focus-visible,.os2-preference-button:focus-visible{outline:2px solid #e7c16a;outline-offset:2px}
 @media(max-width:750px){.os2-preview-preference{align-items:stretch;flex-direction:column}.os2-preference-actions{flex-wrap:wrap}.os2-legacy-module{overflow-x:auto}}
+
+/* P0 mobile stabilization: do not compress desktop data grids into vertical text.
+   Tables scroll within their own region while critical actions remain visible. */
+.os2-legacy-module{overflow:visible;min-width:0}
+.os2-legacy-module :is(.overflow-x-auto,[data-radix-scroll-area-viewport]){max-width:100%}
+.os2-legacy-module table{width:100%;table-layout:auto}
+.os2-legacy-module th,.os2-legacy-module td{overflow-wrap:normal;word-break:normal}
+.os2-legacy-module .os2-scroll-table{width:100%;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.os2-legacy-module .os2-scroll-table table{min-width:680px}
+@media(max-width:750px){
+ .os2-root{max-width:100vw;overflow-x:clip}
+ .os2-main,.os2-content,.os2-legacy-module,.os2-legacy-module>div,.os2-legacy-module>div>main{min-width:0;max-width:100%;width:100%}
+ .os2-legacy-module>div>main{padding:0 0 96px!important}
+ .os2-legacy-module>div>main>div:first-child h1{font-size:clamp(1.3rem,5vw,1.7rem);line-height:1.25}
+ .os2-legacy-module>div>main>div:first-child{margin-bottom:1rem}
+ .os2-legacy-module .os2-scroll-table{margin-bottom:10px;border-radius:10px;border:1px solid var(--os2-border)}
+ .os2-legacy-module .os2-scroll-table th,.os2-legacy-module .os2-scroll-table td{white-space:normal;overflow-wrap:normal;word-break:keep-all;min-width:95px;max-width:280px}
+ .os2-legacy-module .os2-scroll-table th:first-child,.os2-legacy-module .os2-scroll-table td:first-child{min-width:150px}
+ .os2-legacy-module :is(input,select,textarea){max-width:100%}
+ .os2-legacy-module :is(h1,h2,h3){overflow-wrap:break-word}
+ .os2-mobile-bottom{padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -6px 18px #152c430b}
+}
+
+@media(max-width:750px){
+ /* shadcn Table already supplies a horizontal overflow wrapper. */
+ .os2-legacy-module table{min-width:680px;width:max(100%,680px)!important;table-layout:auto}
+ .os2-legacy-module th,.os2-legacy-module td{white-space:normal;word-break:normal;overflow-wrap:break-word}
+ .os2-legacy-module [data-slot="table-container"]{overflow-x:auto;max-width:100%}
+}
