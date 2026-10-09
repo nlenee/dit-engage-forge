@@ -13,6 +13,7 @@ import OfflineIndicator from "./components/pwa/OfflineIndicator";
 import { PageLoader } from "./components/RouteAccess";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const OS2Dashboard = lazy(() => import("./os2/OS2Dashboard"));
 const CreateLetter = lazy(() => import("./pages/CreateLetter"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const MemberRegister = lazy(() => import("./pages/MemberRegister"));
@@ -120,6 +121,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/os2-preview" element={<ProtectedRoute><OS2Dashboard /></ProtectedRoute>} />
             <Route path="/complete-profile" element={<SignedInRoute><ProfilePage /></SignedInRoute>} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/facecard" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />
