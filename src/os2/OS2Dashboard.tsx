@@ -35,7 +35,7 @@ export default function OS2Dashboard() {
     { title: "Executive reports", desc: "Leadership insights", to: "/executive-summary", icon: BriefcaseBusiness, permission: auth.isAdminOrES || auth.canAny(["view_reports", "view_executive_system"]) },
     { title: "Administration", desc: "Access and controls", to: "/admin", icon: ShieldCheck, permission: auth.isAdminOrES || auth.canAny(["admin.settings", "offices.manage"]) }
   ].filter(x => x.permission !== false);
-  const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community" } as Record<string, string>)[path] || path;
+  const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community", "/create": "/os2-preview/letters", "/dashboard/applications": "/os2-preview/applications", "/executive-summary": "/os2-preview/executive", "/admin": "/os2-preview/admin" } as Record<string, string>)[path] || path;
   return <OS2Shell title={title} description={description}>
     <section className="os2-welcome">
       <div><p>WELCOME TO YOUR WORKSPACE</p><h2>{greeting}</h2><span>What needs your attention today?</span></div>
