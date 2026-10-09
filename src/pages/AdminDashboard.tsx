@@ -414,6 +414,7 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <>
                 <div className="md:hidden p-3 space-y-2" aria-label="Users mobile list">
                   {filteredUsers.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">No users found.</p>}
                   {filteredUsers.map(user => (
@@ -488,6 +489,7 @@ const AdminDashboard = () => {
                   </TableBody>
                 </Table>
                 </div>
+                </>
               )}
             </div>
           </TabsContent>
@@ -505,6 +507,7 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <>
                 <div className="space-y-2 p-3 md:hidden" aria-label="Letters mobile list">
                   {filteredLetters.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No letters found.</p>}
                   {filteredLetters.map(letter => (
@@ -573,6 +576,7 @@ const AdminDashboard = () => {
                   </TableBody>
                 </Table>
                 </div>
+                </>
               )}
             </div>
           </TabsContent>
@@ -585,6 +589,7 @@ const AdminDashboard = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                 </div>
               ) : (
+                <>
                 <div className="space-y-2 p-3 md:hidden" aria-label="Email logs mobile list">
                   {filteredEmails.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No email logs found.</p>}
                   {filteredEmails.map(log => (
@@ -635,6 +640,7 @@ const AdminDashboard = () => {
                   </TableBody>
                 </Table>
                 </div>
+                </>
               )}
             </div>
           </TabsContent>
