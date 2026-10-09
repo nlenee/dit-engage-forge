@@ -285,6 +285,7 @@ const CommunityManagerDashboard = () => {
               ) : events.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">No events yet. Create your first event.</div>
               ) : (
+                <>
                 <div className="md:hidden space-y-2 p-3" aria-label="Mobile events">
                   {events.map(event => {
                     const attendance = getEventAttendance(event.id);
@@ -329,6 +330,7 @@ const CommunityManagerDashboard = () => {
                   </TableBody>
                 </Table>
                 </div>
+                </>
               )}
             </div>
           </TabsContent>
