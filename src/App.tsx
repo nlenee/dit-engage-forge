@@ -13,6 +13,8 @@ import OfflineIndicator from "./components/pwa/OfflineIndicator";
 import { PageLoader } from "./components/RouteAccess";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const OS2Dashboard = lazy(() => import("./os2/OS2Dashboard"));
+const OS2ModuleBridge = lazy(() => import("./os2/OS2ModuleBridge"));
 const CreateLetter = lazy(() => import("./pages/CreateLetter"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const MemberRegister = lazy(() => import("./pages/MemberRegister"));
@@ -39,6 +41,18 @@ const AdminFormsPage = lazy(() => import("./pages/applications/AdminFormsPage"))
 const Troubleshooting = lazy(() => import("./pages/Troubleshooting"));
 const OrgStructure = lazy(() => import("./pages/OrgStructure"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
+
+const os2Modules = {
+  messages: { title: "Communications", description: "Read and send your team messages.", oldPath: "/messages", component: MessagesPage },
+  members: { title: "People & Teams", description: "Explore the existing member directory.", oldPath: "/members", component: MemberDirectory },
+  announcements: { title: "Announcements", description: "Organizational updates and notices.", oldPath: "/announcements", component: AnnouncementsPage },
+  finance: { title: "Finance", description: "Existing authorized financial operations.", oldPath: "/finance", component: CFODashboard },
+  community: { title: "Community Management", description: "Existing team management workflows.", oldPath: "/community", component: CommunityManagerDashboard },
+  letters: { title: "Official Letters", description: "Prepare correspondence using the existing letter editor.", oldPath: "/create", component: CreateLetter },
+  applications: { title: "Application Reviews", description: "Review submitted applications.", oldPath: "/dashboard/applications", component: ApplicationsReviewPage },
+  executive: { title: "Executive Summary", description: "Leadership reports and operations.", oldPath: "/executive-summary", component: ExecutiveSummary },
+  admin: { title: "Administration", description: "Manage DIT system operations.", oldPath: "/admin", component: AdminDashboard },
+};
 
 const queryClient = new QueryClient();
 
@@ -120,6 +134,8 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/os2-preview" element={<ProtectedRoute><OS2Dashboard /></ProtectedRoute>} />
+            <Route path="/os2-preview/:module" element={<ProtectedRoute><OS2ModuleBridge modules={os2Modules} /></ProtectedRoute>} />
             <Route path="/complete-profile" element={<SignedInRoute><ProfilePage /></SignedInRoute>} />
             <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
             <Route path="/facecard" element={<ProtectedRoute><FacecardPage /></ProtectedRoute>} />

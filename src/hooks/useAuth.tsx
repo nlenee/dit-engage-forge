@@ -203,7 +203,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // Session self-heal on app start
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+    // A stalled session restore must not leave the entire application behind an
+    // infinite spinner. This is only a recovery fallback: it never creates a
+    // session or grants permissions. The auth listener can still handle later events.
+    let sessionTimeout: ReturnType<typeof setTimeout> | undefined;
+    Promise.race([
+      supabase.auth.getSession(),
+      new Promise<never>((_, reject) => {
+        sessionTimeout = setTimeout(() => reject(new Error("Session restore timed out")), 12000);
+      }),
+    ]).then(async ({ data: { session }, error }) => {
+      if (sessionTimeout) clearTimeout(sessionTimeout);
       if (error) {
         try { await supabase.auth.signOut(); } catch {}
         setSession(null);
@@ -223,6 +233,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         rolesLoadedForRef.current = null;
         setRolesLoading(false);
       }
+    }).catch((error: unknown) => {
+      // Fail closed, but render the sign-in screen rather than spinning forever.
+      console.warn("[auth] Session restore failed:", error);
+      setLoading(false);
+      setRolesLoading(false);
+    }).finally(() => {
+      if (sessionTimeout) clearTimeout(sessionTimeout);
     });
 
     // Multi-tab sync: reload when auth token changes in another tab
