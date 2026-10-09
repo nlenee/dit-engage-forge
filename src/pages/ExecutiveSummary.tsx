@@ -73,9 +73,9 @@ const ExecutiveSummary = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-5 sm:mb-8 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
           <div>
-            <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+            <h1 className="font-display text-xl sm:text-3xl font-bold text-foreground mb-2">
               Monthly Executive Summary
             </h1>
             <p className="text-muted-foreground">{currentMonth} — Governance Report</p>
