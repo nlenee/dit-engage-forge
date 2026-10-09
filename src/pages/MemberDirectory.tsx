@@ -104,9 +104,9 @@ export default function MemberDirectory() {
       <Header />
       
       <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <Users className="h-8 w-8 text-primary" />
+        <div className="mb-5 sm:mb-8">
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+            <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             Member Directory
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -114,7 +114,7 @@ export default function MemberDirectory() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-5">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -125,7 +125,7 @@ export default function MemberDirectory() {
             />
           </div>
           <Select value={factionFilter} onValueChange={setFactionFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Filter by faction" />
             </SelectTrigger>
             <SelectContent>
@@ -149,23 +149,23 @@ export default function MemberDirectory() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4">
             {filteredMembers.map((member) => (
-              <Card key={member.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-12 w-12">
+              <Card key={member.id} className="min-w-0 hover:shadow-md transition-shadow">
+                <CardHeader className="p-3 pb-1 sm:p-5 sm:pb-2">
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0">
                       <AvatarFallback className="bg-primary text-primary-foreground">
                         {getInitials(member.full_name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg truncate">{member.full_name || "—"}</CardTitle>
-                      <p className="text-sm text-primary font-medium flex items-center gap-1">
+                      <CardTitle className="text-sm sm:text-lg leading-snug break-words">{member.full_name || "—"}</CardTitle>
+                      <p className="text-xs sm:text-sm text-primary font-medium flex flex-wrap items-center gap-1">
                         <Shield className="h-3 w-3" />
                         {memberTitle(member as any)}
                         {memberAbbr(member as any) && (
-                          <Badge variant="outline" className="ml-1 text-[10px]">
+                          <Badge variant="outline" className="text-[10px]">
                             {memberAbbr(member as any)}
                           </Badge>
                         )}
@@ -178,9 +178,9 @@ export default function MemberDirectory() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-1.5 px-3 pb-3 pt-1 sm:px-5 sm:pb-5">
                   {member.bio && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 italic">
+                    <p className="hidden sm:block text-sm text-muted-foreground line-clamp-2 italic">
                       "{member.bio}"
                     </p>
                   )}
@@ -192,10 +192,10 @@ export default function MemberDirectory() {
                   )}
 
                   {isAdminOrES && member.email && (
-                    <p className="text-sm text-muted-foreground truncate">{member.email}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground break-all">{member.email}</p>
                   )}
 
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="hidden sm:flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>Joined {format(new Date(member.created_at), "MMM yyyy")}</span>
                   </div>
