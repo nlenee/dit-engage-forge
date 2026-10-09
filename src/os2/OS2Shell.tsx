@@ -26,14 +26,14 @@ export default function OS2Shell({ children, title, description }: Props) {
     <>
       <Link to="/os2-preview" className="os2-brand" onClick={closeMenu}>
         <img src={ditLogo} alt="DIT logo" />
-        {!collapsed && <span><strong>DIT Operating System</strong><small>Workspace 2.0</small></span>}
+        <span><strong>DIT Operating System</strong><small>Workspace 2.0</small></span>
       </Link>
       <div className="os2-menu-scroll">
         {sections.map(section => {
           const links = navLinks.filter(item => item.section === section.id && (!item.allowed || item.allowed(access)));
           if (!links.length) return null;
           return <div className="os2-menu-group" key={section.id}>
-            {!collapsed && <div className="os2-section-title">{section.title}</div>}
+            <div className="os2-section-title">{section.title}</div>
             {links.map(item => {
               const Icon = item.icon;
               const active = location.pathname === os2Href(item.to);
