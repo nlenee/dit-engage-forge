@@ -6,6 +6,7 @@ import { useMessages } from "@/hooks/useMessages";
 import ditLogo from "@/assets/dit-logo.jpg";
 import { navLinks, type AccessContext } from "./navigation";
 import "./os2.css";
+import { saveOS2Preference } from "./os2Preference";
 
 type Props = { children: ReactNode; title: string; description?: string; };
 export default function OS2Shell({ children, title, description }: Props) {
@@ -21,6 +22,7 @@ export default function OS2Shell({ children, title, description }: Props) {
     { id: "management", title: "MANAGEMENT" }
   ] as const;
   const closeMenu = () => setMobileOpen(false);
+  const switchToClassic = () => { saveOS2Preference("classic"); closeMenu(); };
   const os2Href = (path: string) => ({ "/messages": "/os2-preview/messages", "/members": "/os2-preview/members", "/announcements": "/os2-preview/announcements", "/finance": "/os2-preview/finance", "/community": "/os2-preview/community", "/create": "/os2-preview/letters", "/dashboard/applications": "/os2-preview/applications", "/executive-summary": "/os2-preview/executive", "/admin": "/os2-preview/admin" } as Record<string, string>)[path] || path;
   const nav = (
     <>
@@ -48,7 +50,7 @@ export default function OS2Shell({ children, title, description }: Props) {
         })}
       </div>
       <div className="os2-sidebar-foot">
-        <Link to="/dashboard" onClick={closeMenu} className="os2-menu-link"><ChevronLeft size={18}/><span>Original dashboard</span></Link>
+        <Link to="/dashboard" onClick={switchToClassic} className="os2-menu-link"><ChevronLeft size={18}/><span>Original dashboard</span></Link>
         <button type="button" className="os2-menu-link" onClick={() => void auth.signOut()}><LogOut size={18}/><span>Sign out</span></button>
       </div>
     </>
@@ -76,7 +78,7 @@ export default function OS2Shell({ children, title, description }: Props) {
         </div>
       </header>
       <main id="main-content" className="os2-content">
-        <div className="os2-page-heading"><div><p className="os2-eyebrow">DIT WORKSPACE</p><h1>{title}</h1>{description && <p>{description}</p>}</div><Link to="/dashboard" className="os2-legacy-link"><Settings2 size={15}/> Original UI</Link></div>
+        <div className="os2-page-heading"><div><p className="os2-eyebrow">DIT WORKSPACE</p><h1>{title}</h1>{description && <p>{description}</p>}</div><Link to="/dashboard" onClick={switchToClassic} className="os2-legacy-link"><Settings2 size={15}/> Original UI</Link></div>
         {children}
       </main>
       <nav className="os2-mobile-bottom" aria-label="Quick navigation">
