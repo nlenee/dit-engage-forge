@@ -257,12 +257,11 @@ export default function FacecardPage() {
 
         <div className="grid lg:grid-cols-[1fr_auto] gap-10 items-start max-w-6xl mx-auto">
           {/* LIVE PREVIEW (scaled to fit) */}
-          <div className="flex justify-center">
-            <div
-              className="origin-top"
-              style={{ transform: "scale(0.62)", width: 760, height: 1200, marginBottom: -460 }}
-            >
-              <Facecard ref={cardRef} {...cardProps} />
+          <div className="flex min-w-0 justify-center">
+            <div className="dit-facecard-frame">
+              <div className="dit-facecard-scale">
+                <Facecard ref={cardRef} {...cardProps} />
+              </div>
             </div>
           </div>
 
