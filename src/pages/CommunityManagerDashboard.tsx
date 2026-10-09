@@ -285,6 +285,18 @@ const CommunityManagerDashboard = () => {
               ) : events.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">No events yet. Create your first event.</div>
               ) : (
+                <div className="md:hidden space-y-2 p-3" aria-label="Mobile events">
+                  {events.map(event => {
+                    const attendance = getEventAttendance(event.id);
+                    return <article key={event.id} className="space-y-2 rounded-lg border p-3">
+                      <div className="flex items-start justify-between gap-2"><h3 className="font-semibold break-words">{event.title}</h3><Badge variant="outline" className="shrink-0 capitalize">{event.status}</Badge></div>
+                      <p className="text-sm text-muted-foreground">{format(new Date(event.event_date), "d MMM yyyy, h:mm a")}</p>
+                      <p className="text-sm text-muted-foreground break-words">{event.location || "Location not specified"}</p>
+                      <p className="text-xs text-muted-foreground">{attendance.length}{event.max_attendees ? ` / ${event.max_attendees}` : ""} attendees</p>
+                    </article>;
+                  })}
+                </div>
+                <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -316,6 +328,7 @@ const CommunityManagerDashboard = () => {
                     })}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </div>
           </TabsContent>
