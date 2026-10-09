@@ -36,7 +36,9 @@ export default function AdminAnalytics() {
   // Country
   const geoCounts = profiles.reduce<Record<string, number>>((acc, p: any) => {
     if (!p.residence_country) return acc;
-    const country = getCountryName(p.residence_country.trim().toUpperCase());
+    const rawCountry = p.residence_country.trim();
+    const resolvedCountry = getCountryName(rawCountry.toUpperCase());
+    const country = resolvedCountry === rawCountry.toUpperCase() ? rawCountry : resolvedCountry;
     acc[country] = (acc[country] || 0) + 1;
     return acc;
   }, {});
