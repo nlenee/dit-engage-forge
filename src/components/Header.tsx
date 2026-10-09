@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import ditLogo from "@/assets/dit-logo.jpg";
 import InstallButton from "@/components/pwa/InstallButton";
+import { saveOS2Preference } from "@/os2/os2Preference";
 import { roleTitle } from "@/lib/roleLabels";
 
 const Header = () => {
@@ -177,6 +178,17 @@ const Header = () => {
                   Public landing
                 </Link>
               </DropdownMenuItem>
+              {isAdmin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/os2-preview" onClick={() => saveOS2Preference("os2")} className="flex items-center gap-2 cursor-pointer">
+                      <Sparkles className="h-4 w-4" />
+                      Preview UI 2.0 on this device
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="text-destructive cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
