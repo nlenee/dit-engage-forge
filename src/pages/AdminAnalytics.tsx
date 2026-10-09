@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format, subDays } from "date-fns";
+import { getCountryName } from "@/data/countries";
 
 const FACTION_COLORS = ["#4f46e5", "#22d3ee", "#f59e0b", "#ec4899", "#10b981"];
 
@@ -35,7 +36,10 @@ export default function AdminAnalytics() {
   // Country
   const geoCounts = profiles.reduce<Record<string, number>>((acc, p: any) => {
     if (!p.residence_country) return acc;
-    acc[p.residence_country] = (acc[p.residence_country] || 0) + 1;
+    const rawCountry = p.residence_country.trim();
+    const resolvedCountry = getCountryName(rawCountry.toUpperCase());
+    const country = resolvedCountry === rawCountry.toUpperCase() ? rawCountry : resolvedCountry;
+    acc[country] = (acc[country] || 0) + 1;
     return acc;
   }, {});
   const geoData = Object.entries(geoCounts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
