@@ -131,7 +131,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const intent = (sessionStorage.getItem("google_intent") as "login" | "signup") || "login";
             sessionStorage.removeItem("google_intent");
             try {
-              const { data: isMember } = await supabase.rpc("is_registered_member", { _email: email });
+              const { data: isMember, error: membershipError } = await supabase.rpc("is_registered_member", { _email: email });
+              if (membershipError) throw membershipError;
               if (isMember) {
                 setSession(session);
                 setUser(session.user);
@@ -151,13 +152,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   .from("pending_google_signups" as any)
                   .upsert({ email, full_name: fullName } as any, { onConflict: "email" } as any);
               }
-              // Anti-pollution: destroy the auto-created auth.users record BEFORE signing out
-              // (we still have the session token to authenticate the cleanup call).
-              try {
-                await supabase.functions.invoke("cleanup-non-member", { body: {} });
-              } catch (e) {
-                console.warn("[auth] cleanup-non-member failed", e);
-              }
+              // Never delete an OAuth user on sign-in; approved invitations
+              // may already have linked this auth identity to a member profile.
               await supabase.auth.signOut();
               setSession(null);
               setUser(null);
@@ -172,10 +168,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   window.location.replace("/auth?mode=signup&error=not_member");
                 }, 2000);
               }
-            } catch {
-              setSession(session);
-              setUser(session.user);
+            } catch (error) {
+              console.error("[auth] Google membership verification unavailable", error);
+              await supabase.auth.signOut();
+              setSession(null);
+              setUser(null);
               setLoading(false);
+              setRolesLoading(false);
+              window.location.replace("/auth?error=verification_unavailable");
             }
           })();
           return;
