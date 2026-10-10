@@ -40,6 +40,10 @@ Deno.serve(async (req) => {
     // Delete the polluting auth user.
     const { error: delErr } = await admin.auth.admin.deleteUser(u.id);
     if (delErr) {
+      // Idempotent: a parallel/earlier call may already have removed this user.
+      if (/not found/i.test(delErr.message) || (delErr as any).status === 404) {
+        return new Response(JSON.stringify({ deleted: true, already: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       return new Response(JSON.stringify({ error: delErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     return new Response(JSON.stringify({ deleted: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
