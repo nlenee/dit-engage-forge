@@ -105,7 +105,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen anniversary-bg text-white flex items-center justify-center p-4">
+    <div className="min-h-screen anniversary-bg text-white flex items-center justify-center p-3 sm:p-4">
       <div className="w-full max-w-lg relative z-10">
         <Link to="/" className="inline-flex items-center gap-1 text-white/70 hover:text-white text-sm mb-4">
           <ArrowLeft className="w-4 h-4" /> Back to home
@@ -116,7 +116,7 @@ const Auth = () => {
           <p className="text-white/70 mt-1 text-sm">Sign in or join the community</p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 border border-white/10 animate-fade-in text-foreground bg-card/95">
+        <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-4 sm:p-6 border border-slate-200 animate-fade-in text-slate-900">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login"><LogIn className="h-4 w-4 mr-2" /> Login</TabsTrigger>
