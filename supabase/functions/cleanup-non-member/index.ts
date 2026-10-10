@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
 
     const { data: userRes, error: uerr } = await admin.auth.getUser(token);
     if (uerr || !userRes?.user) {
-      return new Response(JSON.stringify({ error: "invalid token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // User already removed (or session gone) — nothing left to clean up.
+      return new Response(JSON.stringify({ skipped: "no user" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const u = userRes.user;
     const email = (u.email || "").toLowerCase();
@@ -40,6 +41,10 @@ Deno.serve(async (req) => {
     // Delete the polluting auth user.
     const { error: delErr } = await admin.auth.admin.deleteUser(u.id);
     if (delErr) {
+      // Idempotent: a parallel/earlier call may already have removed this user.
+      if (/not found/i.test(delErr.message) || (delErr as any).status === 404) {
+        return new Response(JSON.stringify({ deleted: true, already: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       return new Response(JSON.stringify({ error: delErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     return new Response(JSON.stringify({ deleted: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
