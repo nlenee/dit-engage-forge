@@ -12,8 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
-import { SignupWizard } from "@/components/SignupWizard";
-import { supabase } from "@/integrations/supabase/client";
 import ditLogo from "@/assets/dit-logo.jpg";
 
 const loginSchema = z.object({
@@ -42,8 +40,12 @@ const Auth = () => {
     if (err === "verification_unavailable") {
       setGoogleError("We could not verify your membership right now. Please try Google sign-in again. Your membership account has not been removed.");
     }
+    if (err === "account_link_required") {
+      setGoogleError("Your approved membership uses a different sign-in identity. Please use the invited email and invitation link, or contact DIT support to link your Google account.");
+      setActiveTab("login");
+    }
     if (err === "not_member") {
-      setGoogleError("This account is not a registered DIT Member. Redirecting to the application form...");
+      setGoogleError("This Google account is not linked to an approved DIT membership. If you have applied, confirm that you are using your application email or contact the DIT team.");
       setActiveTab("signup");
     }
   }, [params]);
@@ -88,7 +90,7 @@ const Auth = () => {
       if (result.error) {
         setOauthLoading(false);
         sessionStorage.removeItem("google_intent");
-        toast({ title: "Google sign-in failed", description: String(result.error.message || result.error), variant: "destructive" });
+        toast({ title: "Google sign-in failed", description: String(result.error.message || result.error).includes("failed to sign in with vendor") ? "Google authentication is temporarily unavailable. Try email/password or ask the DIT administrator to check the Google provider configuration." : String(result.error.message || result.error), variant: "destructive" });
       } else if (!result.redirected) {
         // The SDK may return tokens without navigating. The auth listener
         // handles membership verification; clear the spinner once it responds.
@@ -161,13 +163,14 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
-              <Button type="button" variant="outline" className="w-full" onClick={() => handleGoogle("signup")} disabled={oauthLoading}>
-                {oauthLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GoogleIcon />} Sign up with Google
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">After Google sign-up you'll be taken to the DIT application form.</p>
-              <div className="relative my-2"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">or fill the form</span></div></div>
-              <SignupWizard mode="signup" onDone={() => setActiveTab("login")} />
-            </TabsContent>
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <h2 className="text-lg font-semibold">Apply to become a DIT member</h2>
+                <p className="text-sm text-muted-foreground">Submit your application first. Once approved, you can sign in with the same Google email used in your application, or use your membership invitation to set a password.</p>
+                <Button asChild className="w-full min-h-11"><Link to="/apply">Start membership application <ArrowLeft className="ml-2 h-4 w-4 rotate-180"/></Link></Button>
+                <p className="text-xs text-muted-foreground">Already approved? Open the Login tab. If you received an invitation, follow the link in your email.</p>
+              </div>
+              <Button asChild variant="outline" className="w-full min-h-11"><Link to="/track">Track an existing application</Link></Button>
+                        </TabsContent>
           </Tabs>
         </div>
       </div>
