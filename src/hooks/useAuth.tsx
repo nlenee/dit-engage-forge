@@ -148,6 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   setUser(null);
                   setLoading(false);
                   setRolesLoading(false);
+                  sessionStorage.setItem("dit_auth_feedback", "account_link_required");
                   window.location.replace("/auth?error=account_link_required");
                   return;
                 }
@@ -181,7 +182,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   `/apply?email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}&src=google`
                 );
               } else {
-                window.location.replace("/auth?error=not_member");
+                sessionStorage.setItem("dit_auth_feedback", "not_member");
+                  window.location.replace("/auth?error=not_member");
               }
             } catch (error) {
               console.error("[auth] Google membership verification unavailable", error);
@@ -190,7 +192,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setUser(null);
               setLoading(false);
               setRolesLoading(false);
-              window.location.replace("/auth?error=verification_unavailable");
+              sessionStorage.setItem("dit_auth_feedback", "verification_unavailable");
+                  window.location.replace("/auth?error=verification_unavailable");
             }
           })();
           return;
