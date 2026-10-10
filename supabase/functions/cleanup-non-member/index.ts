@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
 
     const { data: userRes, error: uerr } = await admin.auth.getUser(token);
     if (uerr || !userRes?.user) {
-      return new Response(JSON.stringify({ error: "invalid token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // User already removed (or session gone) — nothing left to clean up.
+      return new Response(JSON.stringify({ skipped: "no user" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const u = userRes.user;
     const email = (u.email || "").toLowerCase();
