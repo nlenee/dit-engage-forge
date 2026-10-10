@@ -37,18 +37,26 @@ const Auth = () => {
 
   useEffect(() => {
     const err = params.get("error");
+    // Only show feedback created by a Google sign-in attempt in this tab.
+    // Bookmarked/stale ?error= links must open as a clean login page.
+    const expectedError = sessionStorage.getItem("dit_auth_feedback");
+    sessionStorage.removeItem("dit_auth_feedback");
+    if (err) {
+      const clean = new URLSearchParams(params);
+      clean.delete("error");
+      navigate({ pathname: "/auth", search: clean.toString() ? `?${clean.toString()}` : "" }, { replace: true });
+    }
+    if (!err || expectedError !== err) return;
     if (err === "verification_unavailable") {
-      setGoogleError("We could not verify your membership right now. Please try Google sign-in again. Your membership account has not been removed.");
+      setGoogleError("We couldn't verify your membership. Please retry Google sign-in.");
+    } else if (err === "account_link_required") {
+      setGoogleError("This Google identity is not linked to your approved DIT membership. Use your invited account or contact DIT support.");
+    } else if (err === "not_member") {
+      setGoogleError("This Google account is not registered as an approved DIT member. You can apply to join or use your approved account.");
     }
-    if (err === "account_link_required") {
-      setGoogleError("Your approved membership uses a different sign-in identity. Please use the invited email and invitation link, or contact DIT support to link your Google account.");
-      setActiveTab("login");
-    }
-    if (err === "not_member") {
-      setGoogleError("This Google account is not linked to an approved DIT membership. If you have applied, confirm that you are using your application email or contact the DIT team.");
-      setActiveTab("signup");
-    }
-  }, [params]);
+    setActiveTab("login");
+  }, [params, navigate]);
+
 
   useEffect(() => {
     if (!user) return;
@@ -81,6 +89,8 @@ const Auth = () => {
   };
 
   const handleGoogle = async (intent: "login" | "signup") => {
+    setGoogleError(null);
+    sessionStorage.removeItem("dit_auth_feedback");
     setOauthLoading(true);
     setGoogleError(null);
     sessionStorage.setItem("google_intent", intent);
