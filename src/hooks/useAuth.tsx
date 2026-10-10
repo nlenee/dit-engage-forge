@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       rolesLoadedForRef.current = userId;
       setAllRoles(["user"]);
       setUserRole("user");
-      setProfileCompleted(true);
+      setProfileCompleted(false);
       setPermissions([]);
     } finally {
       if (roleRequestRef.current === requestId) setRolesLoading(false);
@@ -134,6 +134,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               const { data: isMember, error: membershipError } = await supabase.rpc("is_registered_member", { _email: email });
               if (membershipError) throw membershipError;
               if (isMember) {
+                // A matching email is necessary, but not sufficient. The
+                // OAuth identity must be the auth user linked to that profile.
+                // Otherwise a newly created provider identity can be mistaken
+                // for an invited and approved member.
+                const { data: linkedProfile, error: linkedError } = await supabase
+                  .from("profiles").select("user_id,status,profile_completed")
+                  .eq("user_id", session.user.id).maybeSingle();
+                if (linkedError) throw linkedError;
+                if (!linkedProfile || linkedProfile.status !== "active" || linkedProfile.profile_completed !== true) {
+                  await supabase.auth.signOut();
+                  setSession(null);
+                  setUser(null);
+                  setLoading(false);
+                  setRolesLoading(false);
+                  window.location.replace("/auth?error=account_link_required");
+                  return;
+                }
                 setSession(session);
                 setUser(session.user);
                 setLoading(false);
@@ -164,9 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   `/apply?email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}&src=google`
                 );
               } else {
-                setTimeout(() => {
-                  window.location.replace("/auth?mode=signup&error=not_member");
-                }, 2000);
+                window.location.replace("/auth?error=not_member");
               }
             } catch (error) {
               console.error("[auth] Google membership verification unavailable", error);
