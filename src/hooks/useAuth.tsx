@@ -125,6 +125,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           } catch {}
         }
 
+        // A duplicate auth event during verification must not expose a
+        // pending Google identity to protected routes before approval is checked.
+        if (event === "SIGNED_IN" && session?.user && googleVerificationInFlightRef.current === session.user.id) return;
+
         // Google-intent gate: a user signing in via Google must already be a member
         // (login intent) — otherwise stage their info and route to /apply.
         if (event === "SIGNED_IN" && session?.user && (session.user.app_metadata as any)?.provider === "google"
