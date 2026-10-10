@@ -39,6 +39,9 @@ const Auth = () => {
 
   useEffect(() => {
     const err = params.get("error");
+    if (err === "verification_unavailable") {
+      setGoogleError("We could not verify your membership right now. Please try Google sign-in again. Your membership account has not been removed.");
+    }
     if (err === "not_member") {
       setGoogleError("This account is not a registered DIT Member. Redirecting to the application form...");
       setActiveTab("signup");
@@ -80,11 +83,21 @@ const Auth = () => {
     setGoogleError(null);
     sessionStorage.setItem("google_intent", intent);
     storeNext(params.get("next"));
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (result.error) {
+        setOauthLoading(false);
+        sessionStorage.removeItem("google_intent");
+        toast({ title: "Google sign-in failed", description: String(result.error.message || result.error), variant: "destructive" });
+      } else if (!result.redirected) {
+        // The SDK may return tokens without navigating. The auth listener
+        // handles membership verification; clear the spinner once it responds.
+        setOauthLoading(false);
+      }
+    } catch (error) {
       setOauthLoading(false);
       sessionStorage.removeItem("google_intent");
-      toast({ title: "Google sign-in failed", description: String(result.error.message || result.error), variant: "destructive" });
+      toast({ title: "Google sign-in unavailable", description: error instanceof Error ? error.message : String(error), variant: "destructive" });
     }
     // if redirected, browser navigates away
   };
