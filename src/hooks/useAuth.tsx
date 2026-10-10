@@ -55,6 +55,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [permissions, setPermissions] = useState<string[]>([]);
   const roleRequestRef = useRef(0);
   const rolesLoadedForRef = useRef<string | null>(null);
+  const googleVerifiedUserRef = useRef<string | null>(null);
+  const googleVerificationInFlightRef = useRef<string | null>(null);
 
   const has = (r: AppRole) => allRoles.includes(r);
   const isAdmin = has("admin");
@@ -114,6 +116,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (event, session) => {
         // Self-heal: if refresh fails or user signs out, clear stale tokens
         if (event === "SIGNED_OUT" || (event !== "TOKEN_REFRESHED" && !session && user)) {
+          googleVerifiedUserRef.current = null;
+          googleVerificationInFlightRef.current = null;
           try {
             Object.keys(localStorage)
               .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
@@ -123,7 +127,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Google-intent gate: a user signing in via Google must already be a member
         // (login intent) — otherwise stage their info and route to /apply.
-        if (event === "SIGNED_IN" && session?.user && (session.user.app_metadata as any)?.provider === "google") {
+        if (event === "SIGNED_IN" && session?.user && (session.user.app_metadata as any)?.provider === "google"
+          && googleVerifiedUserRef.current !== session.user.id
+          && googleVerificationInFlightRef.current !== session.user.id) {
+          googleVerificationInFlightRef.current = session.user.id;
           (async () => {
             const email = session.user.email || "";
             const fullName = (session.user.user_metadata?.full_name as string)
@@ -152,6 +159,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                   window.location.replace("/auth?error=account_link_required");
                   return;
                 }
+                googleVerifiedUserRef.current = session.user.id;
                 setSession(session);
                 setUser(session.user);
                 setLoading(false);
@@ -194,6 +202,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setRolesLoading(false);
               sessionStorage.setItem("dit_auth_feedback", "verification_unavailable");
                   window.location.replace("/auth?error=verification_unavailable");
+            } finally {
+              googleVerificationInFlightRef.current = null;
             }
           })();
           return;
