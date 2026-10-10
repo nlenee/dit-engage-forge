@@ -313,7 +313,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Ensure the visible account is cleared even if the preview auth broker
+    // stalls; the auth client still performs the actual token revocation.
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) throw error;
+      googleVerifiedUserRef.current = null;
+      googleVerificationInFlightRef.current = null;
+      rolesLoadedForRef.current = null;
+      roleRequestRef.current += 1;
+      setSession(null);
+      setUser(null);
+      setAllRoles([]);
+      setUserRole(null);
+      setPermissions([]);
+      setProfileCompleted(false);
+      setRolesLoading(false);
+      setLoading(false);
+      sessionStorage.removeItem("google_intent");
+      sessionStorage.removeItem("dit_auth_feedback");
+      window.location.replace("/auth");
+    } catch (error) {
+      console.error("[auth] Sign out failed", error);
+      // Never show a false success or discard tokens after a failed sign out.
+      throw error;
+    }
   };
 
   return (
