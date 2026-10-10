@@ -96,7 +96,7 @@ const Auth = () => {
     sessionStorage.setItem("google_intent", intent);
     storeNext(params.get("next"));
     try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth` });
       if (result.error) {
         setOauthLoading(false);
         sessionStorage.removeItem("google_intent");
