@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Loader2, Building2, ShieldCheck, User2 } from "lucide-react";
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { factionColor, PERMISSION_CATALOG } from "@/lib/permissions";
+import { Input } from "@/components/ui/input";
+import { Search, ChevronDown } from "lucide-react";
 
 interface Office {
   id: string;
@@ -26,6 +29,8 @@ const permLabel = (key: string) =>
   PERMISSION_CATALOG.find((p) => p.key === key)?.label || key;
 
 const OrgStructure = () => {
+  const [activeTier, setActiveTier] = useState("boe");
+  const [search, setSearch] = useState("");
   const { data, isLoading } = useQuery({
     queryKey: ["org-structure"],
     queryFn: async () => {
@@ -60,6 +65,7 @@ const OrgStructure = () => {
   });
 
   const offices = data?.offices || [];
+  const visibleTiers = search.trim() ? TIERS : TIERS.filter(t => t.key === activeTier);
 
   return (
     <div className="min-h-screen bg-background">
