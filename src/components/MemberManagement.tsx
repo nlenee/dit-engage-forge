@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useMembers, Member } from "@/hooks/useMembers";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -54,6 +55,8 @@ export const MemberManagement = () => {
   const { isAdmin } = useAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [factionFilter, setFactionFilter] = useState("all");
+  const [accountFilter, setAccountFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -76,11 +79,19 @@ export const MemberManagement = () => {
     locked_by_admin: false,
   });
 
-  const filteredMembers = members.filter(
-    (m) =>
-      m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const q = searchQuery.trim().toLowerCase();
+  const filteredMembers = members.filter(m => {
+    const x = m as any;
+    const matchesSearch = !q || [m.full_name, m.email, x.role_in_dit, x.faction]
+      .some(v => String(v || "").toLowerCase().includes(q));
+    const matchesFaction = factionFilter === "all" || (factionFilter === "unassigned" ? !x.faction : x.faction === factionFilter);
+    const matchesStatus = accountFilter === "all" || (accountFilter === "locked" ? !!x.locked_by_admin :
+      accountFilter === "invited" ? !x.registered_at && !!x.invitation_sent_at :
+      !!x.registered_at && !x.locked_by_admin);
+    return matchesSearch && matchesFaction && matchesStatus;
+  });
+  const lockedCount = members.filter(m => !!(m as any).locked_by_admin).length;
+  const invitedCount = members.filter(m => !(m as any).registered_at && !!(m as any).invitation_sent_at).length;
 
   const todaysBirthdays = getTodaysBirthdays();
   const upcomingBirthdays = getUpcomingBirthdays(7);
@@ -225,6 +236,17 @@ export const MemberManagement = () => {
         </Card>
       )}
 
+      <section aria-label="Member overview" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {[
+          { label: "Total members", value: members.length },
+          { label: "Matching results", value: filteredMembers.length },
+          { label: "Invitations pending", value: invitedCount },
+          { label: "Locked profiles", value: lockedCount }
+        ].map(item => <div key={item.label} className="rounded-xl border bg-card p-3">
+          <p className="text-xs text-muted-foreground">{item.label}</p>
+          <p className="text-xl font-semibold tabular-nums">{item.value}</p>
+        </div>)}
+      </section>
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="relative flex-1 max-w-md">
@@ -242,6 +264,27 @@ export const MemberManagement = () => {
             Send Invite
           </Button>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
+        <Select value={factionFilter} onValueChange={setFactionFilter}>
+          <SelectTrigger className="w-full sm:w-48" aria-label="Filter by faction"><SelectValue placeholder="All factions" /></SelectTrigger>
+          <SelectContent><SelectItem value="all">All factions</SelectItem>
+            {FACTIONS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+            <SelectItem value="unassigned">No faction</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={accountFilter} onValueChange={setAccountFilter}>
+          <SelectTrigger className="w-full sm:w-48" aria-label="Filter by status"><SelectValue placeholder="All statuses" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="registered">Registered</SelectItem>
+            <SelectItem value="invited">Invited</SelectItem>
+            <SelectItem value="locked">Locked</SelectItem>
+          </SelectContent>
+        </Select>
+        {(searchQuery || factionFilter !== "all" || accountFilter !== "all") && <Button variant="ghost" size="sm" onClick={() => {setSearchQuery("");setFactionFilter("all");setAccountFilter("all");}}>Clear filters</Button>}
+        <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">{filteredMembers.length} of {members.length} members</span>
       </div>
 
       {/* Invite Dialog */}
@@ -454,11 +497,12 @@ export const MemberManagement = () => {
       </Card>
 
       {/* Member Detail Dialog */}
-      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Member Details</DialogTitle>
-          </DialogHeader>
+      <Sheet open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+          <SheetHeader className="mb-5">
+            <SheetTitle>Member Details</SheetTitle>
+            <SheetDescription>Contact information, identity and membership history</SheetDescription>
+          </SheetHeader>
           {viewingMember && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -471,10 +515,10 @@ export const MemberManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-xs text-muted-foreground">Email</Label>
-                  <p className="text-sm">{viewingMember.email}</p>
+                  <p className="text-sm break-all">{viewingMember.email}</p>
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Phone</Label>
@@ -533,8 +577,8 @@ export const MemberManagement = () => {
               )}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
