@@ -23,6 +23,8 @@ interface DirectoryMember {
   bio: string | null;
   created_at: string;
   role?: string;
+  boardOffice?: string | null;
+  boardAbbr?: string | null;
 }
 
 const FACTION_LABELS: Record<string, string> = {
@@ -62,6 +64,16 @@ export default function MemberDirectory() {
         });
       }
 
+      const { data: boardOffices } = await supabase.from("offices").select("id,title,abbreviation").eq("tier", "boe");
+      const { data: assigned } = boardOffices?.length
+        ? await supabase.from("office_assignments").select("office_id,user_id").eq("is_active", true).in("office_id", boardOffices.map(o => o.id))
+        : { data: [] };
+      const boardMap: Record<string, {title: string; abbr: string | null}> = {};
+      (assigned || []).forEach(a => {
+        const o = boardOffices?.find(o => o.id === a.office_id);
+        if (o) boardMap[a.user_id] = { title: o.title, abbr: o.abbreviation };
+      });
+
       // Executive role labels for everyone (public columns)
       const { data: execRows } = await supabase
         .from("profiles")
@@ -79,6 +91,8 @@ export default function MemberDirectory() {
           ...contact,
           ...exec,
           role: p.primary_role || "user",
+          boardOffice: boardMap[p.user_id]?.title || null,
+          boardAbbr: boardMap[p.user_id]?.abbr || null,
         } as DirectoryMember;
       });
     },
@@ -87,9 +101,9 @@ export default function MemberDirectory() {
   const filteredMembers = members.filter((m) => {
     const matchesSearch =
       m.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.faction?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m.boardOffice || m.faction)?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.role?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFaction = factionFilter === "all" || m.faction === factionFilter;
+    const matchesFaction = factionFilter === "all" || (factionFilter === "BOE" ? !!m.boardOffice : !m.boardOffice && m.faction === factionFilter);
     return matchesSearch && matchesFaction;
   });
 
@@ -129,7 +143,8 @@ export default function MemberDirectory() {
               <SelectValue placeholder="Filter by faction" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Factions</SelectItem>
+              <SelectItem value="all">All Teams</SelectItem>
+              <SelectItem value="BOE">BoE — Board of Executives</SelectItem>
               {Object.entries(FACTION_LABELS).map(([key, label]) => (
                 <SelectItem key={key} value={key}>{label}</SelectItem>
               ))}
@@ -163,17 +178,17 @@ export default function MemberDirectory() {
                       <CardTitle className="text-sm sm:text-lg leading-snug break-words">{member.full_name || "—"}</CardTitle>
                       <p className="text-xs sm:text-sm text-primary font-medium flex flex-wrap items-center gap-1">
                         <Shield className="h-3 w-3" />
-                        {memberTitle(member as any)}
-                        {memberAbbr(member as any) && (
+                        {member.boardOffice || memberTitle(member as any)}
+                        {(member.boardAbbr || memberAbbr(member as any)) && (
                           <Badge variant="outline" className="text-[10px]">
-                            {memberAbbr(member as any)}
+                            {member.boardAbbr || memberAbbr(member as any)}
                           </Badge>
                         )}
                       </p>
                     </div>
-                    {member.faction && (
-                      <Badge className={FACTION_COLORS[member.faction] || "bg-muted text-muted-foreground"}>
-                        {member.faction}
+                    {(member.boardOffice || member.faction) && (
+                      <Badge className={member.boardOffice ? "bg-amber-100 text-amber-900" : FACTION_COLORS[member.faction || ""] || "bg-muted text-muted-foreground"}>
+                        {member.boardOffice ? "BoE" : member.faction}
                       </Badge>
                     )}
                   </div>
