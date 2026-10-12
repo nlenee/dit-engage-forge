@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { ImageUploader } from "@/components/ImageUploader";
+import { useQuery } from "@tanstack/react-query";
+import { memberTitle } from "@/lib/roleLabels";
 
 interface Profile {
   id: string;
@@ -37,6 +39,18 @@ export default function ProfilePage() {
   const { user, userRole, profileCompleted } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const { data: office } = useQuery({
+    queryKey: ["my-primary-office", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data: assignments, error } = await supabase.from("office_assignments").select("office_id").eq("user_id", user!.id).eq("is_active", true);
+      if (error) throw error;
+      if (!assignments?.length) return null;
+      const { data: offices, error: officeError } = await supabase.from("offices").select("id,title,abbreviation,tier").in("id", assignments.map(a => a.office_id));
+      if (officeError) throw officeError;
+      return offices?.sort((a,b) => Number(b.tier === "boe") - Number(a.tier === "boe"))[0] ?? null;
+    },
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [phone, setPhone] = useState("");
@@ -91,15 +105,8 @@ export default function ProfilePage() {
     setSaving(false);
   };
 
-  const getRoleLabel = () => {
-    switch (userRole) {
-      case "admin": return "Admin";
-      case "executive_secretary": return "Executive Secretary";
-      case "community_manager": return "Community Manager";
-      case "chief_finance_officer": return "Chief Finance Officer";
-      default: return "Member";
-    }
-  };
+  const getRoleLabel = () => office?.title || memberTitle({ role: userRole });
+  const affiliation = office?.tier === "boe" ? "Board of Executives (BoE)" : profile?.faction ? FACTION_LABELS[profile.faction] || profile.faction : "Not assigned";
 
   if (loading) {
     return (
@@ -143,9 +150,7 @@ export default function ProfilePage() {
                 <Shield className="h-3 w-3" />
                 {getRoleLabel()}
               </Badge>
-              {profile?.faction && (
-                <Badge variant="outline">{FACTION_LABELS[profile.faction] || profile.faction}</Badge>
-              )}
+              {(office?.tier === "boe" || profile?.faction) && <Badge variant="outline">{affiliation}</Badge>}
               <Badge variant={profile?.status === "active" ? "default" : "destructive"}>
                 {profile?.status || "active"}
               </Badge>
@@ -181,8 +186,8 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Faction</Label>
-                <Input value={profile?.faction ? FACTION_LABELS[profile.faction] || profile.faction : "Not assigned"} disabled className="bg-muted" />
+                <Label className="text-muted-foreground">Organizational affiliation</Label>
+                <Input value={affiliation} disabled className="bg-muted" />
                 <p className="text-xs text-muted-foreground">Factions can only be changed by an admin</p>
               </div>
 
