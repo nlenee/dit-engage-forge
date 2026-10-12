@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, FileText, Cake, Calendar, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, Cake, Calendar, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +38,8 @@ export const EmailTemplateManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [templateType, setTemplateType] = useState("all");
   const [formData, setFormData] = useState({
     name: "",
     subject: "",
@@ -101,6 +103,13 @@ export const EmailTemplateManager = () => {
     }
   };
 
+  const filteredTemplates = templates.filter(template => {
+    const term = templateSearch.trim().toLowerCase();
+    return (templateType === "all" || template.type === templateType) &&
+      (!term || [template.name, template.subject, template.description].some(value => String(value || "").toLowerCase().includes(term)));
+  });
+  const availableTypes = Array.from(new Set(templates.map(template => template.type))).sort();
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -126,16 +135,33 @@ export const EmailTemplateManager = () => {
         <strong>Available placeholders:</strong> {"{{name}}"} - Recipient name, {"{{month}}"} - Current month, {"{{year}}"} - Current year
       </div>
 
+      <section aria-label="Template library filters" className="space-y-3 rounded-xl border bg-card p-3 sm:p-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {[{label:"Total templates",value:templates.length},{label:"Available types",value:availableTypes.length},{label:"Matching templates",value:filteredTemplates.length}].map(metric=>
+            <div key={metric.label} className="rounded-lg bg-muted/40 p-3"><p className="text-xs text-muted-foreground">{metric.label}</p><p className="text-xl font-semibold tabular-nums">{metric.value}</p></div>)}
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true"/>
+            <Input className="pl-9" aria-label="Search email templates" placeholder="Search name, subject or description…" value={templateSearch} onChange={e=>setTemplateSearch(e.target.value)}/>
+          </div>
+          <Select value={templateType} onValueChange={setTemplateType}>
+            <SelectTrigger aria-label="Filter templates by type" className="w-full sm:w-44"><SelectValue placeholder="All types"/></SelectTrigger>
+            <SelectContent><SelectItem value="all">All types</SelectItem>{availableTypes.map(type=><SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <p className="text-xs text-muted-foreground" aria-live="polite">{filteredTemplates.length} of {templates.length} templates</p>
+      </section>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {templates.length === 0 ? (
+        {filteredTemplates.length === 0 ? (
           <Card className="col-span-full">
             <CardContent className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No templates yet. Create your first template.</p>
+              <p className="text-muted-foreground">{templates.length ? "No templates match your filters." : "No templates yet. Create your first template."}</p>
             </CardContent>
           </Card>
         ) : (
-          templates.map((template) => (
+          filteredTemplates.map((template) => (
             <Card key={template.id} className="group min-w-0 hover:shadow-md transition-shadow">
               <CardHeader className="p-3 sm:p-5 pb-2">
                 <div className="flex flex-wrap items-start justify-between gap-2">
