@@ -82,9 +82,31 @@ const OrgStructure = () => {
         {isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" /></div>
         ) : (
-          <div className="space-y-10">
-            {TIERS.map((tier) => {
-              const list = offices.filter((o) => (o.tier || "faction_level") === tier.key);
+          <div className="space-y-6">
+            <nav aria-label="Organizational tiers" className="rounded-xl border bg-card p-4 sm:p-6">
+              <p className="text-center text-xs uppercase tracking-widest text-muted-foreground">Leadership hierarchy</p>
+              <div className="mx-auto mt-4 flex max-w-md flex-col items-center gap-2">
+                {TIERS.map((tier, index) => <div key={tier.key} className="w-full">
+                  {index > 0 && <ChevronDown className="mx-auto my-1 h-5 w-5 text-muted-foreground" aria-hidden="true" />}
+                  <button type="button" onClick={() => {setActiveTier(tier.key); setSearch("");}} className={`w-full rounded-xl border px-4 py-3 text-center transition-colors focus-visible:outline focus-visible:outline-2 ${activeTier === tier.key ? "border-primary bg-primary/10" : "bg-background hover:bg-muted"}`}>
+                    <span className="block text-xs text-muted-foreground">Tier {index + 1} · {offices.filter(o => (o.tier || "faction_level") === tier.key).length} offices</span>
+                    <span className="block font-semibold">{tier.label}</span>
+                    <span className="block text-xs text-muted-foreground">{tier.caption}</span>
+                  </button>
+                </div>)}
+              </div>
+            </nav>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div role="group" aria-label="Browse leadership tier" className="flex max-w-full gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1">
+                {TIERS.map(t => <button type="button" key={t.key} aria-pressed={activeTier === t.key} onClick={() => {setActiveTier(t.key); setSearch("");}} className={`shrink-0 rounded-lg px-3 py-2 text-xs font-medium ${activeTier === t.key ? "bg-primary text-primary-foreground" : "hover:bg-background"}`}>{t.label}</button>)}
+              </div>
+              <div className="relative w-full sm:max-w-xs"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" aria-label="Find office or holder" placeholder="Search office or holder…" value={search} onChange={e => setSearch(e.target.value)} /></div>
+            </div>
+            {visibleTiers.map((tier) => {
+              const term = search.trim().toLowerCase();
+              const list = offices.filter(o => (o.tier || "faction_level") === tier.key).filter(o => !term ||
+                o.title.toLowerCase().includes(term) || (o.abbreviation || "").toLowerCase().includes(term) ||
+                (data?.holders?.[o.id] || []).some((h: any) => (h.profile?.full_name || "").toLowerCase().includes(term)));
               if (!list.length) return null;
               return (
                 <section key={tier.key}>
