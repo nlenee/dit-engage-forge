@@ -90,7 +90,7 @@ export default function OfficesManager() {
           <SelectContent>
             <SelectItem value="all">All affiliations</SelectItem>
             <SelectItem value="central">Central / BoE</SelectItem>
-            {FACTIONS.map(f => <SelectItem key={f.code} value={f.code}>{f.name}</SelectItem>)}
+            {FACTIONS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
           </SelectContent>
         </Select>
         <p aria-live="polite" className="w-full text-xs text-muted-foreground">{visibleOffices.length} of {offices.length} offices</p>
