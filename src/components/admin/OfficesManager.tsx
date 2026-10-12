@@ -27,6 +27,8 @@ export default function OfficesManager() {
   const [loading, setLoading] = useState(true);
   const [openCreate, setOpenCreate] = useState(false);
   const [openAssign, setOpenAssign] = useState<string | null>(null);
+  const [officeSearch, setOfficeSearch] = useState("");
+  const [officeFaction, setOfficeFaction] = useState("all");
 
   const load = async () => {
     setLoading(true);
@@ -65,6 +67,12 @@ export default function OfficesManager() {
     load();
   };
 
+  const visibleOffices = offices.filter(o => {
+    const term = officeSearch.trim().toLowerCase();
+    const matchesText = !term || [o.title,o.code,o.description].some(v => String(v || "").toLowerCase().includes(term));
+    return matchesText && (officeFaction === "all" || (officeFaction === "central" ? !o.faction : o.faction === officeFaction));
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -75,13 +83,26 @@ export default function OfficesManager() {
         <Button onClick={() => setOpenCreate(true)}><Plus className="w-4 h-4 mr-1"/> New Office</Button>
       </div>
 
+      <section aria-label="Office filters" className="flex flex-wrap gap-3 rounded-xl border bg-card p-3">
+        <Input value={officeSearch} onChange={e => setOfficeSearch(e.target.value)} aria-label="Search office responsibilities" placeholder="Find an office…" className="w-full sm:w-64" />
+        <Select value={officeFaction} onValueChange={setOfficeFaction}>
+          <SelectTrigger aria-label="Filter office affiliation" className="w-full sm:w-48"><SelectValue placeholder="All affiliations"/></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All affiliations</SelectItem>
+            <SelectItem value="central">Central / BoE</SelectItem>
+            {FACTIONS.map(f => <SelectItem key={f.code} value={f.code}>{f.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <p aria-live="polite" className="w-full text-xs text-muted-foreground">{visibleOffices.length} of {offices.length} offices</p>
+      </section>
+
       {loading ? (
         <div className="p-8 text-center"><Loader2 className="animate-spin inline"/></div>
       ) : offices.length === 0 ? (
         <Card className="p-8 text-center text-muted-foreground">No offices yet. Create one to grant scoped access to members.</Card>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
-          {offices.map(o => (
+          {visibleOffices.map(o => (
             <Card key={o.id} className="p-3 sm:p-4 space-y-2.5 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <div>
