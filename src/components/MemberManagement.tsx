@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useMembers, Member } from "@/hooks/useMembers";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -496,11 +497,12 @@ export const MemberManagement = () => {
       </Card>
 
       {/* Member Detail Dialog */}
-      <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Member Details</DialogTitle>
-          </DialogHeader>
+      <Sheet open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+          <SheetHeader className="mb-5">
+            <SheetTitle>Member Details</SheetTitle>
+            <SheetDescription>Contact information, identity and membership history</SheetDescription>
+          </SheetHeader>
           {viewingMember && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -513,10 +515,10 @@ export const MemberManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-xs text-muted-foreground">Email</Label>
-                  <p className="text-sm">{viewingMember.email}</p>
+                  <p className="text-sm break-all">{viewingMember.email}</p>
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Phone</Label>
@@ -575,8 +577,8 @@ export const MemberManagement = () => {
               )}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
