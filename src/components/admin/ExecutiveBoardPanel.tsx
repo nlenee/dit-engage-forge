@@ -49,6 +49,9 @@ export default function ExecutiveBoardPanel() {
   const [officePerms, setOfficePerms] = useState<Map<string, string[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [appointOffice, setAppointOffice] = useState<OfficeRow | null>(null);
+  const [officeSearch, setOfficeSearch] = useState("");
+  const [occupancyFilter, setOccupancyFilter] = useState<"all" | "vacant" | "occupied">("all");
+  const [selectedTier, setSelectedTier] = useState<"boe" | "faction_ed" | "faction_level">("boe");
 
   const load = async () => {
     setLoading(true);
@@ -88,6 +91,16 @@ export default function ExecutiveBoardPanel() {
     faction_ed: offices.filter(o => o.tier === "faction_ed"),
     faction_level: offices.filter(o => o.tier === "faction_level"),
   }), [offices]);
+
+  const visible = (tier: "boe" | "faction_ed" | "faction_level") =>
+    tierGroups[tier].filter(o => {
+      const term = officeSearch.trim().toLowerCase();
+      const occupants = officeOccupants.get(o.id) || [];
+      return (!term || [o.title, o.abbreviation, o.faction, ...occupants.map(a => profiles.get(a.user_id)?.full_name)]
+        .some(v => String(v || "").toLowerCase().includes(term))) &&
+        (occupancyFilter === "all" || (occupancyFilter === "vacant" ? occupants.length === 0 : occupants.length > 0));
+    });
+  const totalVacant = offices.filter(o => (officeOccupants.get(o.id) || []).length === 0).length;
 
   if (loading) return <div className="p-6 text-muted-foreground">Loading executive board…</div>;
 
@@ -155,25 +168,42 @@ export default function ExecutiveBoardPanel() {
   };
 
   return (
-    <div className="space-y-8">
-      <section>
-        <h3 className="text-lg font-semibold mb-3">Tier 1 — Board of Executives</h3>
-        <div className="grid gap-2 sm:gap-4 md:grid-cols-2">{tierGroups.boe.map(renderCard)}</div>
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {[
+          { label: "Total offices", value: offices.length },
+          { label: "Occupied", value: offices.length - totalVacant },
+          { label: "Vacancies", value: totalVacant },
+        ].map(metric => <div key={metric.label} className="rounded-xl border bg-card p-3">
+          <p className="text-xs text-muted-foreground">{metric.label}</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums">{metric.value}</p>
+        </div>)}
+      </div>
+      <section aria-label="Executive office filters" className="space-y-3 rounded-xl border bg-card p-3 sm:p-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true"/>
+          <Input className="pl-9" aria-label="Find office or officeholder" placeholder="Search offices or officeholders…" value={officeSearch} onChange={e => setOfficeSearch(e.target.value)}/>
+        </div>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Leadership tiers">
+          {([
+            ["boe","Board of Executives"],
+            ["faction_ed","Faction Executives"],
+            ["faction_level","Faction Offices"]
+          ] as const).map(([key,label])=><button key={key} type="button" aria-pressed={selectedTier === key}
+            onClick={()=>setSelectedTier(key)}
+            className={`min-h-10 rounded-lg border px-3 py-2 text-sm ${selectedTier === key ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{label}</button>)}
+        </div>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Office occupancy">
+          {(["all","occupied","vacant"] as const).map(filter=><button key={filter} type="button" aria-pressed={occupancyFilter===filter}
+            onClick={()=>setOccupancyFilter(filter)} className={`rounded-full border px-3 py-1.5 text-xs capitalize ${occupancyFilter===filter ? "bg-secondary text-secondary-foreground" : "text-muted-foreground"}`}>{filter}</button>)}
+        </div>
+        <p className="text-xs text-muted-foreground" aria-live="polite">{visible(selectedTier).length} matching offices</p>
       </section>
-      <section>
-        <h3 className="text-lg font-semibold mb-3">Tier 2 — Faction Executive Directors</h3>
-        <div className="grid gap-4 md:grid-cols-2">{tierGroups.faction_ed.map(renderCard)}</div>
-      </section>
-      <section>
-        <h3 className="text-lg font-semibold mb-3">Tier 3 — Faction-Level Roles</h3>
-        {(["SHI","DYP","TECK","MindUp"] as const).map(f => (
-          <div key={f} className="mb-6">
-            <div className="text-sm font-medium mb-2" style={{ color: factionColor(f) }}>{f}</div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {tierGroups.faction_level.filter(o => o.faction === f).map(renderCard)}
-            </div>
-          </div>
-        ))}
+      <section aria-label="Selected leadership offices">
+        <h3 className="mb-3 text-lg font-semibold">{selectedTier === "boe" ? "Board of Executives" : selectedTier === "faction_ed" ? "Faction Executive Directors" : "Faction-Level Offices"}</h3>
+        {visible(selectedTier).length === 0
+          ? <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">No offices match your filters.</p>
+          : <div className="grid gap-3 md:grid-cols-2">{visible(selectedTier).map(renderCard)}</div>}
       </section>
 
       {appointOffice && (
