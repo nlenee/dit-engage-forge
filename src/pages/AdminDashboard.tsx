@@ -118,6 +118,8 @@ const AdminDashboard = () => {
   } = useAdminData();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [adminSection, setAdminSection] = useState("People");
+  const [adminTab, setAdminTab] = useState("users");
   const [roleChangeUser, setRoleChangeUser] = useState<{
     userId: string;
     name: string;
@@ -346,61 +348,75 @@ const AdminDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="users" className="space-y-4">
-          <TabsList className="flex-wrap h-auto gap-1">
-            <TabsTrigger value="users" className="gap-2">
+        <Tabs value={adminTab} onValueChange={setAdminTab} className="space-y-4">
+          <section className="rounded-xl border bg-card p-3 sm:p-4 space-y-3" aria-label="Administration control centre">
+            <div><h2 className="font-semibold text-base">Management areas</h2><p className="text-sm text-muted-foreground">Choose an area to see relevant tools.</p></div>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Management areas">
+              {[
+                {label:"People",start:"users"},
+                {label:"Organization",start:"board"},
+                {label:"Communications",start:"emails"},
+                {label:"Documents & review",start:"letters"},
+                {label:"Insights",start:"analytics"}
+              ].map(area => <button key={area.label} type="button" aria-pressed={adminSection===area.label}
+                onClick={()=>{setAdminSection(area.label);setAdminTab(area.start);}}
+                className={`min-h-11 rounded-lg border px-3 py-2 text-sm font-medium ${adminSection===area.label ? "bg-primary text-primary-foreground border-primary" : "hover:bg-muted"}`}>{area.label}</button>)}
+            </div>
+          </section>
+          <TabsList aria-label="Tools in selected management area" className="flex flex-wrap justify-start h-auto gap-1 p-1.5">
+            <TabsTrigger value="users" className={`gap-2 ${adminSection === "People" ? "" : "hidden"}` }>
               <Users className="h-4 w-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="members" className="gap-2">
+            <TabsTrigger value="members" className={`gap-2 ${adminSection === "People" ? "" : "hidden"}` }>
               <Cake className="h-4 w-4" />
               Members
             </TabsTrigger>
-            <TabsTrigger value="letters" className="gap-2">
+            <TabsTrigger value="letters" className={`gap-2 ${adminSection === "Documents & review" ? "" : "hidden"}` }>
               <FileText className="h-4 w-4" />
               Letters
             </TabsTrigger>
-            <TabsTrigger value="emails" className="gap-2">
+            <TabsTrigger value="emails" className={`gap-2 ${adminSection === "Communications" ? "" : "hidden"}` }>
               <Mail className="h-4 w-4" />
               Email Logs
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
+            <TabsTrigger value="analytics" className={`gap-2 ${adminSection === "Insights" ? "" : "hidden"}` }>
               <BarChart3 className="h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="templates" className="gap-2">
+            <TabsTrigger value="templates" className={`gap-2 ${adminSection === "Communications" ? "" : "hidden"}` }>
               <FileEdit className="h-4 w-4" />
               Templates
             </TabsTrigger>
-            <TabsTrigger value="campaigns" className="gap-2">
+            <TabsTrigger value="campaigns" className={`gap-2 ${adminSection === "Communications" ? "" : "hidden"}` }>
               <Send className="h-4 w-4" />
               Campaigns
             </TabsTrigger>
-            <TabsTrigger value="password-resets" className="gap-2">
+            <TabsTrigger value="password-resets" className={`gap-2 ${adminSection === "People" ? "" : "hidden"}` }>
               <KeyRound className="h-4 w-4" />
               Resets
             </TabsTrigger>
-            <TabsTrigger value="xp-reviews" className="gap-2">
+            <TabsTrigger value="xp-reviews" className={`gap-2 ${adminSection === "Documents & review" ? "" : "hidden"}` }>
               <Trophy className="h-4 w-4" />
               XP Reviews
             </TabsTrigger>
-            <TabsTrigger value="board" className="gap-2">
+            <TabsTrigger value="board" className={`gap-2 ${adminSection === "Organization" ? "" : "hidden"}` }>
               <Crown className="h-4 w-4" />
               Executive Board
             </TabsTrigger>
-            <TabsTrigger value="offices" className="gap-2">
+            <TabsTrigger value="offices" className={`gap-2 ${adminSection === "Organization" ? "" : "hidden"}` }>
               <Shield className="h-4 w-4" />
               Offices
             </TabsTrigger>
-            <TabsTrigger value="factions" className="gap-2">
+            <TabsTrigger value="factions" className={`gap-2 ${adminSection === "Organization" ? "" : "hidden"}` }>
               <Users className="h-4 w-4" />
               Factions
             </TabsTrigger>
-            <TabsTrigger value="compose" className="gap-2">
+            <TabsTrigger value="compose" className={`gap-2 ${adminSection === "Communications" ? "" : "hidden"}` }>
               <Send className="h-4 w-4" />
               Compose Email
             </TabsTrigger>
-            <TabsTrigger value="monthly" className="gap-2">
+            <TabsTrigger value="monthly" className={`gap-2 ${adminSection === "Communications" ? "" : "hidden"}` }>
               <Send className="h-4 w-4" />
               Monthly Message
             </TabsTrigger>
