@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bell, ChevronLeft, ChevronRight, LogOut, Menu, Search, X, LayoutDashboard } from "lucide-react";
+import { Bell, ChevronLeft, ChevronRight, LogOut, Menu, Search, X, LayoutDashboard, Repeat2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMessages } from "@/hooks/useMessages";
 import ditLogo from "@/assets/dit-logo.jpg";
@@ -10,6 +10,17 @@ import "./os2.css";
 type Props = { children: ReactNode; title: string; description?: string; };
 export default function OS2Shell({ children, title, description }: Props) {
   const auth = useAuth();
+  const [switching, setSwitching] = useState(false);
+  const switchAccount = async () => {
+    if (switching) return;
+    setSwitching(true);
+    sessionStorage.setItem("dit_switch_account", "1");
+    try { await auth.signOut(); } catch (error) {
+      sessionStorage.removeItem("dit_switch_account");
+      setSwitching(false);
+      console.error("Unable to switch accounts until logout succeeds", error);
+    }
+  };
   const { unreadCount } = useMessages();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -48,6 +59,7 @@ export default function OS2Shell({ children, title, description }: Props) {
         })}
       </div>
       <div className="os2-sidebar-foot">
+        <button type="button" className="os2-menu-link" disabled={switching} onClick={() => void switchAccount()}><Repeat2 size={18}/><span>{switching ? "Switching account…" : "Switch Google account"}</span></button>
         <button type="button" className="os2-menu-link" onClick={() => void auth.signOut()}><LogOut size={18}/><span>Sign out</span></button>
       </div>
     </>
