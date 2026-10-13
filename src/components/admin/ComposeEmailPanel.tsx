@@ -39,6 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { useFactions } from "@/hooks/useFactions";
 import { useInternalEmails, useEmailRecipients } from "@/hooks/useInternalEmails";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,8 @@ export default function ComposeEmailPanel() {
   const [date, setDate] = useState<Date | undefined>();
   const [time, setTime] = useState("09:00");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [confirmCompose, setConfirmCompose] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
 
   const { data: recipients = [] } = useEmailRecipients(expanded);
 
@@ -171,6 +174,7 @@ export default function ComposeEmailPanel() {
     setDate(undefined);
   };
 
+  const visibleEmails = emails.filter(e => !historySearch.trim() || [e.subject, e.status].some(v => String(v || "").toLowerCase().includes(historySearch.trim().toLowerCase())));
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
       sent: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
@@ -414,7 +418,7 @@ export default function ComposeEmailPanel() {
                 )}
               </div>
             </div>
-            <Button className="w-full gap-2" disabled={!canSend} onClick={handleSend}>
+            <Button className="w-full gap-2" disabled={!canSend} onClick={() => setConfirmCompose(true)}>
               {sendEmail.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
@@ -427,6 +431,7 @@ export default function ComposeEmailPanel() {
       </TabsContent>
 
       <TabsContent value="history">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><Input className="w-full sm:max-w-sm" aria-label="Find sent or scheduled email" placeholder="Search subject or status…" value={historySearch} onChange={e=>setHistorySearch(e.target.value)}/><span className="text-xs text-muted-foreground" aria-live="polite">{visibleEmails.length} of {emails.length} emails</span></div>
         <div className="rounded-xl border border-border/50 bg-card shadow-soft overflow-hidden">
           {historyLoading ? (
             <div className="p-8 text-center">
@@ -444,7 +449,7 @@ export default function ComposeEmailPanel() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emails.map((e) => (
+                {visibleEmails.map((e) => (
                   <Fragment key={e.id}>
                     <TableRow>
                       <TableCell className="font-medium max-w-[240px] truncate">{e.subject}</TableCell>
@@ -511,10 +516,10 @@ export default function ComposeEmailPanel() {
                     )}
                   </Fragment>
                 ))}
-                {emails.length === 0 && (
+                {visibleEmails.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No emails yet.
+                      {emails.length ? "No emails match your search." : "No emails yet."}
                     </TableCell>
                   </TableRow>
                 )}
@@ -523,6 +528,21 @@ export default function ComposeEmailPanel() {
           )}
         </div>
       </TabsContent>
+      <AlertDialog open={confirmCompose} onOpenChange={setConfirmCompose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{scheduleOn ? "Confirm scheduled email" : "Confirm email delivery"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {scheduleOn ? "Schedule" : "Send"} this email to {resolved.length} resolved recipients
+              {ccParsed.valid.length || bccParsed.valid.length ? ` (plus ${ccParsed.valid.length} Cc and ${bccParsed.valid.length} Bcc)` : ""}?
+              Review the recipient list, content and timing before continuing.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel>Review again</AlertDialogCancel>
+            <AlertDialogAction disabled={!canSend} onClick={()=>{void handleSend();}}>Confirm {scheduleOn ? "schedule" : "send"}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Tabs>
   );
 }
