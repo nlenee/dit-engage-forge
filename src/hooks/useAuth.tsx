@@ -142,27 +142,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const intent = (sessionStorage.getItem("google_intent") as "login" | "signup") || "login";
             sessionStorage.removeItem("google_intent");
             try {
-              const { data: isMember, error: membershipError } = await supabase.rpc("is_registered_member", { _email: email });
-              if (membershipError) throw membershipError;
+              // Resolve membership from the authenticated identity, not from email alone.
+              // This single lookup also avoids a second slow verification RPC.
+              const { data: linkedProfile, error: linkedError } = await supabase
+                .from("profiles").select("user_id,status,profile_completed")
+                .eq("user_id", session.user.id).maybeSingle();
+              if (linkedError) throw linkedError;
+              const isMember = !!linkedProfile && linkedProfile.status === "active" && linkedProfile.profile_completed === true;
               if (isMember) {
-                // A matching email is necessary, but not sufficient. The
-                // OAuth identity must be the auth user linked to that profile.
-                // Otherwise a newly created provider identity can be mistaken
-                // for an invited and approved member.
-                const { data: linkedProfile, error: linkedError } = await supabase
-                  .from("profiles").select("user_id,status,profile_completed")
-                  .eq("user_id", session.user.id).maybeSingle();
-                if (linkedError) throw linkedError;
-                if (!linkedProfile || linkedProfile.status !== "active" || linkedProfile.profile_completed !== true) {
-                  await supabase.auth.signOut();
-                  setSession(null);
-                  setUser(null);
-                  setLoading(false);
-                  setRolesLoading(false);
-                  sessionStorage.setItem("dit_auth_feedback", "account_link_required");
-                  window.location.replace("/auth?error=account_link_required");
-                  return;
-                }
                 googleVerifiedUserRef.current = session.user.id;
                 setSession(session);
                 setUser(session.user);
@@ -254,6 +241,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setRolesLoading(false);
         return;
       }
+      // A Google callback can trigger SIGNED_IN and the initial getSession()
+      // concurrently. Do not expose an unverified identity or clobber its state.
+      if (session?.user && googleVerificationInFlightRef.current === session.user.id) return;
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
