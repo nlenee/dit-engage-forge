@@ -52,6 +52,7 @@ export default function ProfilePage() {
     },
   });
   const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
@@ -63,13 +64,18 @@ export default function ProfilePage() {
   }, [user]);
 
   const fetchProfile = async () => {
+    setLoading(true);
+    setProfileError(null);
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("user_id", user!.id)
       .single();
 
-    if (!error && data) {
+    if (error || !data) {
+      setProfile(null);
+      setProfileError("We could not load your member record. Please retry or contact DIT support. No profile information has been changed.");
+    } else {
       setProfile(data as Profile);
       setPhone(data.phone || "");
       setBio(data.bio || "");
@@ -115,6 +121,19 @@ export default function ProfilePage() {
         <div className="flex items-center justify-center p-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
+      </div>
+    );
+  }
+
+  if (profileError || !profile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto max-w-2xl px-4 py-12 text-center">
+          <h1 className="text-xl font-semibold">Profile temporarily unavailable</h1>
+          <p role="alert" className="mt-3 text-muted-foreground">{profileError || "Your member profile could not be found."}</p>
+          <Button className="mt-5" onClick={() => void fetchProfile()}>Retry loading profile</Button>
+        </main>
       </div>
     );
   }
