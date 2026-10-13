@@ -127,15 +127,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // A duplicate auth event during verification must not expose a
         // pending Google identity to protected routes before approval is checked.
-        if (event === "SIGNED_IN" && session?.user && googleVerificationInFlightRef.current === session.user.id) return;
+        if (session?.user && googleVerificationInFlightRef.current === session.user.id) return;
 
         // Google-intent gate: a user signing in via Google must already be a member
         // (login intent) — otherwise stage their info and route to /apply.
-        if (event === "SIGNED_IN" && session?.user && (session.user.app_metadata as any)?.provider === "google"
+        if ((event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") && session?.user && (session.user.app_metadata as any)?.provider === "google"
           && googleVerifiedUserRef.current !== session.user.id
           && googleVerificationInFlightRef.current !== session.user.id) {
           googleVerificationInFlightRef.current = session.user.id;
-          (async () => {
+          // Defer database work until Supabase has released the auth-event lock.
+          // Starting an awaited Supabase query inside onAuthStateChange can
+          // deadlock token/session access and strand users on /auth.
+          setTimeout(() => {
+            void (async () => {
             const email = session.user.email || "";
             const fullName = (session.user.user_metadata?.full_name as string)
               || (session.user.user_metadata?.name as string) || "";
@@ -196,7 +200,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             } finally {
               googleVerificationInFlightRef.current = null;
             }
-          })();
+            })();
+          }, 0);
           return;
         }
 
@@ -244,6 +249,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // A Google callback can trigger SIGNED_IN and the initial getSession()
       // concurrently. Do not expose an unverified identity or clobber its state.
       if (session?.user && googleVerificationInFlightRef.current === session.user.id) return;
+      // INITIAL_SESSION/SIGNED_IN own Google membership verification. The
+      // separate getSession response must never publish unverified Google users.
+      if (session?.user && (session.user.app_metadata as any)?.provider === "google"
+        && googleVerifiedUserRef.current !== session.user.id) return;
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
