@@ -96,7 +96,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ),
       ]);
       if (roleRequestRef.current !== requestId) return;
-      setProfileCompleted(profRes.data?.profile_completed ?? false);
+      // A failed member-profile fetch is not evidence of an incomplete profile.
+      if (!profRes.error && profRes.data) {
+        setProfileCompleted(profRes.data.profile_completed === true);
+      }
       const perms = (permsRes as { data: unknown }).data;
       setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
     } catch {
@@ -104,7 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       rolesLoadedForRef.current = userId;
       setAllRoles(["user"]);
       setUserRole("user");
-      setProfileCompleted(false);
+      // Do not redirect a member to profile completion on transient failures.
       setPermissions([]);
     } finally {
       if (roleRequestRef.current === requestId) setRolesLoading(false);
@@ -155,6 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               const isMember = !!linkedProfile && linkedProfile.status === "active" && linkedProfile.profile_completed === true;
               if (isMember) {
                 googleVerifiedUserRef.current = session.user.id;
+                setProfileCompleted(true);
                 setSession(session);
                 setUser(session.user);
                 setLoading(false);
