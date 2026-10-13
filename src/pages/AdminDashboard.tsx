@@ -120,6 +120,8 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [adminSection, setAdminSection] = useState("People");
   const [adminTab, setAdminTab] = useState("users");
+  const [letterSearch, setLetterSearch] = useState("");
+  const [letterStatus, setLetterStatus] = useState("all");
   const [roleChangeUser, setRoleChangeUser] = useState<{
     userId: string;
     name: string;
@@ -140,11 +142,11 @@ const AdminDashboard = () => {
       user.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredLetters = allLetters.filter(
-    (letter) =>
-      letter.recipient_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      letter.office?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredLetters = allLetters.filter(letter => {
+    const term = letterSearch.trim().toLowerCase();
+    const matchesText = !term || [letter.recipient_name, letter.office].some(value => String(value || "").toLowerCase().includes(term));
+    return matchesText && (letterStatus === "all" || (letter.status || "draft") === letterStatus);
+  });
 
   const filteredEmails = emailLogs.filter(
     (log) =>
@@ -517,6 +519,23 @@ const AdminDashboard = () => {
 
           {/* Letters Tab */}
           <TabsContent value="letters">
+            <section aria-label="Letter management filters" className="mb-4 space-y-3 rounded-xl border bg-card p-3 sm:p-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {[
+                  {label:"Total letters",value:allLetters.length},
+                  {label:"Drafts",value:allLetters.filter(l=>(l.status||"draft")==="draft").length},
+                  {label:"Matching letters",value:filteredLetters.length}
+                ].map(stat=><div key={stat.label} className="rounded-lg bg-muted/40 p-3"><p className="text-xs text-muted-foreground">{stat.label}</p><p className="text-xl font-semibold tabular-nums">{stat.value}</p></div>)}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input aria-label="Search letters" placeholder="Search recipient or office…" value={letterSearch} onChange={e=>setLetterSearch(e.target.value)} />
+                <Select value={letterStatus} onValueChange={setLetterStatus}>
+                  <SelectTrigger aria-label="Filter letters by status" className="w-full sm:w-48"><SelectValue placeholder="All statuses"/></SelectTrigger>
+                  <SelectContent><SelectItem value="all">All statuses</SelectItem><SelectItem value="draft">Drafts</SelectItem><SelectItem value="downloaded">Downloaded</SelectItem><SelectItem value="sent">Sent</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground" aria-live="polite">{filteredLetters.length} of {allLetters.length} letters</p>
+            </section>
             <div className="bg-card rounded-xl border border-border/50 shadow-soft overflow-hidden">
               {lettersLoading ? (
                 <div className="p-8 text-center">
