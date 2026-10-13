@@ -74,12 +74,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     roleRequestRef.current = requestId;
     setRolesLoading(true);
     try {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
-
-      const roles = ((data || []).map((r: any) => r.role as AppRole));
+      // Fetch independent role, profile and permission records concurrently.
+      // Sequential lookups made every page reload wait for multiple network trips.
+      const [rolesRes, profRes, permsRes] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("profiles").select("profile_completed").eq("user_id", userId).maybeSingle(),
+        supabase.rpc("user_permissions", { _user_id: userId }),
+      ]);
+      if (rolesRes.error) throw rolesRes.error;
+      const roles = ((rolesRes.data || []).map((r: any) => r.role as AppRole));
       const resolvedRoles: AppRole[] = roles.length ? roles : ["user"];
       if (roleRequestRef.current !== requestId) return;
       rolesLoadedForRef.current = userId;
@@ -87,20 +90,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const top = ROLE_PRIORITY.find((r) => resolvedRoles.includes(r)) || "user";
       setUserRole(top);
 
-      // Profile and permission reads are independent — run them together.
-      const [profRes, permsRes] = await Promise.all([
-        supabase.from("profiles").select("profile_completed").eq("user_id", userId).maybeSingle(),
-        supabase.rpc("user_permissions", { _user_id: userId }).then(
-          (r) => r,
-          () => ({ data: null }),
-        ),
-      ]);
       if (roleRequestRef.current !== requestId) return;
       // A failed member-profile fetch is not evidence of an incomplete profile.
       if (!profRes.error && profRes.data) {
         setProfileCompleted(profRes.data.profile_completed === true);
       }
-      const perms = (permsRes as { data: unknown }).data;
+      const perms = permsRes.error ? null : permsRes.data;
       setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
     } catch {
       if (roleRequestRef.current !== requestId) return;
