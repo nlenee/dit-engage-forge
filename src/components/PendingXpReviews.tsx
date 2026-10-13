@@ -20,7 +20,7 @@ export default function PendingXpReviews() {
   const [decision, setDecision] = useState<{id:string;status:"approved"|"rejected";name:string}|null>(null);
   const [reason, setReason] = useState("");
 
-  const { data: pending = [], isLoading } = useQuery({
+  const { data: pending = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["pending-completions"],
     queryFn: async () => {
       const { data: rows, error: rowsError } = await supabase
@@ -32,8 +32,14 @@ export default function PendingXpReviews() {
       if (!rows?.length) return [];
       const taskIds = [...new Set(rows.map((r: any) => r.task_id))];
       const userIds = [...new Set(rows.map((r: any) => r.user_id))];
-      const { data: tasks } = await supabase.from("tasks").select("id,title,points,category").in("id", taskIds);
-      const { data: profiles } = await supabase.from("profiles").select("user_id,full_name").in("user_id", userIds);
+      const [tasksResult, profilesResult] = await Promise.all([
+        supabase.from("tasks").select("id,title,points,category").in("id", taskIds),
+        supabase.from("profiles").select("user_id,full_name").in("user_id", userIds),
+      ]);
+      if (tasksResult.error) throw tasksResult.error;
+      if (profilesResult.error) throw profilesResult.error;
+      const tasks = tasksResult.data;
+      const profiles = profilesResult.data;
       return rows.map((r: any) => ({
         ...r,
         task: tasks?.find((t) => t.id === r.task_id),
@@ -74,6 +80,8 @@ export default function PendingXpReviews() {
         <div className="mb-4 space-y-2"><Input aria-label="Search XP submissions" placeholder="Find a member, task or note…" value={query} onChange={e=>setQuery(e.target.value)}/><p className="text-xs text-muted-foreground">{visible.length} of {pending.length} pending submissions</p></div>
         {isLoading ? (
           <div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+        ) : isError ? (
+          <div role="alert" className="rounded-lg border p-4 text-sm">Unable to load XP review details. <Button variant="outline" size="sm" onClick={() => void refetch()}>Retry</Button></div>
         ) : visible.length === 0 ? (
           <p className="text-muted-foreground text-sm py-8 text-center">{pending.length ? "No matching submissions." : "No pending submissions."}</p>
         ) : (
