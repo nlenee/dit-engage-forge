@@ -74,12 +74,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     roleRequestRef.current = requestId;
     setRolesLoading(true);
     try {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
-
-      const roles = ((data || []).map((r: any) => r.role as AppRole));
+      // Fetch independent role, profile and permission records concurrently.
+      // Sequential lookups made every page reload wait for multiple network trips.
+      const [rolesRes, profRes, permsRes] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("profiles").select("profile_completed").eq("user_id", userId).maybeSingle(),
+        supabase.rpc("user_permissions", { _user_id: userId }),
+      ]);
+      if (rolesRes.error) throw rolesRes.error;
+      const roles = ((rolesRes.data || []).map((r: any) => r.role as AppRole));
       const resolvedRoles: AppRole[] = roles.length ? roles : ["user"];
       if (roleRequestRef.current !== requestId) return;
       rolesLoadedForRef.current = userId;
@@ -87,20 +90,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const top = ROLE_PRIORITY.find((r) => resolvedRoles.includes(r)) || "user";
       setUserRole(top);
 
-      // Profile and permission reads are independent — run them together.
-      const [profRes, permsRes] = await Promise.all([
-        supabase.from("profiles").select("profile_completed").eq("user_id", userId).maybeSingle(),
-        supabase.rpc("user_permissions", { _user_id: userId }).then(
-          (r) => r,
-          () => ({ data: null }),
-        ),
-      ]);
       if (roleRequestRef.current !== requestId) return;
       // A failed member-profile fetch is not evidence of an incomplete profile.
       if (!profRes.error && profRes.data) {
         setProfileCompleted(profRes.data.profile_completed === true);
       }
-      const perms = (permsRes as { data: unknown }).data;
+      const perms = permsRes.error ? null : permsRes.data;
       setPermissions(Array.isArray(perms) ? (perms as string[]) : []);
     } catch {
       if (roleRequestRef.current !== requestId) return;
@@ -151,9 +146,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
               // Resolve membership from the authenticated identity, not from email alone.
               // This single lookup also avoids a second slow verification RPC.
-              const { data: linkedProfile, error: linkedError } = await supabase
-                .from("profiles").select("user_id,status,profile_completed")
-                .eq("user_id", session.user.id).maybeSingle();
+              // Transient transport failures must not immediately sign out an
+              // approved OAuth member. Retry boundedly, never bypassing the gate.
+              let linkedProfile: { user_id: string; status: string; profile_completed: boolean } | null = null;
+              let linkedError: Error | null = null;
+              for (let attempt = 0; attempt < 3; attempt++) {
+                const result = await supabase
+                  .from("profiles").select("user_id,status,profile_completed")
+                  .eq("user_id", session.user.id).maybeSingle();
+                linkedProfile = result.data;
+                linkedError = result.error;
+                if (!linkedError) break;
+                if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+              }
               if (linkedError) throw linkedError;
               const isMember = !!linkedProfile && linkedProfile.status === "active" && linkedProfile.profile_completed === true;
               if (isMember) {
