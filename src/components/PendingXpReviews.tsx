@@ -7,11 +7,19 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function PendingXpReviews() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [query, setQuery] = useState("");
+  const [reviewItem, setReviewItem] = useState<{id:string;title:string;decision:"approved"|"rejected"} | null>(null);
+  const [reason, setReason] = useState("");
 
   const { data: pending = [], isLoading } = useQuery({
     queryKey: ["pending-completions"],
@@ -50,6 +58,7 @@ export default function PendingXpReviews() {
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
+  const visible = pending.filter((p:any)=>!query.trim() || [p.profile?.full_name,p.task?.title,p.task?.category].some(v=>String(v||"").toLowerCase().includes(query.trim().toLowerCase())));
   return (
     <Card>
       <CardHeader>
@@ -59,13 +68,17 @@ export default function PendingXpReviews() {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Input aria-label="Search XP submissions" placeholder="Search member, task or category…" value={query} onChange={e=>setQuery(e.target.value)} className="w-full sm:max-w-sm"/>
+          <p className="text-xs text-muted-foreground" aria-live="polite">{visible.length} of {pending.length} pending reviews</p>
+        </div>
         {isLoading ? (
           <div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-        ) : pending.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-8 text-center">No pending submissions.</p>
+        ) : visible.length === 0 ? (
+          <p className="text-muted-foreground text-sm py-8 text-center">{pending.length ? "No submissions match your search." : "No pending submissions."}</p>
         ) : (
           <div className="space-y-3">
-            {pending.map((p: any) => (
+            {visible.map((p: any) => (
               <div key={p.id} className="flex min-w-0 flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-start">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -85,13 +98,10 @@ export default function PendingXpReviews() {
                   {p.notes && <p className="text-xs italic mt-1">"{p.notes}"</p>}
                 </div>
                 <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-                  <Button size="sm" variant="outline" className="min-h-10 flex-1 sm:flex-none" onClick={() => review.mutate({ id: p.id, status: "approved" })}>
+                  <Button size="sm" variant="outline" className="min-h-10 flex-1 sm:flex-none" disabled={review.isPending} onClick={() => {setReviewItem({id:p.id,title:p.task?.title||"this task",decision:"approved"});setReason("");}}>
                     <CheckCircle2 className="h-4 w-4 mr-1 text-green-600" /> Approve
                   </Button>
-                  <Button size="sm" variant="outline" className="min-h-10 flex-1 sm:flex-none" onClick={() => {
-                    const reason = window.prompt("Rejection reason (optional)") || undefined;
-                    review.mutate({ id: p.id, status: "rejected", reason });
-                  }}>
+                  <Button size="sm" variant="outline" className="min-h-10 flex-1 sm:flex-none" disabled={review.isPending} onClick={() => {setReviewItem({id:p.id,title:p.task?.title||"this task",decision:"rejected"});setReason("");}}>
                     <XCircle className="h-4 w-4 mr-1 text-red-600" /> Reject
                   </Button>
                 </div>
@@ -100,6 +110,17 @@ export default function PendingXpReviews() {
           </div>
         )}
       </CardContent>
+      <AlertDialog open={!!reviewItem} onOpenChange={open=>{if(!open)setReviewItem(null);}}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>{reviewItem?.decision === "approved" ? "Approve XP submission?" : "Reject XP submission?"}</AlertDialogTitle>
+            <AlertDialogDescription>Review the evidence for {reviewItem?.title} before changing its status. This decision affects the member's XP.</AlertDialogDescription>
+          </AlertDialogHeader>
+          {reviewItem?.decision === "rejected" && <div className="space-y-2"><Label htmlFor="xp-reject-reason">Reason for rejection</Label><Textarea id="xp-reject-reason" value={reason} onChange={e=>setReason(e.target.value)} placeholder="Explain what needs correction…"/></div>}
+          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={review.isPending || (reviewItem?.decision === "rejected" && !reason.trim())} onClick={()=>{if(reviewItem)review.mutate({id:reviewItem.id,status:reviewItem.decision,reason:reason.trim()||undefined});setReviewItem(null);}}>Confirm {reviewItem?.decision === "approved" ? "approval" : "rejection"}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
