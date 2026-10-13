@@ -146,9 +146,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
               // Resolve membership from the authenticated identity, not from email alone.
               // This single lookup also avoids a second slow verification RPC.
-              const { data: linkedProfile, error: linkedError } = await supabase
-                .from("profiles").select("user_id,status,profile_completed")
-                .eq("user_id", session.user.id).maybeSingle();
+              // Transient transport failures must not immediately sign out an
+              // approved OAuth member. Retry boundedly, never bypassing the gate.
+              let linkedProfile: { user_id: string; status: string; profile_completed: boolean } | null = null;
+              let linkedError: Error | null = null;
+              for (let attempt = 0; attempt < 3; attempt++) {
+                const result = await supabase
+                  .from("profiles").select("user_id,status,profile_completed")
+                  .eq("user_id", session.user.id).maybeSingle();
+                linkedProfile = result.data;
+                linkedError = result.error;
+                if (!linkedError) break;
+                if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+              }
               if (linkedError) throw linkedError;
               const isMember = !!linkedProfile && linkedProfile.status === "active" && linkedProfile.profile_completed === true;
               if (isMember) {
