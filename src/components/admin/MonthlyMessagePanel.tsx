@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Sparkles, Send, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +22,9 @@ const statusBadge = (status: string) => {
 const MonthlyMessagePanel = () => {
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [onlyPending, setOnlyPending] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["monthly-messages"],
@@ -66,6 +71,7 @@ const MonthlyMessagePanel = () => {
     qc.invalidateQueries({ queryKey: ["monthly-messages"] });
   };
 
+  const visibleMessages = messages.filter(m => (!onlyPending || m.status === "pending_approval") && (!search.trim() || String(m.subject || "").toLowerCase().includes(search.trim().toLowerCase())));
   return (
     <div className="space-y-4">
       <Card className="p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -87,12 +93,22 @@ const MonthlyMessagePanel = () => {
         </div>
       </Card>
 
+      <section aria-label="Monthly messages overview" className="space-y-3 rounded-xl border bg-card p-3">
+        <div className="grid grid-cols-3 gap-2">
+          {[{label:"Recent",count:messages.length},{label:"Pending",count:messages.filter(m=>m.status==="pending_approval").length},{label:"Sent",count:messages.filter(m=>m.status==="sent").length}].map(x=><div key={x.label} className="rounded-lg bg-muted/50 p-3"><p className="text-xs text-muted-foreground">{x.label}</p><p className="text-xl font-semibold tabular-nums">{x.count}</p></div>)}
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input aria-label="Search monthly message subjects" placeholder="Search messages…" value={search} onChange={e=>setSearch(e.target.value)}/>
+          <Button variant={onlyPending ? "default" : "outline"} onClick={()=>setOnlyPending(x=>!x)} aria-pressed={onlyPending}>Awaiting approval</Button>
+        </div>
+        <p className="text-xs text-muted-foreground" aria-live="polite">{visibleMessages.length} of {messages.length} messages</p>
+      </section>
       {isLoading ? (
         <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>
-      ) : messages.length === 0 ? (
-        <Card className="p-8 text-center text-sm text-muted-foreground">No monthly messages yet.</Card>
+      ) : visibleMessages.length === 0 ? (
+        <Card className="p-8 text-center text-sm text-muted-foreground">{messages.length ? "No messages match the filters." : "No monthly messages yet."}</Card>
       ) : (
-        messages.map((m) => (
+        visibleMessages.map((m) => (
           <Card key={m.id} className="p-3 sm:p-5 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="font-medium">{m.subject}</h4>
@@ -103,7 +119,7 @@ const MonthlyMessagePanel = () => {
                 </span>
               )}
               {(m.status === "pending_approval" || m.status === "approved") && (
-                <Button size="sm" className="ml-auto gap-1.5" disabled={busy === m.id} onClick={() => sendNow(m.id)}>
+                <Button size="sm" className="ml-auto gap-1.5" disabled={busy === m.id} onClick={() => setConfirmId(m.id)}>
                   {busy === m.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                   Approve &amp; send
                 </Button>
@@ -121,6 +137,13 @@ const MonthlyMessagePanel = () => {
           </Card>
         ))
       )}
+      <AlertDialog open={!!confirmId} onOpenChange={open=>{if(!open)setConfirmId(null);}}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Send this message to all members?</AlertDialogTitle>
+          <AlertDialogDescription>This invokes the existing sending service and may deliver email immediately. Review the message and verify approval first.</AlertDialogDescription>
+        </AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction disabled={!!busy} onClick={()=>{const id=confirmId;setConfirmId(null);if(id)void sendNow(id);}}>Confirm and send</AlertDialogAction>
+        </AlertDialogFooter></AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
