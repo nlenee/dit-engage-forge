@@ -56,7 +56,11 @@ export const EmailCampaignManager = () => {
     }
   };
 
-  const eligibleMembers = members.filter(m => !!m.email && (formData.recipientType !== "birthday" || !!m.birthday));
+  // A birthday greeting must not bulk-email everybody who merely has a DOB recorded.
+  const today = new Date();
+  const birthdayMonthDay = [String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
+  const eligibleMembers = members.filter(m => !!m.email && (formData.recipientType !== "birthday" ||
+    (m.birthday && String(m.birthday).slice(5, 10) === birthdayMonthDay)));
   const handleSendNow = async () => {
     if (!eligibleMembers.length) { toast({ title: "No eligible recipients", variant: "destructive" }); return; }
     if (!formData.subject.trim() || !formData.content.trim()) {
@@ -78,7 +82,7 @@ export const EmailCampaignManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Campaign sent", description: `Sending requested for ${recipients.length} members; check delivery logs` });
+      toast({ title: "Campaign submitted", description: `Sending requested for ${recipients.length} members; check delivery logs` });
       setIsDialogOpen(false);
     } catch (error: any) {
       toast({ title: "Failed to send", description: error.message, variant: "destructive" });
@@ -100,7 +104,7 @@ export const EmailCampaignManager = () => {
     },
     {
       title: "Birthday Greetings",
-      description: "Automatic birthday emails to members",
+      description: "Send a greeting to members celebrating a birthday today",
       icon: CalendarPlus,
       color: "bg-pink-50 text-pink-600",
       action: () => {
@@ -173,7 +177,7 @@ export const EmailCampaignManager = () => {
             </div>
             <div className="text-center p-4 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-green-600">Active</p>
-              <p className="text-sm text-muted-foreground">Auto Birthdays</p>
+              <p className="text-sm text-muted-foreground">Birthday records</p>
             </div>
           </div>
         </CardContent>
@@ -190,6 +194,10 @@ export const EmailCampaignManager = () => {
           </DialogHeader>
 
           <div className="space-y-4">
+            <div className="rounded-lg border bg-muted/40 p-3 text-sm space-y-1">
+              <p className="font-medium">{formData.recipientType === "birthday" ? "Today's birthdays" : "All members with valid email addresses"}</p>
+              <p className="text-muted-foreground">{eligibleMembers.length} eligible recipients. Automatic birthday emails are managed separately.</p>
+            </div>
             <div className="space-y-2">
               <Label>Use Template (optional)</Label>
               <Select value={formData.templateId} onValueChange={handleTemplateSelect}>
