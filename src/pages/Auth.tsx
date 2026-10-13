@@ -34,6 +34,7 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState<string>(params.get("mode") === "signup" ? "signup" : "login");
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
+  const switchingAccount = sessionStorage.getItem("dit_switch_account") === "1";
 
   useEffect(() => {
     const err = params.get("error");
@@ -94,9 +95,10 @@ const Auth = () => {
     setOauthLoading(true);
     setGoogleError(null);
     sessionStorage.setItem("google_intent", intent);
+    sessionStorage.removeItem("dit_switch_account");
     storeNext(params.get("next"));
     try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth` });
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth`, extraParams: { prompt: "select_account" } });
       if (result.error) {
         setOauthLoading(false);
         sessionStorage.removeItem("google_intent");
@@ -139,8 +141,9 @@ const Auth = () => {
                   {googleError}
                 </div>
               )}
+              {switchingAccount && <p className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-slate-700">You are signed out. Choose the Google account you want to use for DIT.</p>}
               <Button type="button" variant="outline" className="w-full" onClick={() => handleGoogle("login")} disabled={oauthLoading}>
-                {oauthLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GoogleIcon />} Continue with Google
+                {oauthLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GoogleIcon />} {switchingAccount ? "Choose Google account" : "Continue with Google"}
               </Button>
               <div className="relative my-2"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">or</span></div></div>
               <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
@@ -163,7 +166,7 @@ const Auth = () => {
                   </div>
                   {loginForm.formState.errors.password && <p className="text-sm text-destructive">{loginForm.formState.errors.password.message}</p>}
                   <div className="text-right">
-                    <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
+                    <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot or set a password?</Link>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
