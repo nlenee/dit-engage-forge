@@ -120,6 +120,7 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [adminSection, setAdminSection] = useState("People");
   const [adminTab, setAdminTab] = useState("users");
+  const [letterStatus, setLetterStatus] = useState("all");
   const [roleChangeUser, setRoleChangeUser] = useState<{
     userId: string;
     name: string;
@@ -140,10 +141,10 @@ const AdminDashboard = () => {
       user.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredLetters = allLetters.filter(
-    (letter) =>
-      letter.recipient_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      letter.office?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredLetters = allLetters.filter(letter =>
+    (letterStatus === "all" || (letter.status || "draft") === letterStatus) &&
+    (letter.recipient_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     letter.office?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const filteredEmails = emailLogs.filter(
@@ -517,6 +518,23 @@ const AdminDashboard = () => {
 
           {/* Letters Tab */}
           <TabsContent value="letters">
+            <section aria-label="Letter status overview" className="mb-4 space-y-3 rounded-xl border bg-card p-3 sm:p-4">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  {label:"Total letters",count:allLetters.length},
+                  {label:"Drafts",count:allLetters.filter(l=>(l.status||"draft")==="draft").length},
+                  {label:"Sent",count:allLetters.filter(l=>l.status==="sent").length}
+                ].map(m=><div key={m.label} className="rounded-lg bg-muted/40 p-3">
+                  <p className="text-xs text-muted-foreground">{m.label}</p><p className="text-xl font-semibold tabular-nums">{m.count}</p>
+                </div>)}
+              </div>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Letter status filters">
+                {["all","draft","downloaded","sent"].map(status=>
+                  <Button key={status} variant={letterStatus===status?"default":"outline"} size="sm" aria-pressed={letterStatus===status}
+                    onClick={()=>setLetterStatus(status)} className="capitalize">{status}</Button>)}
+              </div>
+              <p aria-live="polite" className="text-xs text-muted-foreground">{filteredLetters.length} of {allLetters.length} letters in current view. Use the Administration search field to find a recipient or office.</p>
+            </section>
             <div className="bg-card rounded-xl border border-border/50 shadow-soft overflow-hidden">
               {lettersLoading ? (
                 <div className="p-8 text-center">
