@@ -14,6 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,7 @@ export const EmailCampaignManager = () => {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [confirmSend, setConfirmSend] = useState(false);
   const [formData, setFormData] = useState({
     templateId: "",
     subject: "",
@@ -54,15 +56,17 @@ export const EmailCampaignManager = () => {
     }
   };
 
+  const eligibleMembers = members.filter(m => !!m.email && (formData.recipientType !== "birthday" || !!m.birthday));
   const handleSendNow = async () => {
-    if (!formData.subject || !formData.content) {
+    if (!eligibleMembers.length) { toast({ title: "No eligible recipients", variant: "destructive" }); return; }
+    if (!formData.subject.trim() || !formData.content.trim()) {
       toast({ title: "Please fill in subject and content", variant: "destructive" });
       return;
     }
 
     setIsSending(true);
     try {
-      const recipients = members.map((m) => ({ name: m.full_name, email: m.email }));
+      const recipients = eligibleMembers.map(m => ({ name: m.full_name, email: m.email }));
       
       const { error } = await supabase.functions.invoke("send-campaign-emails", {
         body: {
@@ -74,7 +78,7 @@ export const EmailCampaignManager = () => {
 
       if (error) throw error;
 
-      toast({ title: "Campaign sent", description: `Emails sent to ${recipients.length} members` });
+      toast({ title: "Campaign sent", description: `Sending requested for ${recipients.length} members; check delivery logs` });
       setIsDialogOpen(false);
     } catch (error: any) {
       toast({ title: "Failed to send", description: error.message, variant: "destructive" });
@@ -224,7 +228,7 @@ export const EmailCampaignManager = () => {
             </div>
 
             <div className="p-3 bg-muted/50 rounded-lg text-sm">
-              <strong>Recipients:</strong> {members.length} members
+              <strong>Eligible recipients:</strong> {eligibleMembers.length} members
             </div>
           </div>
 
@@ -232,13 +236,20 @@ export const EmailCampaignManager = () => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSendNow} disabled={isSending || !formData.subject || !formData.content}>
+            <Button onClick={() => setConfirmSend(true)} disabled={isSending || !eligibleMembers.length || !formData.subject.trim() || !formData.content.trim()}>
               {isSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
               Send Now
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={confirmSend} onOpenChange={setConfirmSend}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Confirm campaign audience</AlertDialogTitle>
+          <AlertDialogDescription>Send this campaign to {eligibleMembers.length} eligible members? Verify the audience and content first.</AlertDialogDescription>
+        </AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction disabled={isSending} onClick={()=>{void handleSendNow();}}>Send campaign</AlertDialogAction>
+        </AlertDialogFooter></AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
