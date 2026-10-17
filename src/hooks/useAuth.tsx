@@ -171,6 +171,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               const isMember = !!linkedProfile && linkedProfile.status === "active" && linkedProfile.profile_completed === true;
               if (isMember) {
                 googleVerifiedUserRef.current = session.user.id;
+                try {
+                  sessionStorage.removeItem(VERIFY_FAILED_KEY);
+                  sessionStorage.setItem(VERIFIED_USER_KEY, session.user.id);
+                } catch {}
                 setProfileCompleted(true);
                 setSession(session);
                 setUser(session.user);
@@ -209,14 +213,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               console.error("[auth] Google membership verification unavailable", error);
               // Keep the Google session (access stays hidden until verified) so the
               // member can retry the check without being sent back to Google.
+              // Protected routes redirect to /auth on their own; no page reload here,
+              // which would otherwise loop while the backend is slow.
               setSession(null);
               setUser(null);
               setLoading(false);
               setRolesLoading(false);
-              sessionStorage.setItem("dit_auth_feedback", "verification_unavailable");
-              if (window.location.pathname !== "/auth" || !window.location.search.includes("verification_unavailable")) {
-                window.location.replace("/auth?error=verification_unavailable");
-              }
+              try { sessionStorage.setItem(VERIFY_FAILED_KEY, "1"); } catch {}
+              window.dispatchEvent(new Event(VERIFY_FAILED_EVENT));
             } finally {
               googleVerificationInFlightRef.current = null;
             }
