@@ -150,14 +150,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               // approved OAuth member. Retry boundedly, never bypassing the gate.
               let linkedProfile: { user_id: string; status: string; profile_completed: boolean } | null = null;
               let linkedError: Error | null = null;
-              for (let attempt = 0; attempt < 3; attempt++) {
-                const result = await supabase
-                  .from("profiles").select("user_id,status,profile_completed")
-                  .eq("user_id", session.user.id).maybeSingle();
-                linkedProfile = result.data;
-                linkedError = result.error;
+              const delays = [500, 1200, 2500];
+              for (let attempt = 0; attempt <= delays.length; attempt++) {
+                try {
+                  // A hung request must not strand the member on a spinner.
+                  const result = await Promise.race([
+                    supabase.from("profiles").select("user_id,status,profile_completed")
+                      .eq("user_id", session.user.id).maybeSingle(),
+                    new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Membership check timed out")), 8000)),
+                  ]);
+                  linkedProfile = result.data as typeof linkedProfile;
+                  linkedError = result.error as Error | null;
+                } catch (e) {
+                  linkedError = e instanceof Error ? e : new Error(String(e));
+                }
                 if (!linkedError) break;
-                if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+                if (attempt < delays.length) await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
               }
               if (linkedError) throw linkedError;
               const isMember = !!linkedProfile && linkedProfile.status === "active" && linkedProfile.profile_completed === true;
@@ -199,13 +207,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               }
             } catch (error) {
               console.error("[auth] Google membership verification unavailable", error);
-              await supabase.auth.signOut();
+              // Keep the Google session (access stays hidden until verified) so the
+              // member can retry the check without being sent back to Google.
               setSession(null);
               setUser(null);
               setLoading(false);
               setRolesLoading(false);
               sessionStorage.setItem("dit_auth_feedback", "verification_unavailable");
-                  window.location.replace("/auth?error=verification_unavailable");
+              if (window.location.pathname !== "/auth" || !window.location.search.includes("verification_unavailable")) {
+                window.location.replace("/auth?error=verification_unavailable");
+              }
             } finally {
               googleVerificationInFlightRef.current = null;
             }
