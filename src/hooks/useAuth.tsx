@@ -123,9 +123,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         // Self-heal: if refresh fails or user signs out, clear stale tokens
-        if (event === "SIGNED_OUT" || (event !== "TOKEN_REFRESHED" && !session && user)) {
+        if (event === "SIGNED_OUT" || (event !== "TOKEN_REFRESHED" && !session && userRef.current)) {
           googleVerifiedUserRef.current = null;
           googleVerificationInFlightRef.current = null;
+          try { sessionStorage.removeItem(VERIFIED_USER_KEY); } catch {}
           try {
             Object.keys(localStorage)
               .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
@@ -315,9 +316,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     window.addEventListener("storage", onStorage);
 
+    // Installed app on phones: Google sign-in can finish in a browser overlay
+    // while this window still shows the sign-in page. When the app comes back
+    // into view and a saved session exists that this window has not picked up,
+    // reload once so the member lands on their dashboard instead of tapping
+    // "Continue with Google" again.
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (userRef.current || googleVerificationInFlightRef.current) return;
+      try {
+        if (sessionStorage.getItem(VERIFY_FAILED_KEY)) return;
+        const hasToken = Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+        if (hasToken && window.location.pathname === "/auth") window.location.reload();
+      } catch {}
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
       subscription.unsubscribe();
       window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -365,6 +383,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       sessionStorage.removeItem("google_intent");
       sessionStorage.removeItem("dit_auth_feedback");
+      sessionStorage.removeItem(VERIFIED_USER_KEY);
+      sessionStorage.removeItem(VERIFY_FAILED_KEY);
       window.location.replace("/auth");
     } catch (error) {
       console.error("[auth] Sign out failed", error);
