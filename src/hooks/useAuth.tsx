@@ -42,6 +42,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+export const VERIFY_FAILED_KEY = "dit_verify_failed";
+export const VERIFY_FAILED_EVENT = "dit-verify-failed";
+const VERIFIED_USER_KEY = "dit_google_verified";
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -55,8 +59,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [permissions, setPermissions] = useState<string[]>([]);
   const roleRequestRef = useRef(0);
   const rolesLoadedForRef = useRef<string | null>(null);
-  const googleVerifiedUserRef = useRef<string | null>(null);
+  // Remember a verified Google member for this tab so page reloads do not
+  // repeat the membership check (and risk a spurious failure) every time.
+  const googleVerifiedUserRef = useRef<string | null>((() => {
+    try { return sessionStorage.getItem(VERIFIED_USER_KEY); } catch { return null; }
+  })());
   const googleVerificationInFlightRef = useRef<string | null>(null);
+  const userRef = useRef<User | null>(null);
+  userRef.current = user;
 
   const has = (r: AppRole) => allRoles.includes(r);
   const isAdmin = has("admin");
