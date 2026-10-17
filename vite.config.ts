@@ -40,7 +40,9 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.hostname.endsWith(".supabase.co"),
+            // Only cache data reads. Sign-in, session, function and realtime calls
+            // must always hit the network or members get stale/foreign sessions.
+            urlPattern: ({ url }) => url.hostname.endsWith(".supabase.co") && url.pathname.startsWith("/rest/v1/"),
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api",

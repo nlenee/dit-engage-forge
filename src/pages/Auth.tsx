@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, VERIFY_FAILED_KEY, VERIFY_FAILED_EVENT } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable/index";
 import ditLogo from "@/assets/dit-logo.jpg";
 
@@ -58,6 +58,28 @@ const Auth = () => {
     setActiveTab("login");
   }, [params, navigate]);
 
+  // Membership check could not finish (slow connection). The Google session is
+  // kept, so offer a quick retry instead of sending the member back to Google.
+  const [verifyFailed, setVerifyFailed] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(VERIFY_FAILED_KEY) === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    const onFail = () => { setVerifyFailed(true); setOauthLoading(false); setActiveTab("login"); };
+    // Returning with the browser Back button restores a frozen page; clear the spinner.
+    const onShow = () => setOauthLoading(false);
+    window.addEventListener(VERIFY_FAILED_EVENT, onFail);
+    window.addEventListener("pageshow", onShow);
+    return () => {
+      window.removeEventListener(VERIFY_FAILED_EVENT, onFail);
+      window.removeEventListener("pageshow", onShow);
+    };
+  }, []);
+  const retryVerification = () => {
+    try { sessionStorage.removeItem(VERIFY_FAILED_KEY); } catch {}
+    window.location.reload();
+  };
+
+
 
   useEffect(() => {
     if (!user) return;
@@ -91,9 +113,10 @@ const Auth = () => {
 
   const handleGoogle = async (intent: "login" | "signup") => {
     setGoogleError(null);
+    setVerifyFailed(false);
     sessionStorage.removeItem("dit_auth_feedback");
+    sessionStorage.removeItem(VERIFY_FAILED_KEY);
     setOauthLoading(true);
-    setGoogleError(null);
     sessionStorage.setItem("google_intent", intent);
     sessionStorage.removeItem("dit_switch_account");
     storeNext(params.get("next"));
@@ -139,6 +162,12 @@ const Auth = () => {
               {googleError && (
                 <div className="rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-sm p-3">
                   {googleError}
+                </div>
+              )}
+              {verifyFailed && (
+                <div className="rounded-md border border-primary/30 bg-primary/5 text-slate-700 text-sm p-3 space-y-2">
+                  <p>You're signed in with Google, but the connection was too slow to confirm your membership. Tap below to finish — no need to choose your Google account again.</p>
+                  <Button type="button" className="w-full min-h-11" onClick={retryVerification}>Finish signing in</Button>
                 </div>
               )}
               {switchingAccount && <p className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-slate-700">You are signed out. Choose the Google account you want to use for DIT.</p>}

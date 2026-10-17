@@ -42,6 +42,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+export const VERIFY_FAILED_KEY = "dit_verify_failed";
+export const VERIFY_FAILED_EVENT = "dit-verify-failed";
+const VERIFIED_USER_KEY = "dit_google_verified";
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -55,8 +59,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [permissions, setPermissions] = useState<string[]>([]);
   const roleRequestRef = useRef(0);
   const rolesLoadedForRef = useRef<string | null>(null);
-  const googleVerifiedUserRef = useRef<string | null>(null);
+  // Remember a verified Google member for this tab so page reloads do not
+  // repeat the membership check (and risk a spurious failure) every time.
+  const googleVerifiedUserRef = useRef<string | null>((() => {
+    try { return sessionStorage.getItem(VERIFIED_USER_KEY); } catch { return null; }
+  })());
   const googleVerificationInFlightRef = useRef<string | null>(null);
+  const userRef = useRef<User | null>(null);
+  userRef.current = user;
 
   const has = (r: AppRole) => allRoles.includes(r);
   const isAdmin = has("admin");
@@ -113,9 +123,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         // Self-heal: if refresh fails or user signs out, clear stale tokens
-        if (event === "SIGNED_OUT" || (event !== "TOKEN_REFRESHED" && !session && user)) {
+        if (event === "SIGNED_OUT" || (event !== "TOKEN_REFRESHED" && !session && userRef.current)) {
           googleVerifiedUserRef.current = null;
           googleVerificationInFlightRef.current = null;
+          try { sessionStorage.removeItem(VERIFIED_USER_KEY); } catch {}
           try {
             Object.keys(localStorage)
               .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
@@ -150,19 +161,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               // approved OAuth member. Retry boundedly, never bypassing the gate.
               let linkedProfile: { user_id: string; status: string; profile_completed: boolean } | null = null;
               let linkedError: Error | null = null;
-              for (let attempt = 0; attempt < 3; attempt++) {
-                const result = await supabase
-                  .from("profiles").select("user_id,status,profile_completed")
-                  .eq("user_id", session.user.id).maybeSingle();
-                linkedProfile = result.data;
-                linkedError = result.error;
+              const delays = [500, 1200, 2500];
+              for (let attempt = 0; attempt <= delays.length; attempt++) {
+                try {
+                  // A hung request must not strand the member on a spinner.
+                  const result = await Promise.race([
+                    supabase.from("profiles").select("user_id,status,profile_completed")
+                      .eq("user_id", session.user.id).maybeSingle(),
+                    new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Membership check timed out")), 8000)),
+                  ]);
+                  linkedProfile = result.data as typeof linkedProfile;
+                  linkedError = result.error as Error | null;
+                } catch (e) {
+                  linkedError = e instanceof Error ? e : new Error(String(e));
+                }
                 if (!linkedError) break;
-                if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+                if (attempt < delays.length) await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
               }
               if (linkedError) throw linkedError;
               const isMember = !!linkedProfile && linkedProfile.status === "active" && linkedProfile.profile_completed === true;
               if (isMember) {
                 googleVerifiedUserRef.current = session.user.id;
+                try {
+                  sessionStorage.removeItem(VERIFY_FAILED_KEY);
+                  sessionStorage.setItem(VERIFIED_USER_KEY, session.user.id);
+                } catch {}
                 setProfileCompleted(true);
                 setSession(session);
                 setUser(session.user);
@@ -199,13 +222,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               }
             } catch (error) {
               console.error("[auth] Google membership verification unavailable", error);
-              await supabase.auth.signOut();
+              // Keep the Google session (access stays hidden until verified) so the
+              // member can retry the check without being sent back to Google.
+              // Protected routes redirect to /auth on their own; no page reload here,
+              // which would otherwise loop while the backend is slow.
               setSession(null);
               setUser(null);
               setLoading(false);
               setRolesLoading(false);
-              sessionStorage.setItem("dit_auth_feedback", "verification_unavailable");
-                  window.location.replace("/auth?error=verification_unavailable");
+              try { sessionStorage.setItem(VERIFY_FAILED_KEY, "1"); } catch {}
+              window.dispatchEvent(new Event(VERIFY_FAILED_EVENT));
             } finally {
               googleVerificationInFlightRef.current = null;
             }
@@ -290,9 +316,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     window.addEventListener("storage", onStorage);
 
+    // Installed app on phones: Google sign-in can finish in a browser overlay
+    // while this window still shows the sign-in page. When the app comes back
+    // into view and a saved session exists that this window has not picked up,
+    // reload once so the member lands on their dashboard instead of tapping
+    // "Continue with Google" again.
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (userRef.current || googleVerificationInFlightRef.current) return;
+      try {
+        if (sessionStorage.getItem(VERIFY_FAILED_KEY)) return;
+        const hasToken = Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+        if (hasToken && window.location.pathname === "/auth") window.location.reload();
+      } catch {}
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
       subscription.unsubscribe();
       window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -340,6 +383,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       sessionStorage.removeItem("google_intent");
       sessionStorage.removeItem("dit_auth_feedback");
+      sessionStorage.removeItem(VERIFIED_USER_KEY);
+      sessionStorage.removeItem(VERIFY_FAILED_KEY);
       window.location.replace("/auth");
     } catch (error) {
       console.error("[auth] Sign out failed", error);
