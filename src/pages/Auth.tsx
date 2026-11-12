@@ -37,6 +37,26 @@ const Auth = () => {
   const switchingAccount = sessionStorage.getItem("dit_switch_account") === "1";
 
   useEffect(() => {
+    // OAuth providers report errors in URL fragments; React Router search
+    // params cannot see them. Display a useful message rather than silently
+    // returning the member to a seemingly fresh login form.
+    const fragment = window.location.hash.replace(/^#/, "");
+    if (!fragment) return;
+    const oauth = new URLSearchParams(fragment);
+    const error = oauth.get("error");
+    if (!error) return;
+    if (error === "server_error" && oauth.get("error_description")?.includes("failed to sign in with vendor")) {
+      setGoogleError("Google sign-in was interrupted by the authentication provider. Please retry once. If it continues, contact DIT support; your member account has not been changed.");
+    } else {
+      setGoogleError("Google could not complete sign-in. Please try again or contact DIT support.");
+    }
+    setOauthLoading(false);
+    setActiveTab("login");
+    // Never preserve provider state or error text in copied/shareable URLs.
+    window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+  }, []);
+
+  useEffect(() => {
     const err = params.get("error");
     // Only show feedback created by a Google sign-in attempt in this tab.
     // Bookmarked/stale ?error= links must open as a clean login page.
