@@ -9,3 +9,4 @@
 - [ ] P1-F: Fix signed-in automated test
 
 - [x] Google sign-in reliability: no sign-out on slow membership check (retry button), offline cache skips sign-in calls, installed app picks up finished sign-in
+- [x] P0: Recover once from failed lazy-loaded asset preloads to handle stale deployment bundles without reload loops
